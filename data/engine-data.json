@@ -1,0 +1,26 @@
+{
+    "entry": "runtime/entry.js",
+    "stateful": true,
+    "useWebGL": true,
+    "editor": {
+        "entry": "runtime/editor-entry.js",
+        "defaultData": {
+            "message": "Hello from data folder!",
+            "playTime": 120,
+            "rebuses": [
+                {
+                    "id": "rebus001",
+                    "enabled": true
+                },
+                {
+                    "id": "rebus002",
+                    "enabled": false
+                }
+            ]
+        },
+        "demoData": {
+            "message": "Hello, ZPE!"
+        },
+        "editorIcon": "editor-icon.svg"
+    }
+}

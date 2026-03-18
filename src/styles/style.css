@@ -1,0 +1,169 @@
+/* KOSMICZNE UKŁADY - Game Styles - !important overrides for ZPE platform */
+
+.gameWrapper {
+    position: relative !important;
+    width: 100% !important;
+    min-height: 600px !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-color: #0a0a1a !important;
+    font-family: Arial, sans-serif !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    color: #ffffff !important;
+    user-select: none !important;
+}
+.topBar {
+    position: relative !important;
+    width: 100% !important;
+    height: 70px !important;
+    background-color: #1a2a4a !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 1 !important;
+    box-sizing: border-box !important;
+}
+.topBarTitle {
+    font-size: 1.4rem !important;
+    font-weight: bold !important;
+    color: #f5c518 !important;
+    text-align: center !important;
+    letter-spacing: 1px !important;
+}
+.topBarIcons {
+    position: absolute !important;
+    right: 16px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+}
+.iconBtn {
+    width: 40px !important;
+    height: 40px !important;
+    background: rgba(255,255,255,0.1) !important;
+    border: 2px solid rgba(255,255,255,0.3) !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+}
+.iconBtn:hover { background: rgba(255,255,255,0.25) !important; }
+.iconBtn img { width: 22px !important; height: 22px !important; }
+.screen { display: none !important; width: 100% !important; box-sizing: border-box !important; }
+.screenActive { display: flex !important; }
+.welcomeScreen.screenActive { display: flex !important; }
+.gameScreen.screenActive { display: flex !important; }
+.modelScreen.screenActive { display: flex !important; }
+
+/* WELCOME SCREEN */
+.welcomeScreen {
+    position: relative !important;
+    padding: 20px !important;
+    min-height: 530px !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.welcomeDecoLeft { position: absolute !important; left: 10px !important; top: 20px !important; display: flex !important; flex-direction: column !important; gap: 10px !important; }
+.welcomeDecoLeft img { width: 80px !important; height: auto !important; }
+.welcomeDecoRight { position: absolute !important; right: 10px !important; top: 10px !important; }
+.welcomeDecoRight img { width: 100px !important; height: auto !important; }
+.welcomeAstronaut { position: absolute !important; left: 10px !important; bottom: 10px !important; }
+.welcomeAstronaut img { width: 90px !important; height: auto !important; }
+.welcomePopup {
+    position: relative !important;
+    background: rgba(40, 60, 100, 0.92) !important;
+    border: 3px solid rgba(100, 150, 255, 0.5) !important;
+    border-radius: 16px !important;
+    padding: 30px 40px !important;
+    max-width: 620px !important;
+    width: 90% !important;
+    text-align: center !important;
+    box-shadow: 0 0 40px rgba(100, 150, 255, 0.3) !important;
+}
+.welcomeTitle { font-size: 2rem !important; font-weight: bold !important; color: #f5c518 !important; margin-bottom: 20px !important; }
+.welcomeText { font-size: 1rem !important; color: #ffffff !important; line-height: 1.6 !important; margin-bottom: 16px !important; font-weight: bold !important; }
+.welcomeTask { display: flex !important; align-items: flex-start !important; gap: 12px !important; background: rgba(255,255,255,0.05) !important; border-radius: 10px !important; padding: 14px !important; margin-bottom: 24px !important; text-align: left !important; }
+.welcomeTaskIcon { width: 50px !important; height: auto !important; flex-shrink: 0 !important; }
+.welcomeTaskText { font-size: 0.95rem !important; color: #ffffff !important; line-height: 1.5 !important; }
+.welcomeTaskLabel { color: #f5c518 !important; font-weight: bold !important; }
+.welcomeButtons { display: flex !important; gap: 16px !important; justify-content: center !important; flex-wrap: wrap !important; }
+
+/* BUTTONS */
+.btn {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 24px !important;
+    height: 50px !important;
+    min-width: 160px !important;
+    background: linear-gradient(180deg, #3a5a9a 0%, #1a3a6a 100%) !important;
+    border: 2px solid rgba(100, 150, 255, 0.6) !important;
+    border-radius: 8px !important;
+    color: #f5c518 !important;
+    font-size: 1rem !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
+    letter-spacing: 0.5px !important;
+}
+.btn:hover { background: linear-gradient(180deg, #4a6aaa 0%, #2a4a7a 100%) !important; border-color: rgba(245, 197, 24, 0.8) !important; }
+.btn:active { box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important; }
+
+/* MAIN GAME SCREEN */
+.gameScreen { width: 100% !important; min-height: 530px !important; box-sizing: border-box !important; }
+.astronomersPanel { width: 200px !important; flex-shrink: 0 !important; display: flex !important; flex-direction: column !important; gap: 8px !important; padding: 10px 8px !important; background: rgba(0,0,0,0.3) !important; box-sizing: border-box !important; }
+.astronomerCard { position: relative !important; width: 100% !important; cursor: pointer !important; border: 3px solid transparent !important; border-radius: 8px !important; overflow: visible !important; box-sizing: border-box !important; }
+.astronomerCard:hover { border-color: rgba(245, 197, 24, 0.7) !important; }
+.astronomerCardActive { border-color: #f5c518 !important; box-shadow: 0 0 15px rgba(245, 197, 24, 0.5) !important; }
+.astronomerCard img { width: 100% !important; height: 150px !important; object-fit: cover !important; display: block !important; border-radius: 5px !important; }
+.astronomerTooltip { display: none !important; position: absolute !important; left: calc(100% + 8px) !important; top: 50% !important; transform: translateY(-50%) !important; background: rgba(0,0,0,0.9) !important; color: #ffffff !important; padding: 8px 12px !important; border-radius: 6px !important; white-space: nowrap !important; font-size: 0.85rem !important; z-index: 10 !important; pointer-events: none !important; border: 1px solid rgba(255,255,255,0.2) !important; }
+.astronomerTooltipLabel { color: #aaaaaa !important; font-style: italic !important; }
+.astronomerTooltipName { color: #f5c518 !important; font-weight: bold !important; }
+.astronomerCard:hover .astronomerTooltip { display: block !important; }
+.solarSystemPanel { flex: 1 !important; position: relative !important; overflow: hidden !important; display: flex !important; flex-direction: column !important; align-items: center !important; }
+.solarSystemTitle { font-size: 1.2rem !important; font-weight: bold !important; color: #ffffff !important; text-align: center !important; padding: 14px 20px 8px !important; position: relative !important; z-index: 2 !important; width: 100% !important; box-sizing: border-box !important; }
+.solarSystemContainer { flex: 1 !important; width: 100% !important; position: relative !important; overflow: hidden !important; cursor: grab !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+.solarSystemContainer:active { cursor: grabbing !important; }
+.solarSystemImage { max-width: 100% !important; max-height: 420px !important; object-fit: contain !important; transform-origin: center center !important; display: block !important; pointer-events: none !important; }
+.astronomerDecoration { position: absolute !important; bottom: 10px !important; right: 10px !important; pointer-events: none !important; z-index: 1 !important; }
+.astronomerDecoration img { width: 80px !important; height: auto !important; }
+
+/* POPUP */
+.overlay { display: none !important; position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; background: rgba(0,0,0,0.7) !important; z-index: 100 !important; align-items: center !important; justify-content: center !important; }
+.overlayVisible { display: flex !important; }
+.popup { position: relative !important; background: rgba(30, 50, 90, 0.97) !important; border: 3px solid rgba(100, 150, 255, 0.5) !important; border-radius: 16px !important; padding: 28px 32px !important; max-width: 700px !important; width: 92% !important; max-height: 85vh !important; overflow-y: auto !important; box-shadow: 0 0 50px rgba(100, 150, 255, 0.3) !important; box-sizing: border-box !important; }
+.bioPopup { display: flex !important; gap: 20px !important; align-items: flex-start !important; }
+.bioPortraitCol { flex-shrink: 0 !important; }
+.bioPortraitMain { width: 120px !important; height: 140px !important; object-fit: cover !important; border-radius: 8px !important; border: 2px solid rgba(245, 197, 24, 0.5) !important; }
+.bioContent { flex: 1 !important; }
+.bioTitle { font-size: 1.6rem !important; font-weight: bold !important; color: #f5c518 !important; margin-bottom: 12px !important; text-align: center !important; }
+.bioSeparator { width: 100% !important; height: 2px !important; background: rgba(100, 150, 255, 0.4) !important; margin-bottom: 14px !important; }
+.bioText { font-size: 0.95rem !important; color: #e0e0e0 !important; line-height: 1.7 !important; white-space: pre-line !important; }
+.popupButtons { display: flex !important; gap: 12px !important; justify-content: center !important; margin-top: 20px !important; flex-wrap: wrap !important; }
+
+/* MODEL SCREEN */
+.modelScreen { width: 100% !important; min-height: 530px !important; flex-direction: column !important; align-items: center !important; position: relative !important; }
+.modelTitle { font-size: 1.3rem !important; font-weight: bold !important; color: #ffffff !important; text-align: center !important; padding: 16px 20px 8px !important; width: 100% !important; box-sizing: border-box !important; z-index: 2 !important; position: relative !important; }
+.modelContent { display: flex !important; width: 100% !important; flex: 1 !important; }
+.modelAstronomersPanel { width: 200px !important; flex-shrink: 0 !important; display: flex !important; flex-direction: column !important; gap: 8px !important; padding: 10px 8px !important; background: rgba(0,0,0,0.3) !important; box-sizing: border-box !important; }
+.modelImageArea { flex: 1 !important; position: relative !important; overflow: hidden !important; cursor: grab !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-direction: column !important; }
+.modelImageArea:active { cursor: grabbing !important; }
+.modelImage { max-width: 100% !important; max-height: 400px !important; object-fit: contain !important; transform-origin: center center !important; display: block !important; pointer-events: none !important; }
+.modelButtons { padding: 16px !important; display: flex !important; justify-content: center !important; width: 100% !important; box-sizing: border-box !important; }
+.geocentricSvg { width: 100% !important; max-width: 500px !important; height: auto !important; max-height: 400px !important; }
+
+/* INSTRUCTION / SETTINGS */
+.instrTitle { font-size: 1.5rem !important; font-weight: bold !important; color: #f5c518 !important; margin-bottom: 16px !important; text-align: center !important; }
+.instrText { font-size: 0.95rem !important; color: #e0e0e0 !important; line-height: 1.7 !important; margin-bottom: 20px !important; text-align: center !important; }
+.settingsTitle { font-size: 1.5rem !important; font-weight: bold !important; color: #f5c518 !important; margin-bottom: 20px !important; text-align: center !important; }
+.settingsRow { display: flex !important; align-items: center !important; justify-content: space-between !important; padding: 12px 0 !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important; gap: 20px !important; }
+.settingsLabel { font-size: 1rem !important; color: #e0e0e0 !important; }
+.popup::-webkit-scrollbar { width: 6px !important; }
+.popup::-webkit-scrollbar-track { background: rgba(255,255,255,0.05) !important; }
+.popup::-webkit-scrollbar-thumb { background: rgba(100, 150, 255, 0.5) !important; border-radius: 3px !important; }
