@@ -1,0 +1,9 @@
+{
+  "entry": "entry.js",
+  "stateful": true,
+  "editor": {
+    "entry": "editor.js",
+    "defaultData": {},
+    "demoData": {}
+  }
+}
