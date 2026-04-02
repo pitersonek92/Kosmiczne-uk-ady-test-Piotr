@@ -17,13 +17,21 @@ declare const ZPE: {
 };
 
 let app: App | null = null;
+let _savedState: any = {};
 
-function _init(container: HTMLElement, params: ZPEParams): void {
-  app = new App(container, params);
-  app.mount();
+function _init(container: HTMLElement, params: ZPEParams): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    try {
+      app = new App(container, params);
+      app.mount();
+      resolve();
+    } catch (err) {
+      reject(err);
+    }
+  });
 }
 
-function _run(stateData: Partial<AppState> | null, isFrozen: boolean): void {
+function _run(stateData: Partial<AppState> | null, isFrozen: boolean): Promise<void> {
   if (stateData && app) {
     app.restoreState(stateData);
   }
@@ -32,23 +40,39 @@ function _run(stateData: Partial<AppState> | null, isFrozen: boolean): void {
   } else if (app) {
     app.resume();
   }
+  return Promise.resolve();
 }
 
-function _unload(): void {
+function _unload(): Promise<void> {
   if (app) {
     app.saveState((data: any) => {
+      _savedState = data;
       if (typeof ZPE !== 'undefined') ZPE.setState(data);
     });
     app.removeListeners();
   }
+  return Promise.resolve();
 }
 
-function _destroy(container: HTMLElement): void {
+function _destroy(container: HTMLElement): Promise<void> {
   if (app) {
     app.unmount();
     app = null;
   }
   container.innerHTML = '';
+  return Promise.resolve();
+}
+
+function _setState(state: any): void {
+  _savedState = state || {};
+  if (app) app.restoreState(_savedState);
+}
+
+function _getState(): any {
+  if (app) {
+    app.saveState((data: any) => { _savedState = data; });
+  }
+  return _savedState;
 }
 
 // For the emulator: ZPE is injected as a global, call immediately via side-effect
@@ -68,6 +92,8 @@ export default function engineFactory() {
     init: _init,
     run: _run,
     unload: _unload,
-    destroy: _destroy
+    destroy: _destroy,
+    setState: _setState,
+    getState: _getState
   };
 }

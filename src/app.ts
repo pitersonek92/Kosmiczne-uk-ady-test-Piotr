@@ -8,7 +8,8 @@ import { CanvasEngine } from './engine';
 import { applyWcag, createColorFilterSVG, playClick, playHover } from './wcag';
 
 export interface ZPEParams {
-  path: (name: string) => string;
+  path?: (name: string) => string;
+  enginePath?: (name: string) => string;
   [key: string]: any;
 }
 
@@ -757,7 +758,9 @@ export class App {
   resume(): void { this.engine?.setPaused(false); this.modelEngine?.setPaused(false); }
 
   private p(name: string): string {
-    return this.params.path(name);
+    if (typeof this.params.path === 'function') return this.params.path(name);
+    if (typeof this.params.enginePath === 'function') return this.params.enginePath(name);
+    return name;
   }
 
   // ============================================================
@@ -896,7 +899,7 @@ export class App {
 
     const taskIcon = document.createElement('img');
     taskIcon.className = 'ku-task-icon';
-    taskIcon.src = this.p('images/icon_clipboard_svg.png');
+    taskIcon.src = this.p('images/icon_clipboard.svg.png');
     taskIcon.alt = '';
 
     const taskText = document.createElement('p');

@@ -912,7 +912,11 @@ var App = /** @class */ (function () {
     App.prototype.freeze = function () { var _a, _b; (_a = this.engine) === null || _a === void 0 ? void 0 : _a.setPaused(true); (_b = this.modelEngine) === null || _b === void 0 ? void 0 : _b.setPaused(true); };
     App.prototype.resume = function () { var _a, _b; (_a = this.engine) === null || _a === void 0 ? void 0 : _a.setPaused(false); (_b = this.modelEngine) === null || _b === void 0 ? void 0 : _b.setPaused(false); };
     App.prototype.p = function (name) {
-        return this.params.path(name);
+        if (typeof this.params.path === 'function')
+            return this.params.path(name);
+        if (typeof this.params.enginePath === 'function')
+            return this.params.enginePath(name);
+        return name;
     };
     // ============================================================
     // TOPBAR
@@ -1027,7 +1031,7 @@ var App = /** @class */ (function () {
         taskBox.className = 'ku-task-box';
         var taskIcon = document.createElement('img');
         taskIcon.className = 'ku-task-icon';
-        taskIcon.src = this.p('images/icon_clipboard_svg.png');
+        taskIcon.src = this.p('images/icon_clipboard.svg.png');
         taskIcon.alt = '';
         var taskText = document.createElement('p');
         taskText.className = 'ku-task-text';
@@ -1826,9 +1830,18 @@ var App = /** @class */ (function () {
 // ============================================================
 
 var app = null;
+var _savedState = {};
 function _init(container, params) {
-    app = new App(container, params);
-    app.mount();
+    return new Promise(function (resolve, reject) {
+        try {
+            app = new App(container, params);
+            app.mount();
+            resolve();
+        }
+        catch (err) {
+            reject(err);
+        }
+    });
 }
 function _run(stateData, isFrozen) {
     if (stateData && app) {
@@ -1840,15 +1853,18 @@ function _run(stateData, isFrozen) {
     else if (app) {
         app.resume();
     }
+    return Promise.resolve();
 }
 function _unload() {
     if (app) {
         app.saveState(function (data) {
+            _savedState = data;
             if (typeof ZPE !== 'undefined')
                 ZPE.setState(data);
         });
         app.removeListeners();
     }
+    return Promise.resolve();
 }
 function _destroy(container) {
     if (app) {
@@ -1856,6 +1872,18 @@ function _destroy(container) {
         app = null;
     }
     container.innerHTML = '';
+    return Promise.resolve();
+}
+function _setState(state) {
+    _savedState = state || {};
+    if (app)
+        app.restoreState(_savedState);
+}
+function _getState() {
+    if (app) {
+        app.saveState(function (data) { _savedState = data; });
+    }
+    return _savedState;
 }
 // For the emulator: ZPE is injected as a global, call immediately via side-effect
 if (typeof ZPE !== 'undefined') {
@@ -1873,7 +1901,9 @@ function engineFactory() {
         init: _init,
         run: _run,
         unload: _unload,
-        destroy: _destroy
+        destroy: _destroy,
+        setState: _setState,
+        getState: _getState
     };
 }
 
