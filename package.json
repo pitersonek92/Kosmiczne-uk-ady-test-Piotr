@@ -1,0 +1,30 @@
+{
+    "name": "kosmiczne-uklady",
+    "version": "1.0.0",
+    "description": "Kosmiczne Układy — gra edukacyjna ZPE",
+    "scripts": {
+        "build": "webpack --config webpack.config.js --env production --",
+        "deploy": "webpack --config webpack.config.js --env production --env deploy",
+        "dev": "webpack serve --config webpack.config.js --env development"
+    },
+    "author": "",
+    "license": "",
+    "devDependencies": {
+        "@types/node": "^24.10.0",
+        "copy-webpack-plugin": "^13.0.1",
+        "cross-env": "^10.1.0",
+        "css-loader": "^7.1.2",
+        "file-loader": "^6.2.0",
+        "html-loader": "^5.1.0",
+        "html-webpack-plugin": "^5.6.4",
+        "raw-loader": "^4.0.2",
+        "style-loader": "^4.0.0",
+        "ts-loader": "^9.5.4",
+        "url-loader": "^4.1.1",
+        "webpack": "^5.102.1",
+        "webpack-cli": "^6.0.1",
+        "webpack-dev-server": "^5.2.2",
+        "webpack-merge": "^6.0.1"
+    },
+    "dependencies": {}
+}

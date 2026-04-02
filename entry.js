@@ -1,36 +1,36 @@
-define(() => { return /******/ (() => { // webpackBootstrap
+define(function() { return /******/ (function() { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	// The require scope
 /******/ 	var __webpack_require__ = {};
 /******/ 	
 /************************************************************************/
 /******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
+/******/ 	!function() {
 /******/ 		// define getter functions for harmony exports
-/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 		__webpack_require__.d = function(exports, definition) {
 /******/ 			for(var key in definition) {
 /******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
 /******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
 /******/ 				}
 /******/ 			}
 /******/ 		};
-/******/ 	})();
+/******/ 	}();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
+/******/ 	!function() {
+/******/ 		__webpack_require__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
+/******/ 	}();
 /******/ 	
 /******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
+/******/ 	!function() {
 /******/ 		// define __esModule on exports
-/******/ 		__webpack_require__.r = (exports) => {
+/******/ 		__webpack_require__.r = function(exports) {
 /******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
 /******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
 /******/ 			}
 /******/ 			Object.defineProperty(exports, '__esModule', { value: true });
 /******/ 		};
-/******/ 	})();
+/******/ 	}();
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
@@ -39,224 +39,33 @@ __webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  "default": () => (/* binding */ main),
-  destroy: () => (/* binding */ destroy),
-  init: () => (/* binding */ init),
-  run: () => (/* binding */ run),
-  unload: () => (/* binding */ unload)
+  "default": function() { return /* binding */ engineFactory; }
 });
 
-;// ./packages/zpe-port/build/zpe.js
-let _container;
-let _exerciseApi;
-let _engineOptions;
-let _data;
-let _state = null;
-let _isStateRestored = false;
-let _isFrozen = false;
-let _isRunning = false;
-// Główna funkcja starująca aplikację.
-// Aplikacja pracuje jako biblioteka AMD wywoływana przez platformę.
-// Przykład użycia:
-//
-// plik src/index.ts:
-// 
-// import * as ZPE from "./zpe";
-// import { init, destroy } from "./app";
-//
-// export default ZPE.create(init, run, destroy, unload);
-//
-// gdzie:
-//   init - funkcja inicjalizująca aplikację. Przyjmuje kontener HTML jako argument i zwraca Promise który
-//          rozwiązuje się gdy aplikacja jest gotowa do użycia.
-//   destroy - funkcja sprzątająca zasoby przy niszczeniu aplikacji
-//
-// 1. Razem z funkcją init przekazwyana jest kontener HTML. Tylko w nim aplikacja może tworzyć swoje elementy.
-// 2. Funkcja init musi zwracać Promise, który powinien się rozwiązać gdy aplikacja jest gotowa do użycia.
-// 3. Funkcja destroy jest wywoływana przy niszczeniu aplikacji i powinna posprzątać zasoby (usunąć elementy z DOM itp.)
-function create(initFn, runFn, unloadFn, destroyFn) {
-    if (!initFn) {
-        throw new Error("Init function is required to create the engine.");
-    }
-    if (!runFn) {
-        throw new Error("Run function is required to create the engine.");
-    }
-    if (!unloadFn) {
-        throw new Error("Unload function is required to create the engine.");
-    }
-    if (!destroyFn) {
-        throw new Error("Destroy function is required to create the engine.");
-    }
-    return function () {
-        return {
-            init: (container, api, options) => {
-                return new Promise((resolve) => {
-                    log("ZPE initializing engine with options:", options);
-                    _container = container;
-                    _exerciseApi = api;
-                    _engineOptions = options;
-                    _data = _engineOptions.data || {};
-                    log("Hello, Engine!", _data, options);
-                    initFn(container).then(() => {
-                        resolve();
-                    }).catch((e) => {
-                        log("Error during init:", e);
-                        resolve();
-                    });
-                });
-            },
-            destroy: () => {
-                return Promise.resolve().then(() => {
-                    log("ZPE destroying engine.");
-                    try {
-                        const result = unloadFn();
-                        if (result instanceof Promise) {
-                            return result;
-                        }
-                    }
-                    catch (e) {
-                        log("Error during unload:", e);
-                    }
-                    return Promise.resolve();
-                }).then(() => {
-                    try {
-                        const result = destroyFn();
-                        if (result instanceof Promise) {
-                            return result;
-                        }
-                    }
-                    catch (e) {
-                        log("Error during destroy:", e);
-                    }
-                    return Promise.resolve();
-                }).then(() => {
-                    log("ZPE engine destroyed.");
-                });
-            },
-            setState(stateData) {
-                log("ZPE setting state:", stateData);
-                _state = typeof stateData === "object" ? stateData : null;
-                _isStateRestored = true;
-                _isFrozen = false;
-                waitForFrozenOrTimeout(1000).then(() => {
-                    if (_isRunning && unloadFn) {
-                        try {
-                            const result = unloadFn();
-                            if (result instanceof Promise) {
-                                return result;
-                            }
-                        }
-                        catch (e) {
-                            log("Error during unload:", e);
-                        }
-                    }
-                    return Promise.resolve();
-                }).then(() => {
-                    log("ZPE running engine with state:", _state, "frozen:", _isFrozen);
-                    try {
-                        runFn(structuredClone(_state), _isFrozen);
-                    }
-                    catch (e) {
-                        log("Error during run:", e);
-                    }
-                    _isRunning = true;
-                });
-            },
-            getState() {
-                log("ZPE getting state:", _state);
-                return _state;
-            },
-            setStateFrozen(value) {
-                _isFrozen = value;
-                log("Setting state frozen:", _isFrozen);
-            },
-            getStateProgress(data) {
-                log("Getting state progress with data:", data);
-                return {};
-            }
-        };
-    };
-}
-function log(...args) {
-    console.log("[ZPEPort]", ...args);
-}
-// function waitForStateRestore(): Promise<void> {
-//     return new Promise((resolve) => {
-//         if (_isStateRestored) {
-//             resolve();
-//         } else {
-//             const checkInterval = setInterval(() => {
-//                 if (_isStateRestored) {
-//                     clearInterval(checkInterval);
-//                     resolve();
-//                 }
-//             }, 100);
-//         }
-//     });
-// }
-// function wait(ms: number): Promise<void> {
-//     return new Promise((resolve) => setTimeout(resolve, ms));
-// }
-function waitForFrozenOrTimeout(ms) {
-    return new Promise((resolve) => {
-        const timeout = setTimeout(() => {
-            resolve();
-        }, ms);
-        const checkInterval = setInterval(() => {
-            if (_isFrozen) {
-                clearInterval(timeout);
-                clearInterval(checkInterval);
-                resolve();
-            }
-        }, 100);
-    });
-}
-// Zwraca pełną ścieżkę do zasobu wewnątrz silnika na podstawie ścieżki względnej
-// np. path("img/image.png") zwróci coś w stylu "https://example.com/engine/img/image.png"
-function path(relativePath) {
-    return _exerciseApi.enginePath(relativePath);
-}
-// Zwraca dane zmienne (te które moe zmieniać nauczyciel podczas tworzenia ćwiczenia)
-// Jeeli nauczyciel nic nie zmienił, zwraca dane domyślne które znajdują się w engine.json 
-// w sekcji "editor/defaultData"
-function getData() {
-    return structuredClone(_data);
-}
-// Zwraca stan ćwiczenia (np. odpowiedzi ucznia) które zostały zapisane wcześniej
-// za pomocą setState. Jeżeli nie ma zapisanego stanu, zwraca null
-function getState() {
-    return _exerciseApi.triggerStateRestore().then(() => {
-        log("State restored.");
-        return _state;
-    });
-}
-;
-// Ustawia stan ćwiczenia (np. odpowiedzi ucznia) które zostaną przywrócone w ćwiczeniu
-// Jeżeli stan jest nieprawidłowy lub pusty, ćwiczenie powinno zainicjować się w stanie domyślnym
-function setState(stateData) {
-    if (_isFrozen) {
-        log("State is frozen, returning null.");
-        return Promise.resolve();
-    }
-    _state = stateData;
-    return _exerciseApi.triggerStateSave();
-}
-
-//# sourceMappingURL=zpe.js.map
 ;// ./src/data.ts
 // ============================================================
 // DATA.TS — Dane planet, astronomów, stanu aplikacji
 // Kosmiczne Układy v1.0 | Vanta AI Studio
 // ============================================================
-const ASTRONOMERS = [
+var __assign = (undefined && undefined.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var ASTRONOMERS = [
     {
         id: 'ptolemeusz',
         name: 'Ptolemeusz',
         portrait: 'pp_01.png',
         portraitHover: 'pp_01.png',
         bioPic: 'pp_01.png',
-        bio: `<p>Klaudiusz Ptolemeusz (ok. 100–170 n.e.) był greckim astronomem, matematykiem i geografem, działającym w Aleksandrii. Stworzył geocentryczny model Wszechświata opisany w dziele <em>Almagest</em>, który dominował przez ponad 1400 lat.</p>
-<p>Według modelu Ptolemeusza <strong>Ziemia znajdowała się w centrum Wszechświata</strong>, a Słońce, Księżyc i planety krążyły wokół niej po skomplikowanych torach zwanych epicyklami.</p>`,
+        bio: "<p>Klaudiusz Ptolemeusz (ok. 100\u2013170 n.e.) by\u0142 greckim astronomem, matematykiem i geografem, dzia\u0142aj\u0105cym w Aleksandrii. Stworzy\u0142 geocentryczny model Wszech\u015Bwiata opisany w dziele <em>Almagest</em>, kt\u00F3ry dominowa\u0142 przez ponad 1400 lat.</p>\n<p>Wed\u0142ug modelu Ptolemeusza <strong>Ziemia znajdowa\u0142a si\u0119 w centrum Wszech\u015Bwiata</strong>, a S\u0142o\u0144ce, Ksi\u0119\u017Cyc i planety kr\u0105\u017Cy\u0142y wok\u00F3\u0142 niej po skomplikowanych torach zwanych epicyklami.</p>",
         modelTitle: 'Układ słoneczny Ptolemeusza',
         screenTitle: 'Geocentryczny model układu słonecznego',
         planets: [
@@ -273,10 +82,9 @@ const ASTRONOMERS = [
         id: 'kopernik',
         name: 'Mikołaj Kopernik',
         portrait: 'pp_02.png',
-        portraitHover: 'pp_02.png',
+        portraitHover: 'pp_02_over.png',
         bioPic: 'kopernik.png',
-        bio: `<p><strong>Mikołaj Kopernik</strong> był wybitnym polskim astronomem, matematykiem, lekarzem i duchownym, żył w latach 1473–1543. Urodzony w Toruniu, dorastał we Fromborku, gdzie spędził większość swojego życia prowadząc badania.</p>
-<p>Kopernik zasłynął przede wszystkim jako <strong>twórca heliocentrycznej teorii budowy świata</strong>, według której Ziemia i inne planety krążą wokół Słońca. Była to rewolucyjna koncepcja, która zmieniła sposób myślenia o Wszechświecie i zapoczątkowała nowoczesną astronomię.</p>`,
+        bio: "<p><strong>Miko\u0142aj Kopernik</strong> by\u0142 wybitnym polskim astronomem, matematykiem, lekarzem i duchownym, \u017Cy\u0142 w latach 1473\u20131543. Urodzony w Toruniu, dorasta\u0142 we Fromborku, gdzie sp\u0119dzi\u0142 wi\u0119kszo\u015B\u0107 swojego \u017Cycia prowadz\u0105c badania.</p>\n<p>Kopernik zas\u0142yn\u0105\u0142 przede wszystkim jako <strong>tw\u00F3rca heliocentrycznej teorii budowy \u015Bwiata</strong>, wed\u0142ug kt\u00F3rej Ziemia i inne planety kr\u0105\u017C\u0105 wok\u00F3\u0142 S\u0142o\u0144ca. By\u0142a to rewolucyjna koncepcja, kt\u00F3ra zmieni\u0142a spos\u00F3b my\u015Blenia o Wszech\u015Bwiecie i zapocz\u0105tkowa\u0142a nowoczesn\u0105 astronomi\u0119.</p>",
         modelTitle: 'Układ słoneczny Mikołaja Kopernika',
         screenTitle: 'Model układu słonecznego wg. Mikołaja Kopernika',
         planets: [
@@ -295,8 +103,7 @@ const ASTRONOMERS = [
         portrait: 'pp_03.png',
         portraitHover: 'pp_03.png',
         bioPic: 'pp_03.png',
-        bio: `<p><strong>Współczesny model układu słonecznego</strong> oparty jest na obserwacjach teleskopowych i misjach kosmicznych XX i XXI w.</p>
-<p>Układ Słoneczny liczy <strong>8 planet</strong> krążących wokół Słońca: Merkury, Wenus, Ziemia, Mars, Jowisz, Saturn, Uran i Neptun. Jest jednym z miliardów układów planetarnych w Drodze Mlecznej.</p>`,
+        bio: "<p><strong>Wsp\u00F3\u0142czesny model uk\u0142adu s\u0142onecznego</strong> oparty jest na obserwacjach teleskopowych i misjach kosmicznych XX i XXI w.</p>\n<p>Uk\u0142ad S\u0142oneczny liczy <strong>8 planet</strong> kr\u0105\u017C\u0105cych wok\u00F3\u0142 S\u0142o\u0144ca: Merkury, Wenus, Ziemia, Mars, Jowisz, Saturn, Uran i Neptun. Jest jednym z miliard\u00F3w uk\u0142ad\u00F3w planetarnych w Drodze Mlecznej.</p>",
         modelTitle: 'Układ słoneczny Współczesny',
         screenTitle: 'Współczesny model układu słonecznego',
         planets: [
@@ -312,7 +119,7 @@ const ASTRONOMERS = [
         ]
     }
 ];
-const DEFAULT_WCAG = {
+var DEFAULT_WCAG = {
     textSize: 1,
     highContrast: false,
     reduceMotion: false,
@@ -323,11 +130,11 @@ const DEFAULT_WCAG = {
     cursorColor: 'def',
     soundEnabled: true
 };
-const DEFAULT_STATE = {
+var DEFAULT_STATE = {
     currentScreen: 'welcome',
     activeAstronomerIndex: -1,
     visitedAstronomers: [],
-    wcag: { ...DEFAULT_WCAG }
+    wcag: __assign({}, DEFAULT_WCAG)
 };
 
 ;// ./src/engine.ts
@@ -335,35 +142,50 @@ const DEFAULT_STATE = {
 // ENGINE.TS — Silnik animacji Canvas
 // Kosmiczne Układy v1.0 | Vanta AI Studio
 // ============================================================
+var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 // Perspective: y scale for orbit ellipses
-const PERSP = 0.38;
-const ZOOM_MIN = 0.3;
-const ZOOM_MAX = 3.5;
-class CanvasEngine {
-    canvas;
-    ctx;
-    planets = [];
-    states = {};
-    zoom = 1;
-    panX = 0;
-    panY = 0;
-    hoveredId = null;
-    raf = 0;
-    paused = false;
-    showOrbits;
-    reduceMotion;
-    bgImage = null;
-    bgLoaded = false;
-    planetImages = {};
-    pathFn;
-    // Mouse drag state
-    dragStart = null;
-    panStart = null;
-    dragged = false;
-    onHover;
-    onLeftClick;
-    onRightClick;
-    constructor(opts) {
+var PERSP = 0.38;
+var ZOOM_MIN = 0.3;
+var ZOOM_MAX = 3.5;
+var CanvasEngine = /** @class */ (function () {
+    function CanvasEngine(opts) {
+        var _this = this;
+        this.planets = [];
+        this.states = {};
+        this.zoom = 1;
+        this.panX = 0;
+        this.panY = 0;
+        this.hoveredId = null;
+        this.raf = 0;
+        this.paused = false;
+        this.bgImage = null;
+        this.bgLoaded = false;
+        this.planetImages = {};
+        // Mouse drag state
+        this.dragStart = null;
+        this.panStart = null;
+        this.dragged = false;
+        this.tick = function () {
+            if (!_this.paused && !_this.reduceMotion) {
+                _this.planets.forEach(function (p) {
+                    if (p.orbit === 0)
+                        return;
+                    if (_this.hoveredId === p.id)
+                        return;
+                    _this.states[p.id].angle += p.speed * 0.007;
+                });
+            }
+            _this.draw();
+            _this.raf = requestAnimationFrame(_this.tick);
+        };
         this.canvas = opts.canvas;
         this.ctx = opts.canvas.getContext('2d');
         this.showOrbits = opts.showOrbits;
@@ -375,28 +197,31 @@ class CanvasEngine {
         this.setPlanets(opts.planets);
         this.bindEvents();
     }
-    setPlanets(planets) {
+    CanvasEngine.prototype.setPlanets = function (planets) {
+        var _this = this;
         this.planets = planets;
         // Initialize angles with spread
-        planets.forEach((p, i) => {
-            if (!this.states[p.id]) {
-                this.states[p.id] = { angle: (i / planets.length) * Math.PI * 2 };
+        planets.forEach(function (p, i) {
+            if (!_this.states[p.id]) {
+                _this.states[p.id] = { angle: (i / planets.length) * Math.PI * 2 };
             }
         });
         this.fitZoom();
         this.loadPlanetImages();
-    }
-    loadBackground(src) {
-        const img = new Image();
-        img.onload = () => { this.bgImage = img; this.bgLoaded = true; };
-        img.onerror = () => { this.bgLoaded = true; };
+    };
+    CanvasEngine.prototype.loadBackground = function (src) {
+        var _this = this;
+        var img = new Image();
+        img.onload = function () { _this.bgImage = img; _this.bgLoaded = true; };
+        img.onerror = function () { _this.bgLoaded = true; };
         img.src = src;
-    }
-    loadPlanetImages() {
+    };
+    CanvasEngine.prototype.loadPlanetImages = function () {
+        var _this = this;
         if (!this.pathFn)
             return;
         // Mapping planet base IDs to actual asset filenames
-        const imgMap = {
+        var imgMap = {
             'slonce': 'slonce.png',
             'ziemia': 'ziemia.png',
             'merkury': 'merkury.png',
@@ -408,88 +233,77 @@ class CanvasEngine {
             'neptun': 'neptun.png',
             'ksiezyc': 'ksiezyc.png',
         };
-        this.planets.forEach(p => {
-            const baseId = p.id.split('_')[0];
-            const imgFile = imgMap[baseId];
-            if (imgFile && !this.planetImages[baseId]) {
-                const img = new Image();
-                img.onload = () => { this.planetImages[baseId] = img; };
-                img.src = this.pathFn(imgFile);
+        this.planets.forEach(function (p) {
+            var baseId = p.id.split('_')[0];
+            var imgFile = imgMap[baseId];
+            if (imgFile && !_this.planetImages[baseId]) {
+                var img_1 = new Image();
+                img_1.onload = function () { _this.planetImages[baseId] = img_1; };
+                img_1.src = _this.pathFn(imgFile);
             }
         });
-    }
-    fitZoom() {
+    };
+    CanvasEngine.prototype.fitZoom = function () {
         if (this.planets.length === 0)
             return;
-        const maxOrbit = Math.max(...this.planets.map(p => p.orbit));
+        var maxOrbit = Math.max.apply(Math, this.planets.map(function (p) { return p.orbit; }));
         if (maxOrbit === 0) {
             this.zoom = 1;
             return;
         }
-        const halfW = this.canvas.width * 0.44;
+        var halfW = this.canvas.width * 0.44;
         this.zoom = Math.min(halfW / maxOrbit, 1.4);
         this.panX = 0;
         this.panY = 0;
-    }
-    setShowOrbits(v) { this.showOrbits = v; }
-    setReduceMotion(v) { this.reduceMotion = v; if (v)
+    };
+    CanvasEngine.prototype.setShowOrbits = function (v) { this.showOrbits = v; };
+    CanvasEngine.prototype.setReduceMotion = function (v) { this.reduceMotion = v; if (v)
         this.paused = true;
     else
-        this.paused = false; }
-    setPaused(v) { this.paused = v; }
+        this.paused = false; };
+    CanvasEngine.prototype.setPaused = function (v) { this.paused = v; };
     /** Ustawia aktywną planetę z klawiatury (highlight jak hover) */
-    setKeyboardFocus(planetId) {
+    CanvasEngine.prototype.setKeyboardFocus = function (planetId) {
         this.hoveredId = planetId;
         this.canvas.style.cursor = planetId ? 'pointer' : 'default';
-    }
+    };
     /** Zwraca id aktualnie podświetlonej planety */
-    getHoveredId() { return this.hoveredId; }
+    CanvasEngine.prototype.getHoveredId = function () { return this.hoveredId; };
     /** Zwraca listę id planet w bieżącej kolejności */
-    getPlanetIds() { return this.planets.map(p => p.id); }
+    CanvasEngine.prototype.getPlanetIds = function () { return this.planets.map(function (p) { return p.id; }); };
     /** Zwraca obiekt planety po id */
-    getPlanetById(id) {
-        return this.planets.find(p => p.id === id) || null;
-    }
-    zoomBy(delta) {
-        const cx = this.canvas.width / 2;
-        const cy = this.canvas.height / 2;
-        const factor = delta > 0 ? 1.15 : 0.88;
-        const newZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, this.zoom * factor));
+    CanvasEngine.prototype.getPlanetById = function (id) {
+        return this.planets.find(function (p) { return p.id === id; }) || null;
+    };
+    CanvasEngine.prototype.zoomBy = function (delta) {
+        var cx = this.canvas.width / 2;
+        var cy = this.canvas.height / 2;
+        var factor = delta > 0 ? 1.15 : 0.88;
+        var newZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, this.zoom * factor));
         this.panX = cx - (cx - this.panX) * (newZoom / this.zoom);
         this.panY = cy - (cy - this.panY) * (newZoom / this.zoom);
         this.zoom = newZoom;
-    }
-    resetView() { this.fitZoom(); }
-    start() {
-        this.raf = requestAnimationFrame(this.tick);
-    }
-    stop() {
-        cancelAnimationFrame(this.raf);
-    }
-    tick = () => {
-        if (!this.paused && !this.reduceMotion) {
-            this.planets.forEach(p => {
-                if (p.orbit === 0)
-                    return;
-                if (this.hoveredId === p.id)
-                    return;
-                this.states[p.id].angle += p.speed * 0.007;
-            });
-        }
-        this.draw();
+    };
+    CanvasEngine.prototype.resetView = function () { this.fitZoom(); };
+    CanvasEngine.prototype.start = function () {
         this.raf = requestAnimationFrame(this.tick);
     };
-    cx() { return this.canvas.width / 2 + this.panX; }
-    cy() { return this.canvas.height / 2 + this.panY; }
-    planetPos(p) {
-        const angle = this.states[p.id]?.angle ?? 0;
+    CanvasEngine.prototype.stop = function () {
+        cancelAnimationFrame(this.raf);
+    };
+    CanvasEngine.prototype.cx = function () { return this.canvas.width / 2 + this.panX; };
+    CanvasEngine.prototype.cy = function () { return this.canvas.height / 2 + this.panY; };
+    CanvasEngine.prototype.planetPos = function (p) {
+        var _a, _b;
+        var angle = (_b = (_a = this.states[p.id]) === null || _a === void 0 ? void 0 : _a.angle) !== null && _b !== void 0 ? _b : 0;
         return {
             x: this.cx() + Math.cos(angle) * p.orbit * this.zoom,
             y: this.cy() + Math.sin(angle) * p.orbit * this.zoom * PERSP,
         };
-    }
-    draw() {
-        const { canvas, ctx } = this;
+    };
+    CanvasEngine.prototype.draw = function () {
+        var _this = this;
+        var _a = this, canvas = _a.canvas, ctx = _a.ctx;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         // Background
         if (this.bgImage && this.bgLoaded) {
@@ -497,81 +311,83 @@ class CanvasEngine {
         }
         else {
             // Fallback: dark space gradient
-            const grad = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2);
+            var grad = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2);
             grad.addColorStop(0, '#0a0820');
             grad.addColorStop(1, '#000510');
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             this.drawStars();
         }
-        const cx = this.cx();
-        const cy = this.cy();
+        var cx = this.cx();
+        var cy = this.cy();
         // Orbits
         if (this.showOrbits) {
-            this.planets.forEach(p => {
+            this.planets.forEach(function (p) {
                 if (p.orbit === 0)
                     return;
                 ctx.beginPath();
-                ctx.ellipse(cx, cy, p.orbit * this.zoom, p.orbit * this.zoom * PERSP, 0, 0, Math.PI * 2);
+                ctx.ellipse(cx, cy, p.orbit * _this.zoom, p.orbit * _this.zoom * PERSP, 0, 0, Math.PI * 2);
                 ctx.strokeStyle = 'rgba(255,255,255,0.35)';
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
             });
         }
         // Sort planets by y for correct z-order (further back first)
-        const sorted = [...this.planets].sort((a, b) => {
-            const ay = this.planetPos(a).y;
-            const by = this.planetPos(b).y;
+        var sorted = __spreadArray([], this.planets, true).sort(function (a, b) {
+            var ay = _this.planetPos(a).y;
+            var by = _this.planetPos(b).y;
             return ay - by;
         });
         // Draw label lines first (behind planets)
-        sorted.forEach(p => {
-            const pos = this.planetPos(p);
-            this.drawLabelLine(p, pos.x, pos.y);
+        sorted.forEach(function (p) {
+            var pos = _this.planetPos(p);
+            _this.drawLabelLine(p, pos.x, pos.y);
         });
         // Draw planets
-        sorted.forEach(p => {
-            const pos = this.planetPos(p);
-            this.drawPlanet(p, pos.x, pos.y);
+        sorted.forEach(function (p) {
+            var pos = _this.planetPos(p);
+            _this.drawPlanet(p, pos.x, pos.y);
         });
         // Draw label texts on top
-        sorted.forEach(p => {
-            const pos = this.planetPos(p);
-            this.drawLabelText(p, pos.x, pos.y);
+        sorted.forEach(function (p) {
+            var pos = _this.planetPos(p);
+            _this.drawLabelText(p, pos.x, pos.y);
         });
-    }
-    drawStars() {
-        const ctx = this.ctx;
+    };
+    CanvasEngine.prototype.drawStars = function () {
+        var _this = this;
+        var ctx = this.ctx;
         // Simple static star field
         ctx.fillStyle = 'rgba(255,255,255,0.7)';
-        const stars = [
+        var stars = [
             [45, 23], [123, 67], [234, 12], [456, 78], [567, 34], [678, 89], [789, 45], [890, 23],
             [901, 67], [112, 234], [223, 189], [334, 145], [445, 201], [556, 167], [667, 223],
             [778, 178], [889, 234], [100, 300], [200, 350], [300, 280], [400, 320], [500, 290],
             [600, 340], [700, 310], [800, 270], [900, 330], [150, 400], [250, 450], [350, 380],
             [450, 420], [550, 390], [650, 440], [750, 410], [850, 370], [950, 430],
         ];
-        stars.forEach(([x, y]) => {
-            ctx.fillRect(x % this.canvas.width, y % this.canvas.height, 1, 1);
+        stars.forEach(function (_a) {
+            var x = _a[0], y = _a[1];
+            ctx.fillRect(x % _this.canvas.width, y % _this.canvas.height, 1, 1);
         });
-    }
-    getLabelDir(p, px, py) {
-        const cy = this.cy();
+    };
+    CanvasEngine.prototype.getLabelDir = function (p, px, py) {
+        var cy = this.cy();
         // Go up if planet is in upper half, down if lower half
         return { dx: 0, dy: py < cy ? -1 : 1 };
-    }
-    getLabelLength(r) {
+    };
+    CanvasEngine.prototype.getLabelLength = function (r) {
         return (40 + r) * Math.max(0.75, this.zoom);
-    }
-    drawLabelLine(p, px, py) {
-        const ctx = this.ctx;
-        const { dy } = this.getLabelDir(p, px, py);
-        const r = p.r * this.zoom;
-        const len = this.getLabelLength(p.r);
-        const isHovered = this.hoveredId === p.id;
-        const color = isHovered ? '#FFD700' : '#FFD700';
-        const startY = py + dy * r;
-        const endY = py + dy * (r + len);
+    };
+    CanvasEngine.prototype.drawLabelLine = function (p, px, py) {
+        var ctx = this.ctx;
+        var dy = this.getLabelDir(p, px, py).dy;
+        var r = p.r * this.zoom;
+        var len = this.getLabelLength(p.r);
+        var isHovered = this.hoveredId === p.id;
+        var color = isHovered ? '#FFD700' : '#FFD700';
+        var startY = py + dy * r;
+        var endY = py + dy * (r + len);
         ctx.beginPath();
         ctx.moveTo(px, startY);
         ctx.lineTo(px, endY);
@@ -584,22 +400,22 @@ class CanvasEngine {
         ctx.strokeStyle = color;
         ctx.lineWidth = 2;
         ctx.stroke();
-    }
-    drawLabelText(p, px, py) {
-        const ctx = this.ctx;
-        const { dy } = this.getLabelDir(p, px, py);
-        const r = p.r * this.zoom;
-        const len = this.getLabelLength(p.r);
-        const endY = py + dy * (r + len);
-        const isHovered = this.hoveredId === p.id;
-        const fontSize = Math.max(11, 13 * Math.min(1, this.zoom));
-        ctx.font = `bold ${fontSize}px 'Segoe UI', Arial, sans-serif`;
-        const tw = ctx.measureText(p.name).width;
-        const textY = endY + dy * (fontSize + 4);
-        const bgX = px - tw / 2 - 5;
-        const bgY = textY - fontSize - 2;
-        const bgW = tw + 10;
-        const bgH = fontSize + 6;
+    };
+    CanvasEngine.prototype.drawLabelText = function (p, px, py) {
+        var ctx = this.ctx;
+        var dy = this.getLabelDir(p, px, py).dy;
+        var r = p.r * this.zoom;
+        var len = this.getLabelLength(p.r);
+        var endY = py + dy * (r + len);
+        var isHovered = this.hoveredId === p.id;
+        var fontSize = Math.max(11, 13 * Math.min(1, this.zoom));
+        ctx.font = "bold ".concat(fontSize, "px 'Segoe UI', Arial, sans-serif");
+        var tw = ctx.measureText(p.name).width;
+        var textY = endY + dy * (fontSize + 4);
+        var bgX = px - tw / 2 - 5;
+        var bgY = textY - fontSize - 2;
+        var bgW = tw + 10;
+        var bgH = fontSize + 6;
         // Background box
         ctx.fillStyle = 'rgba(0,0,0,0.82)';
         roundRect(ctx, bgX, bgY, bgW, bgH, 3);
@@ -611,14 +427,14 @@ class CanvasEngine {
         ctx.fillText(p.name, px, textY);
         ctx.textAlign = 'left';
         ctx.textBaseline = 'alphabetic';
-    }
-    drawPlanet(p, px, py) {
-        const ctx = this.ctx;
-        const r = p.r * this.zoom;
-        const isHovered = this.hoveredId === p.id;
-        const t = Date.now();
-        const baseId = p.id.split('_')[0];
-        const img = this.planetImages[baseId];
+    };
+    CanvasEngine.prototype.drawPlanet = function (p, px, py) {
+        var ctx = this.ctx;
+        var r = p.r * this.zoom;
+        var isHovered = this.hoveredId === p.id;
+        var t = Date.now();
+        var baseId = p.id.split('_')[0];
+        var img = this.planetImages[baseId];
         if (p.glow) {
             this.drawSun(px, py, r, t);
         }
@@ -641,9 +457,9 @@ class CanvasEngine {
             ctx.stroke();
             ctx.setLineDash([]);
         }
-    }
-    drawPlanetFromImage(img, p, px, py, r) {
-        const ctx = this.ctx;
+    };
+    CanvasEngine.prototype.drawPlanetFromImage = function (img, p, px, py, r) {
+        var ctx = this.ctx;
         ctx.save();
         ctx.beginPath();
         ctx.arc(px, py, r, 0, Math.PI * 2);
@@ -651,11 +467,11 @@ class CanvasEngine {
         ctx.drawImage(img, px - r, py - r, r * 2, r * 2);
         ctx.restore();
         // Saturn rings drawn after
-    }
-    drawSun(px, py, r, t) {
-        const ctx = this.ctx;
+    };
+    CanvasEngine.prototype.drawSun = function (px, py, r, t) {
+        var ctx = this.ctx;
         // Outer glow
-        const glow = ctx.createRadialGradient(px, py, r * 0.5, px, py, r * 4.5);
+        var glow = ctx.createRadialGradient(px, py, r * 0.5, px, py, r * 4.5);
         glow.addColorStop(0, 'rgba(255,120,0,0.6)');
         glow.addColorStop(0.4, 'rgba(255,60,0,0.3)');
         glow.addColorStop(1, 'rgba(160,10,0,0)');
@@ -664,14 +480,14 @@ class CanvasEngine {
         ctx.arc(px, py, r * 4.5, 0, Math.PI * 2);
         ctx.fill();
         // Animated flame spikes
-        const spikes = 14;
-        for (let i = 0; i < spikes; i++) {
-            const angle = (i / spikes) * Math.PI * 2;
-            const wave = Math.sin(t / 350 + i * 1.3) * 0.15 + 0.85;
-            const spokeR = r * (1.35 + wave * 0.25);
-            const x2 = px + Math.cos(angle) * spokeR;
-            const y2 = py + Math.sin(angle) * spokeR;
-            const fg = ctx.createRadialGradient(px, py, r * 0.8, px + Math.cos(angle) * r * 0.4, py + Math.sin(angle) * r * 0.4, spokeR);
+        var spikes = 14;
+        for (var i = 0; i < spikes; i++) {
+            var angle = (i / spikes) * Math.PI * 2;
+            var wave = Math.sin(t / 350 + i * 1.3) * 0.15 + 0.85;
+            var spokeR = r * (1.35 + wave * 0.25);
+            var x2 = px + Math.cos(angle) * spokeR;
+            var y2 = py + Math.sin(angle) * spokeR;
+            var fg = ctx.createRadialGradient(px, py, r * 0.8, px + Math.cos(angle) * r * 0.4, py + Math.sin(angle) * r * 0.4, spokeR);
             fg.addColorStop(0, 'rgba(255,200,0,0.7)');
             fg.addColorStop(1, 'rgba(255,80,0,0)');
             ctx.fillStyle = fg;
@@ -680,7 +496,7 @@ class CanvasEngine {
             ctx.fill();
         }
         // Sun body
-        const body = ctx.createRadialGradient(px - r * 0.3, py - r * 0.3, r * 0.1, px, py, r);
+        var body = ctx.createRadialGradient(px - r * 0.3, py - r * 0.3, r * 0.1, px, py, r);
         body.addColorStop(0, '#ffee88');
         body.addColorStop(0.3, '#ffaa00');
         body.addColorStop(0.7, '#ee2200');
@@ -691,23 +507,23 @@ class CanvasEngine {
         ctx.fill();
         // Sun label
         ctx.fillStyle = 'white';
-        ctx.font = `bold ${Math.max(10, r * 0.55)}px 'Segoe UI', Arial`;
+        ctx.font = "bold ".concat(Math.max(10, r * 0.55), "px 'Segoe UI', Arial");
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('Słońce', px, py);
         ctx.textAlign = 'left';
         ctx.textBaseline = 'alphabetic';
-    }
-    drawRegularPlanet(p, px, py, r, _t) {
-        const ctx = this.ctx;
-        const pal = p.palette;
+    };
+    CanvasEngine.prototype.drawRegularPlanet = function (p, px, py, r, _t) {
+        var ctx = this.ctx;
+        var pal = p.palette;
         ctx.save();
         ctx.beginPath();
         ctx.arc(px, py, r, 0, Math.PI * 2);
         ctx.clip();
         if (pal) {
             // Base gradient
-            const base = ctx.createRadialGradient(px - r * 0.35, py - r * 0.35, r * 0.05, px, py, r);
+            var base = ctx.createRadialGradient(px - r * 0.35, py - r * 0.35, r * 0.05, px, py, r);
             base.addColorStop(0, pal.h);
             base.addColorStop(0.5, pal.c);
             base.addColorStop(1, pal.d);
@@ -715,21 +531,21 @@ class CanvasEngine {
             ctx.fillRect(px - r, py - r, r * 2, r * 2);
             // Surface bands (Jupiter, Saturn)
             if (pal.bands) {
-                const bandColors = ['rgba(255,255,255,0.06)', 'rgba(0,0,0,0.08)', 'rgba(255,255,255,0.04)'];
-                for (let i = 0; i < 5; i++) {
-                    const by = py - r + (i / 5) * r * 2;
+                var bandColors = ['rgba(255,255,255,0.06)', 'rgba(0,0,0,0.08)', 'rgba(255,255,255,0.04)'];
+                for (var i = 0; i < 5; i++) {
+                    var by = py - r + (i / 5) * r * 2;
                     ctx.fillStyle = bandColors[i % bandColors.length];
                     ctx.fillRect(px - r, by, r * 2, r * 2 / 5);
                 }
             }
             // Shadow (right side)
-            const shadow = ctx.createRadialGradient(px + r * 0.5, py, r * 0.1, px + r * 0.5, py, r * 1.8);
+            var shadow = ctx.createRadialGradient(px + r * 0.5, py, r * 0.1, px + r * 0.5, py, r * 1.8);
             shadow.addColorStop(0, 'rgba(0,0,0,0.6)');
             shadow.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = shadow;
             ctx.fillRect(px - r, py - r, r * 2, r * 2);
             // Specular (upper-left)
-            const spec = ctx.createRadialGradient(px - r * 0.4, py - r * 0.4, 0, px - r * 0.4, py - r * 0.4, r * 0.8);
+            var spec = ctx.createRadialGradient(px - r * 0.4, py - r * 0.4, 0, px - r * 0.4, py - r * 0.4, r * 0.8);
             spec.addColorStop(0, 'rgba(255,255,255,0.35)');
             spec.addColorStop(1, 'rgba(255,255,255,0)');
             ctx.fillStyle = spec;
@@ -742,8 +558,8 @@ class CanvasEngine {
         }
         ctx.restore();
         // Atmosphere glow (outside planet)
-        if (pal?.atm) {
-            const atm = ctx.createRadialGradient(px, py, r * 0.85, px, py, r * 1.4);
+        if (pal === null || pal === void 0 ? void 0 : pal.atm) {
+            var atm = ctx.createRadialGradient(px, py, r * 0.85, px, py, r * 1.4);
             atm.addColorStop(0, pal.atm);
             atm.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = atm;
@@ -751,10 +567,10 @@ class CanvasEngine {
             ctx.arc(px, py, r * 1.4, 0, Math.PI * 2);
             ctx.fill();
         }
-    }
-    drawRings(px, py, r) {
-        const ctx = this.ctx;
-        const tilt = -Math.PI / 7;
+    };
+    CanvasEngine.prototype.drawRings = function (px, py, r) {
+        var ctx = this.ctx;
+        var tilt = -Math.PI / 7;
         ctx.save();
         ctx.translate(px, py);
         ctx.rotate(tilt);
@@ -771,99 +587,107 @@ class CanvasEngine {
         ctx.lineWidth = r * 0.20;
         ctx.stroke();
         ctx.restore();
-    }
-    hitTest(clientX, clientY) {
-        const rect = this.canvas.getBoundingClientRect();
-        const mx = clientX - rect.left;
-        const my = clientY - rect.top;
-        let closest = null;
-        let minDist = Infinity;
-        this.planets.forEach(p => {
-            const pos = this.planetPos(p);
-            const r = p.r * this.zoom + 12;
-            const dx = mx - pos.x;
-            const dy = my - pos.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
+    };
+    CanvasEngine.prototype.hitTest = function (clientX, clientY) {
+        var _this = this;
+        var rect = this.canvas.getBoundingClientRect();
+        var mx = clientX - rect.left;
+        var my = clientY - rect.top;
+        var closest = null;
+        var minDist = Infinity;
+        this.planets.forEach(function (p) {
+            var pos = _this.planetPos(p);
+            var r = p.r * _this.zoom + 12;
+            var dx = mx - pos.x;
+            var dy = my - pos.y;
+            var dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < r && dist < minDist) {
                 minDist = dist;
                 closest = p;
             }
         });
         return closest;
-    }
-    bindEvents() {
-        const c = this.canvas;
-        c.addEventListener('mousedown', e => {
-            this.dragStart = { x: e.clientX, y: e.clientY };
-            this.panStart = { x: this.panX, y: this.panY };
-            this.dragged = false;
+    };
+    CanvasEngine.prototype.bindEvents = function () {
+        var _this = this;
+        var c = this.canvas;
+        c.addEventListener('mousedown', function (e) {
+            _this.dragStart = { x: e.clientX, y: e.clientY };
+            _this.panStart = { x: _this.panX, y: _this.panY };
+            _this.dragged = false;
         });
-        c.addEventListener('mousemove', e => {
-            if (this.dragStart) {
-                const dx = e.clientX - this.dragStart.x;
-                const dy = e.clientY - this.dragStart.y;
+        c.addEventListener('mousemove', function (e) {
+            var _a;
+            if (_this.dragStart) {
+                var dx = e.clientX - _this.dragStart.x;
+                var dy = e.clientY - _this.dragStart.y;
                 if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
-                    this.dragged = true;
-                    this.panX = this.panStart.x + dx;
-                    this.panY = this.panStart.y + dy;
+                    _this.dragged = true;
+                    _this.panX = _this.panStart.x + dx;
+                    _this.panY = _this.panStart.y + dy;
                 }
             }
             else {
-                const hit = this.hitTest(e.clientX, e.clientY);
-                const newId = hit ? hit.id : null;
-                if (newId !== this.hoveredId) {
-                    this.hoveredId = newId;
-                    this.canvas.style.cursor = hit ? 'pointer' : 'default';
-                    this.onHover?.(hit);
+                var hit = _this.hitTest(e.clientX, e.clientY);
+                var newId = hit ? hit.id : null;
+                if (newId !== _this.hoveredId) {
+                    _this.hoveredId = newId;
+                    _this.canvas.style.cursor = hit ? 'pointer' : 'default';
+                    (_a = _this.onHover) === null || _a === void 0 ? void 0 : _a.call(_this, hit);
                 }
             }
         });
-        c.addEventListener('mouseup', e => {
-            if (!this.dragged) {
-                const hit = this.hitTest(e.clientX, e.clientY);
+        c.addEventListener('mouseup', function (e) {
+            var _a, _b;
+            if (!_this.dragged) {
+                var hit = _this.hitTest(e.clientX, e.clientY);
                 if (hit) {
                     if (e.button === 0)
-                        this.onLeftClick?.(hit);
+                        (_a = _this.onLeftClick) === null || _a === void 0 ? void 0 : _a.call(_this, hit);
                     if (e.button === 2)
-                        this.onRightClick?.(hit);
+                        (_b = _this.onRightClick) === null || _b === void 0 ? void 0 : _b.call(_this, hit);
                 }
             }
-            this.dragStart = null;
-            this.panStart = null;
+            _this.dragStart = null;
+            _this.panStart = null;
         });
-        c.addEventListener('mouseleave', () => {
-            this.dragStart = null;
-            this.panStart = null;
-            if (this.hoveredId) {
-                this.hoveredId = null;
-                this.onHover?.(null);
+        c.addEventListener('mouseleave', function () {
+            var _a;
+            _this.dragStart = null;
+            _this.panStart = null;
+            if (_this.hoveredId) {
+                _this.hoveredId = null;
+                (_a = _this.onHover) === null || _a === void 0 ? void 0 : _a.call(_this, null);
             }
         });
-        c.addEventListener('contextmenu', e => {
+        c.addEventListener('contextmenu', function (e) {
+            var _a;
             e.preventDefault();
-            if (!this.dragged) {
-                const hit = this.hitTest(e.clientX, e.clientY);
+            if (!_this.dragged) {
+                var hit = _this.hitTest(e.clientX, e.clientY);
                 if (hit)
-                    this.onRightClick?.(hit);
+                    (_a = _this.onRightClick) === null || _a === void 0 ? void 0 : _a.call(_this, hit);
             }
         });
-        c.addEventListener('wheel', e => {
+        c.addEventListener('wheel', function (e) {
             e.preventDefault();
-            const rect = c.getBoundingClientRect();
-            const mx = e.clientX - rect.left;
-            const my = e.clientY - rect.top;
-            const factor = e.deltaY > 0 ? 0.88 : 1.15;
-            const newZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, this.zoom * factor));
-            this.panX = mx - (mx - this.panX) * (newZoom / this.zoom);
-            this.panY = my - (my - this.panY) * (newZoom / this.zoom);
-            this.zoom = newZoom;
+            var rect = c.getBoundingClientRect();
+            var mx = e.clientX - rect.left;
+            var my = e.clientY - rect.top;
+            var factor = e.deltaY > 0 ? 0.88 : 1.15;
+            var newZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, _this.zoom * factor));
+            _this.panX = mx - (mx - _this.panX) * (newZoom / _this.zoom);
+            _this.panY = my - (my - _this.panY) * (newZoom / _this.zoom);
+            _this.zoom = newZoom;
         }, { passive: false });
-    }
-    destroy() {
+    };
+    CanvasEngine.prototype.destroy = function () {
         this.stop();
         // Events will be cleaned up when canvas is removed
-    }
-}
+    };
+    return CanvasEngine;
+}());
+
 function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -883,32 +707,33 @@ function roundRect(ctx, x, y, w, h, r) {
 // WCAG.TS — Zarządzanie dostępnością
 // Kosmiczne Układy v1.0 | Vanta AI Studio
 // ============================================================
-const ROOT_ID = 'ku-root';
+var ROOT_ID = 'ku-root';
 // Cursor SVG templates
-const CURSORS = {
+var CURSORS = {
     n: {
-        def: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M5 3l14 9-7 1-4 7z' fill='%23ffffff' stroke='%23000' stroke-width='1'/%3E%3C/svg%3E") 5 3, auto`,
-        w: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M5 3l14 9-7 1-4 7z' fill='%23ffffff' stroke='%23333' stroke-width='1'/%3E%3C/svg%3E") 5 3, auto`,
-        y: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M5 3l14 9-7 1-4 7z' fill='%23FFD700' stroke='%23333' stroke-width='1'/%3E%3C/svg%3E") 5 3, auto`,
-        b2: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M5 3l14 9-7 1-4 7z' fill='%2300ccff' stroke='%23000' stroke-width='1'/%3E%3C/svg%3E") 5 3, auto`,
+        def: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M5 3l14 9-7 1-4 7z' fill='%23ffffff' stroke='%23000' stroke-width='1'/%3E%3C/svg%3E\") 5 3, auto",
+        w: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M5 3l14 9-7 1-4 7z' fill='%23ffffff' stroke='%23333' stroke-width='1'/%3E%3C/svg%3E\") 5 3, auto",
+        y: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M5 3l14 9-7 1-4 7z' fill='%23FFD700' stroke='%23333' stroke-width='1'/%3E%3C/svg%3E\") 5 3, auto",
+        b2: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M5 3l14 9-7 1-4 7z' fill='%2300ccff' stroke='%23000' stroke-width='1'/%3E%3C/svg%3E\") 5 3, auto",
     },
     d: {
-        def: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M7 4l21 14-11 1-6 10z' fill='%23ffffff' stroke='%23000' stroke-width='1.5'/%3E%3C/svg%3E") 7 4, auto`,
-        w: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M7 4l21 14-11 1-6 10z' fill='%23ffffff' stroke='%23333' stroke-width='1.5'/%3E%3C/svg%3E") 7 4, auto`,
-        y: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M7 4l21 14-11 1-6 10z' fill='%23FFD700' stroke='%23333' stroke-width='1.5'/%3E%3C/svg%3E") 7 4, auto`,
-        b2: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M7 4l21 14-11 1-6 10z' fill='%2300ccff' stroke='%23000' stroke-width='1.5'/%3E%3C/svg%3E") 7 4, auto`,
+        def: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M7 4l21 14-11 1-6 10z' fill='%23ffffff' stroke='%23000' stroke-width='1.5'/%3E%3C/svg%3E\") 7 4, auto",
+        w: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M7 4l21 14-11 1-6 10z' fill='%23ffffff' stroke='%23333' stroke-width='1.5'/%3E%3C/svg%3E\") 7 4, auto",
+        y: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M7 4l21 14-11 1-6 10z' fill='%23FFD700' stroke='%23333' stroke-width='1.5'/%3E%3C/svg%3E\") 7 4, auto",
+        b2: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M7 4l21 14-11 1-6 10z' fill='%2300ccff' stroke='%23000' stroke-width='1.5'/%3E%3C/svg%3E\") 7 4, auto",
     },
     b: {
-        def: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M9 5l28 18-14 2-8 14z' fill='%23ffffff' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") 9 5, auto`,
-        w: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M9 5l28 18-14 2-8 14z' fill='%23ffffff' stroke='%23333' stroke-width='2'/%3E%3C/svg%3E") 9 5, auto`,
-        y: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M9 5l28 18-14 2-8 14z' fill='%23FFD700' stroke='%23333' stroke-width='2'/%3E%3C/svg%3E") 9 5, auto`,
-        b2: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M9 5l28 18-14 2-8 14z' fill='%2300ccff' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") 9 5, auto`,
+        def: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M9 5l28 18-14 2-8 14z' fill='%23ffffff' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E\") 9 5, auto",
+        w: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M9 5l28 18-14 2-8 14z' fill='%23ffffff' stroke='%23333' stroke-width='2'/%3E%3C/svg%3E\") 9 5, auto",
+        y: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M9 5l28 18-14 2-8 14z' fill='%23FFD700' stroke='%23333' stroke-width='2'/%3E%3C/svg%3E\") 9 5, auto",
+        b2: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M9 5l28 18-14 2-8 14z' fill='%2300ccff' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E\") 9 5, auto",
     }
 };
 function applyWcag(root, state) {
+    var _a;
     root.className = root.className
         .split(' ')
-        .filter(c => !c.startsWith('ku-') && !c.startsWith('kuf-'))
+        .filter(function (c) { return !c.startsWith('ku-') && !c.startsWith('kuf-'); })
         .join(' ');
     if (state.highContrast)
         root.classList.add('ku-hc');
@@ -918,22 +743,22 @@ function applyWcag(root, state) {
         root.classList.add('ku-no-orbits');
     if (state.learnMode)
         root.classList.add('ku-learn');
-    root.classList.add(`ku-size-${state.textSize}`);
+    root.classList.add("ku-size-".concat(state.textSize));
     if (state.colorFilter !== 'none')
-        root.classList.add(`kuf-${state.colorFilter}`);
+        root.classList.add("kuf-".concat(state.colorFilter));
     if (state.cursorSize !== 'n' || state.cursorColor !== 'def') {
-        root.classList.add(`ku-nc`);
+        root.classList.add("ku-nc");
     }
     // Apply custom cursor to root and all children
-    const cursorVal = CURSORS[state.cursorSize]?.[state.cursorColor] || 'auto';
+    var cursorVal = ((_a = CURSORS[state.cursorSize]) === null || _a === void 0 ? void 0 : _a[state.cursorColor]) || 'auto';
     root.style.setProperty('--ku-cursor', cursorVal);
     root.style.cursor = cursorVal;
     // Apply color filter
-    const svgFilter = document.getElementById('ku-color-filter');
+    var svgFilter = document.getElementById('ku-color-filter');
     if (svgFilter) {
-        const feMatrix = svgFilter.querySelector('feColorMatrix');
+        var feMatrix = svgFilter.querySelector('feColorMatrix');
         if (feMatrix) {
-            const matrices = {
+            var matrices = {
                 none: '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0',
                 gray: '0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0 0 0 1 0',
                 deut: '0.367 0.861 -0.228 0 0  0.280 0.673 0.047 0 0  -0.012 0.043 0.969 0 0  0 0 0 1 0',
@@ -942,7 +767,7 @@ function applyWcag(root, state) {
             };
             feMatrix.setAttribute('values', matrices[state.colorFilter] || matrices.none);
         }
-        const filterEl = root.closest('#ku-app-wrapper') || document.body;
+        var filterEl = root.closest('#ku-app-wrapper') || document.body;
         if (state.colorFilter !== 'none') {
             filterEl.style.filter = 'url(#ku-color-filter-def)';
         }
@@ -963,19 +788,14 @@ function applyWcag(root, state) {
     }
 }
 function createColorFilterSVG() {
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('id', 'ku-color-filter');
     svg.setAttribute('style', 'position:absolute;width:0;height:0;overflow:hidden');
-    svg.innerHTML = `
-    <defs>
-      <filter id="ku-color-filter-def" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
-        <feColorMatrix id="ku-fcm" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/>
-      </filter>
-    </defs>`;
+    svg.innerHTML = "\n    <defs>\n      <filter id=\"ku-color-filter-def\" x=\"0%\" y=\"0%\" width=\"100%\" height=\"100%\" color-interpolation-filters=\"sRGB\">\n        <feColorMatrix id=\"ku-fcm\" type=\"matrix\" values=\"1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0\"/>\n      </filter>\n    </defs>";
     return svg;
 }
 // Sound system (Web Audio API synthesis)
-let audioCtx = null;
+var audioCtx = null;
 function getAudioCtx() {
     if (!audioCtx) {
         try {
@@ -988,11 +808,11 @@ function getAudioCtx() {
 function playClick(enabled) {
     if (!enabled)
         return;
-    const ctx = getAudioCtx();
+    var ctx = getAudioCtx();
     if (!ctx)
         return;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.frequency.setValueAtTime(880, ctx.currentTime);
@@ -1005,11 +825,11 @@ function playClick(enabled) {
 function playHover(enabled) {
     if (!enabled)
         return;
-    const ctx = getAudioCtx();
+    var ctx = getAudioCtx();
     if (!ctx)
         return;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.frequency.setValueAtTime(700, ctx.currentTime);
@@ -1028,865 +848,200 @@ function playHover(enabled) {
 
 
 
-
-const TOPBAR_H = 68;
+var TOPBAR_H = 68;
 // ============================================================
 // CSS injection
 // ============================================================
 function injectCSS() {
     if (document.getElementById('ku-styles'))
         return;
-    const style = document.createElement('style');
+    var style = document.createElement('style');
     style.id = 'ku-styles';
-    style.textContent = `
-/* === KU ROOT ISOLATION === */
-#ku-root, #ku-root *, #ku-root *::before, #ku-root *::after {
-  box-sizing: border-box !important;
-  font-family: 'Segoe UI', Arial, sans-serif !important;
-}
-#ku-root {
-  display: block !important;
-  width: 1280px !important;
-  height: 720px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-  overscroll-behavior: none !important;
-  contain: layout style !important;
-  cursor: var(--ku-cursor, auto) !important;
-}
-#ku-root *, #ku-root input, #ku-root button, #ku-root textarea {
-  cursor: inherit !important;
-}
-/* select musi mieć jawny kursor — inherit nie działa we wszystkich przeglądarkach */
-#ku-root select { cursor: var(--ku-cursor, auto) !important; }
-
-/* === LAYOUT === */
-#ku-root .ku-game {
-  position: relative !important;
-  width: 1280px !important;
-  height: 720px !important;
-  overflow: hidden !important;
-  background: #000510 !important;
-  overscroll-behavior: none !important;
-  touch-action: pan-x pan-y !important;
-}
-
-/* === TOPBAR === */
-#ku-root .ku-topbar {
-  position: absolute !important;
-  top: 0 !important; left: 0 !important; right: 0 !important;
-  height: ${TOPBAR_H}px !important;
-  z-index: 800 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: transparent !important;
-  overflow: hidden !important;
-}
-#ku-root .ku-topbar-bg {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important; height: 100% !important;
-}
-#ku-root .ku-topbar-title {
-  position: relative !important;
-  z-index: 1 !important;
-  color: #FFD700 !important;
-  font-size: 22px !important;
-  font-weight: 700 !important;
-  letter-spacing: 3px !important;
-  text-transform: uppercase !important;
-  text-shadow: 2px 2px 4px #8B6000, 0 0 12px rgba(255,215,0,0.5) !important;
-}
-#ku-root .ku-topbar-btns {
-  position: absolute !important;
-  right: 18px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  display: flex !important;
-  gap: 10px !important;
-  z-index: 1 !important;
-}
-#ku-root .ku-topbar-btn {
-  position: relative !important;
-  width: 52px !important; height: 52px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border: none !important;
-  background: transparent !important;
-  padding: 0 !important;
-  cursor: inherit !important;
-  transition: transform 0.15s, filter 0.15s !important;
-  border-radius: 50% !important;
-  outline-offset: 3px !important;
-}
-#ku-root .ku-topbar-btn:hover { transform: scale(1.12) !important; filter: brightness(1.25) !important; }
-#ku-root .ku-topbar-btn:focus { outline: 3px solid #FFD700 !important; }
-#ku-root .ku-topbar-btn img, #ku-root .ku-topbar-btn svg { position: relative !important; z-index: 1 !important; width: 30px !important; height: 30px !important; }
-#ku-root .ku-topbar-btn .ku-btn-bg {
-  position: absolute !important; inset: 0 !important;
-  width: 100% !important; height: 100% !important;
-  border-radius: 50% !important;
-}
-
-/* === OVERLAY === */
-#ku-root .ku-overlay {
-  position: absolute !important;
-  top: ${TOPBAR_H}px !important;
-  left: 0 !important; right: 0 !important; bottom: 0 !important;
-  background: rgba(0,2,20,0.85) !important;
-  z-index: 600 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-/* pełny overlay (onboarding) — topbar (z-index 800) i tak go przykrywa */
-#ku-root .ku-overlay.ku-overlay-full {
-  top: 0 !important;
-  z-index: 750 !important;
-}
-
-/* === WELCOME SCREEN === */
-#ku-root .ku-welcome {
-  position: absolute !important;
-  inset: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-#ku-root .ku-welcome-bg {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important; height: 100% !important;
-  object-fit: cover !important;
-}
-#ku-root .ku-welcome-popup {
-  position: relative !important;
-  z-index: 10 !important;
-  width: 700px !important;
-  min-height: 440px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  padding: 40px 50px 30px !important;
-  margin-top: 34px !important;
-}
-#ku-root .ku-welcome-popup-bg {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important; height: 100% !important;
-}
-#ku-root .ku-welcome-content { position: relative !important; z-index: 1 !important; width: 100% !important; }
-#ku-root .ku-welcome-title {
-  color: #FFD700 !important;
-  font-size: 32px !important;
-  font-weight: 700 !important;
-  text-align: center !important;
-  margin: 0 0 16px !important;
-  text-shadow: 2px 2px 6px rgba(0,0,0,0.8) !important;
-}
-#ku-root .ku-welcome-desc {
-  color: #fff !important;
-  font-size: 17px !important;
-  font-weight: 600 !important;
-  text-align: center !important;
-  line-height: 1.55 !important;
-  margin: 0 0 20px !important;
-}
-#ku-root .ku-task-box {
-  display: flex !important;
-  align-items: flex-start !important;
-  gap: 14px !important;
-  background: rgba(0,0,0,0.3) !important;
-  border-radius: 10px !important;
-  padding: 14px 18px !important;
-  margin-bottom: 24px !important;
-}
-#ku-root .ku-task-icon { width: 52px !important; height: 52px !important; flex-shrink: 0 !important; }
-#ku-root .ku-task-text { color: #fff !important; font-size: 15px !important; line-height: 1.5 !important; }
-#ku-root .ku-task-text strong { color: #FFD700 !important; }
-#ku-root .ku-welcome-footer {
-  display: flex !important;
-  gap: 20px !important;
-  justify-content: center !important;
-  width: 100% !important;
-}
-
-/* Decorations */
-#ku-root .ku-deco {
-  position: absolute !important;
-  pointer-events: none !important;
-  z-index: 5 !important;
-}
-
-/* === SOLAR SCREEN === */
-#ku-root .ku-solar {
-  position: absolute !important;
-  top: ${TOPBAR_H}px !important;
-  left: 0 !important; right: 0 !important; bottom: 0 !important;
-  display: flex !important;
-}
-#ku-root .ku-left-panel {
-  width: 190px !important;
-  flex-shrink: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 16px !important;
-  padding: 16px 12px !important;
-  position: relative !important;
-  overflow: hidden !important;
-}
-#ku-root .ku-left-panel-bg {
-  position: absolute !important; inset: 0 !important;
-  width: 100% !important; height: 100% !important; object-fit: cover !important;
-}
-#ku-root .ku-portrait-wrap {
-  position: relative !important;
-  z-index: 1 !important;
-  cursor: inherit !important;
-}
-#ku-root .ku-portrait {
-  width: 160px !important; height: 160px !important;
-  border: 3px solid #444 !important;
-  border-radius: 6px !important;
-  object-fit: cover !important;
-  display: block !important;
-  transition: border-color 0.2s, box-shadow 0.2s !important;
-}
-#ku-root .ku-portrait-wrap:hover .ku-portrait,
-#ku-root .ku-portrait-wrap.active .ku-portrait {
-  border-color: #FFD700 !important;
-  box-shadow: 0 0 20px 5px #FFD700 !important;
-}
-#ku-root .ku-portrait-wrap:focus { outline: 3px solid #FFD700 !important; outline-offset: 3px !important; }
-
-#ku-root .ku-portrait-tooltip {
-  position: absolute !important;
-  left: 168px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  background: #000 !important;
-  border: 1px solid #FFD700 !important;
-  color: #fff !important;
-  padding: 6px 12px !important;
-  border-radius: 4px !important;
-  white-space: nowrap !important;
-  font-size: 13px !important;
-  font-style: italic !important;
-  z-index: 200 !important;
-  pointer-events: none !important;
-}
-#ku-root .ku-portrait-tooltip strong { color: #FFD700 !important; }
-
-#ku-root .ku-canvas-area {
-  flex: 1 !important;
-  position: relative !important;
-  overflow: hidden !important;
-}
-#ku-root .ku-canvas-title {
-  position: absolute !important;
-  top: 10px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  z-index: 50 !important;
-  color: #fff !important;
-  font-size: 22px !important;
-  font-weight: 700 !important;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.9) !important;
-  background: rgba(0,0,0,0.55) !important;
-  padding: 6px 18px !important;
-  border-radius: 6px !important;
-  white-space: nowrap !important;
-}
-#ku-root .ku-game-canvas {
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-}
-#ku-root .ku-zoom-bar {
-  position: absolute !important;
-  bottom: 50px !important;
-  right: 14px !important;
-  display: flex !important;
-  gap: 6px !important;
-  z-index: 50 !important;
-}
-#ku-root .ku-zoom-btn {
-  width: 36px !important; height: 36px !important;
-  background: rgba(0,0,0,0.6) !important;
-  border: 1px solid rgba(255,255,255,0.3) !important;
-  border-radius: 6px !important;
-  color: #fff !important;
-  font-size: 18px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: inherit !important;
-  transition: background 0.15s !important;
-}
-#ku-root .ku-zoom-btn:hover { background: rgba(255,215,0,0.2) !important; border-color: #FFD700 !important; }
-#ku-root .ku-zoom-btn:focus { outline: 3px solid #FFD700 !important; }
-
-#ku-root .ku-astro-deco {
-  position: absolute !important;
-  bottom: 10px !important; right: 14px !important;
-  width: 80px !important;
-  z-index: 30 !important;
-  pointer-events: none !important;
-}
-#ku-root .ku-satellite-deco {
-  position: absolute !important;
-  top: 50px !important; left: 60px !important;
-  width: 55px !important;
-  z-index: 30 !important;
-  pointer-events: none !important;
-}
-
-/* === MODEL SCREEN === */
-#ku-root .ku-model {
-  position: absolute !important;
-  top: ${TOPBAR_H}px !important;
-  left: 0 !important; right: 0 !important; bottom: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
-#ku-root .ku-model-title {
-  color: #fff !important;
-  font-size: 22px !important;
-  font-weight: 700 !important;
-  text-align: center !important;
-  padding: 12px 24px !important;
-  background: rgba(0,0,0,0.55) !important;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.9) !important;
-  flex-shrink: 0 !important;
-}
-#ku-root .ku-model-canvas-wrap {
-  flex: 1 !important;
-  position: relative !important;
-  overflow: hidden !important;
-}
-#ku-root .ku-model-footer {
-  display: flex !important;
-  justify-content: center !important;
-  padding: 10px !important;
-  background: rgba(0,0,0,0.4) !important;
-  flex-shrink: 0 !important;
-}
-
-/* === BUTTONS === */
-#ku-root .ku-btn {
-  position: relative !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border: none !important;
-  background: transparent !important;
-  padding: 0 !important;
-  cursor: inherit !important;
-  font-weight: 700 !important;
-  color: #FFD700 !important;
-  font-size: 18px !important;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.8) !important;
-  transition: filter 0.15s, transform 0.15s !important;
-  outline-offset: 3px !important;
-}
-#ku-root .ku-btn:hover { filter: brightness(1.2) !important; transform: scale(1.03) !important; }
-#ku-root .ku-btn:focus { outline: 3px solid #FFD700 !important; }
-#ku-root .ku-btn img { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; }
-#ku-root .ku-btn span { position: relative !important; z-index: 1 !important; }
-#ku-root .ku-btn-280 { width: 280px !important; height: 80px !important; }
-#ku-root .ku-btn-420 { width: 420px !important; height: 80px !important; }
-#ku-root .ku-btn-620 { width: 620px !important; height: 80px !important; }
-
-/* === POPUPS === */
-#ku-root .ku-popup {
-  position: relative !important;
-  display: flex !important;
-  flex-direction: column !important;
-  max-height: calc(720px - ${TOPBAR_H}px - 40px) !important;
-  overflow: hidden !important;
-}
-#ku-root .ku-popup-bg {
-  position: absolute !important; inset: 0 !important;
-  width: 100% !important; height: 100% !important;
-  object-fit: fill !important;
-  border-radius: 8px !important;
-}
-#ku-root .ku-popup-inner {
-  position: relative !important;
-  z-index: 1 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  height: 100% !important;
-  padding: 28px 36px !important;
-}
-#ku-root .ku-popup-title {
-  color: #FFD700 !important;
-  font-size: 22px !important;
-  font-weight: 700 !important;
-  margin: 0 0 12px !important;
-  text-align: center !important;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.8) !important;
-}
-#ku-root .ku-popup-sep {
-  width: 100% !important; height: 3px !important;
-  background: linear-gradient(90deg, transparent, #FFD700, transparent) !important;
-  margin: 0 0 16px !important;
-}
-#ku-root .ku-popup-body {
-  flex: 1 !important;
-  overflow-y: auto !important;
-  color: #fff !important;
-  font-size: 15px !important;
-  line-height: 1.6 !important;
-  scrollbar-width: thin !important;
-}
-#ku-root .ku-popup-footer {
-  display: flex !important;
-  gap: 16px !important;
-  justify-content: center !important;
-  padding-top: 16px !important;
-  flex-shrink: 0 !important;
-}
-
-/* === BIOGRAPHY POPUP === */
-#ku-root .ku-bio-wrap {
-  width: 860px !important;
-}
-#ku-root .ku-bio-body {
-  display: flex !important;
-  gap: 20px !important;
-  align-items: flex-start !important;
-}
-#ku-root .ku-bio-pic {
-  width: 196px !important; height: 236px !important;
-  object-fit: cover !important;
-  border: 2px solid #FFD700 !important;
-  border-radius: 4px !important;
-  flex-shrink: 0 !important;
-}
-#ku-root .ku-bio-text { flex: 1 !important; }
-#ku-root .ku-bio-text p { margin: 0 0 12px !important; }
-
-/* === SETTINGS POPUP === */
-#ku-root .ku-settings-card {
-  width: 680px !important;
-  background: linear-gradient(160deg, #0e2a52, #0a1e3d, #071530) !important;
-  border: 2px solid #2a5090 !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
-}
-#ku-root .ku-settings-title {
-  color: #FFD700 !important;
-  font-size: 20px !important;
-  font-weight: 700 !important;
-  letter-spacing: 2px !important;
-  text-align: center !important;
-  padding: 20px !important;
-  text-transform: uppercase !important;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.8) !important;
-  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-}
-#ku-root .ku-settings-grid {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 0 !important;
-  padding: 0 !important;
-}
-#ku-root .ku-settings-row {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  padding: 12px 20px !important;
-  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
-  gap: 12px !important;
-}
-#ku-root .ku-settings-row.full {
-  grid-column: 1 / -1 !important;
-}
-#ku-root .ku-settings-label {
-  color: #aac4e0 !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  white-space: nowrap !important;
-}
-#ku-root .ku-toggle {
-  padding: 5px 12px !important;
-  border: 1px solid transparent !important;
-  border-radius: 4px !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
-  cursor: inherit !important;
-  white-space: nowrap !important;
-  min-width: 100px !important;
-  text-align: center !important;
-}
-#ku-root .ku-toggle.on { background: #FFD700 !important; color: #1a1200 !important; border-color: #FFD700 !important; }
-#ku-root .ku-toggle.off { background: #1e4a8a !important; color: #FFD700 !important; border-color: #3a6aaa !important; }
-#ku-root .ku-toggle:focus { outline: 3px solid #FFD700 !important; }
-#ku-root .ku-text-size-btns { display: flex !important; gap: 4px !important; }
-#ku-root .ku-text-size-btn {
-  width: 30px !important; height: 30px !important;
-  border: 1px solid #3a6aaa !important;
-  background: #1e4a8a !important;
-  color: #FFD700 !important;
-  border-radius: 4px !important;
-  cursor: inherit !important;
-  font-weight: 700 !important;
-  display: flex !important; align-items: center !important; justify-content: center !important;
-}
-#ku-root .ku-text-size-btn.active { background: #FFD700 !important; color: #1a1200 !important; }
-#ku-root .ku-text-size-btn:focus { outline: 3px solid #FFD700 !important; }
-#ku-root .ku-select {
-  background: #1e4a8a !important;
-  color: #FFD700 !important;
-  border: 1px solid #3a6aaa !important;
-  border-radius: 4px !important;
-  padding: 4px 8px !important;
-  font-size: 12px !important;
-  cursor: inherit !important;
-}
-#ku-root .ku-select:focus { outline: 3px solid #FFD700 !important; }
-#ku-root .ku-settings-footer {
-  display: flex !important;
-  justify-content: center !important;
-  padding: 16px !important;
-  border-top: 1px solid rgba(255,255,255,0.1) !important;
-}
-#ku-root .ku-btn-outline {
-  border: 2px solid #4a90d9 !important;
-  background: transparent !important;
-  color: #4a90d9 !important;
-  padding: 10px 30px !important;
-  border-radius: 6px !important;
-  font-size: 15px !important;
-  font-weight: 700 !important;
-  cursor: inherit !important;
-  transition: background 0.15s !important;
-}
-#ku-root .ku-btn-outline:hover { background: rgba(74,144,217,0.2) !important; }
-#ku-root .ku-btn-outline:focus { outline: 3px solid #FFD700 !important; }
-
-/* === ONBOARDING === */
-#ku-root .ku-onboarding-card {
-  width: 490px !important;
-  background: linear-gradient(160deg, #0e2a52, #071530) !important;
-  border: 2px solid #3a70c0 !important;
-  border-radius: 12px !important;
-  padding: 28px 32px !important;
-  color: #fff !important;
-}
-#ku-root .ku-onboarding-icon {
-  font-size: 36px !important;
-  text-align: center !important;
-  margin-bottom: 12px !important;
-}
-#ku-root .ku-onboarding-title {
-  color: #FFD700 !important;
-  font-size: 18px !important;
-  font-weight: 700 !important;
-  text-align: center !important;
-  margin-bottom: 12px !important;
-}
-#ku-root .ku-onboarding-text {
-  font-size: 14px !important;
-  line-height: 1.6 !important;
-  color: #dde !important;
-  margin-bottom: 20px !important;
-}
-#ku-root .ku-onboarding-dots {
-  display: flex !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  margin-bottom: 16px !important;
-}
-#ku-root .ku-dot {
-  width: 10px !important; height: 10px !important;
-  border-radius: 50% !important;
-  background: #3a6aaa !important;
-  border: 1px solid #4a90d9 !important;
-  transition: background 0.2s !important;
-}
-#ku-root .ku-dot.active { background: #FFD700 !important; border-color: #FFD700 !important; }
-#ku-root .ku-onboarding-footer {
-  display: flex !important;
-  justify-content: space-between !important;
-  gap: 12px !important;
-}
-#ku-root .ku-btn-ob {
-  border: 2px solid #3a70c0 !important;
-  background: transparent !important;
-  color: #aac4e0 !important;
-  padding: 8px 20px !important;
-  border-radius: 6px !important;
-  font-size: 14px !important;
-  font-weight: 700 !important;
-  cursor: inherit !important;
-}
-#ku-root .ku-btn-ob.primary { background: #2a5090 !important; color: #fff !important; border-color: #4a90d9 !important; }
-#ku-root .ku-btn-ob:hover { filter: brightness(1.2) !important; }
-#ku-root .ku-btn-ob:focus { outline: 3px solid #FFD700 !important; }
-
-/* === INSTRUCTIONS === */
-#ku-root .ku-instr-wrap { width: 720px !important; }
-#ku-root .ku-instr-section { margin-bottom: 14px !important; }
-#ku-root .ku-instr-section h3 { color: #FFD700 !important; font-size: 15px !important; margin: 0 0 6px !important; }
-#ku-root .ku-instr-section ul { margin: 0 !important; padding-left: 18px !important; }
-#ku-root .ku-instr-section li { margin-bottom: 4px !important; }
-
-/* === PLANET TOOLTIP (quick, PPM) === */
-#ku-root .ku-planet-tooltip {
-  position: absolute !important;
-  background: rgba(0,5,30,0.92) !important;
-  border: 1px solid #4a90d9 !important;
-  border-radius: 8px !important;
-  padding: 10px 16px !important;
-  color: #fff !important;
-  font-size: 14px !important;
-  z-index: 400 !important;
-  pointer-events: none !important;
-  max-width: 220px !important;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.5) !important;
-}
-#ku-root .ku-planet-tooltip-title {
-  color: #FFD700 !important;
-  font-size: 16px !important;
-  font-weight: 700 !important;
-  margin-bottom: 4px !important;
-}
-
-/* === WCAG TEXT SIZE (only popup body) === */
-#ku-root.ku-size-2 .ku-popup-body { font-size: 18px !important; }
-#ku-root.ku-size-3 .ku-popup-body { font-size: 21px !important; }
-#ku-root.ku-size-2 .ku-bio-text { font-size: 18px !important; }
-#ku-root.ku-size-3 .ku-bio-text { font-size: 21px !important; }
-#ku-root.ku-size-2 .ku-onboarding-text { font-size: 17px !important; }
-#ku-root.ku-size-3 .ku-onboarding-text { font-size: 19px !important; }
-
-/* === FOCUS styles === */
-#ku-root :focus-visible { outline: 3px solid #FFD700 !important; outline-offset: 2px !important; }
-
-/* === REDUCE MOTION === */
-#ku-root.ku-noanim * { animation: none !important; transition: none !important; }
-
-/* === HIGH CONTRAST (ku-hc) === */
-#ku-root.ku-hc .ku-settings-card {
-  background: #000000 !important;
-  border: 2px solid #FFD700 !important;
-}
-#ku-root.ku-hc .ku-settings-title {
-  color: #FFD700 !important;
-  border-bottom-color: rgba(255,215,0,0.4) !important;
-}
-#ku-root.ku-hc .ku-settings-label { color: #FFD700 !important; }
-#ku-root.ku-hc .ku-settings-row { border-bottom-color: rgba(255,215,0,0.2) !important; }
-#ku-root.ku-hc .ku-settings-footer { border-top-color: rgba(255,215,0,0.3) !important; }
-#ku-root.ku-hc .ku-toggle.on  { background: #FFD700 !important; color: #000 !important; border-color: #FFD700 !important; }
-#ku-root.ku-hc .ku-toggle.off { background: #000 !important; color: #FFD700 !important; border-color: #FFD700 !important; }
-#ku-root.ku-hc .ku-select { background: #000 !important; color: #FFD700 !important; border-color: #FFD700 !important; }
-#ku-root.ku-hc .ku-text-size-btn { background: #000 !important; color: #FFD700 !important; border-color: #FFD700 !important; }
-#ku-root.ku-hc .ku-text-size-btn.active { background: #FFD700 !important; color: #000 !important; }
-/* Przyciski — tekst czarny na żółtym tle w trybie HC */
-#ku-root.ku-hc .ku-btn span { color: #000 !important; text-shadow: none !important; }
-#ku-root.ku-hc .ku-btn-outline { background: #FFD700 !important; color: #000 !important; border-color: #FFD700 !important; }
-#ku-root.ku-hc .ku-portrait { border-color: #FFD700 !important; }
-#ku-root.ku-hc .ku-canvas-title { background: #000 !important; color: #FFD700 !important; }
-#ku-root.ku-hc .ku-zoom-btn { border-color: #FFD700 !important; background: #000 !important; color: #FFD700 !important; }
-#ku-root.ku-hc .ku-popup-body { color: #fff !important; }
-#ku-root.ku-hc .ku-popup-title { color: #FFD700 !important; }
-
-/* === SCROLLBAR === */
-#ku-root .ku-popup-body::-webkit-scrollbar { width: 8px !important; }
-#ku-root .ku-popup-body::-webkit-scrollbar-track { background: rgba(255,255,255,0.05) !important; }
-#ku-root .ku-popup-body::-webkit-scrollbar-thumb { background: #3a6aaa !important; border-radius: 4px !important; }
-  `;
+    style.textContent = "\n/* === KU ROOT ISOLATION === */\n#ku-root, #ku-root *, #ku-root *::before, #ku-root *::after {\n  box-sizing: border-box !important;\n  font-family: 'Segoe UI', Arial, sans-serif !important;\n}\n#ku-root {\n  display: block !important;\n  width: 1920px !important;\n  height: 1080px !important;\n  margin: 0 !important;\n  padding: 0 !important;\n  overflow: hidden !important;\n  overscroll-behavior: none !important;\n  contain: layout style !important;\n  cursor: var(--ku-cursor, auto) !important;\n}\n#ku-root *, #ku-root input, #ku-root button, #ku-root textarea {\n  cursor: inherit !important;\n}\n/* select musi mie\u0107 jawny kursor \u2014 inherit nie dzia\u0142a we wszystkich przegl\u0105darkach */\n#ku-root select { cursor: var(--ku-cursor, auto) !important; }\n\n/* === LAYOUT === */\n#ku-root .ku-game {\n  position: relative !important;\n  width: 1920px !important;\n  height: 1080px !important;\n  overflow: hidden !important;\n  background: #000510 !important;\n  overscroll-behavior: none !important;\n  touch-action: pan-x pan-y !important;\n}\n\n/* === TOPBAR === */\n#ku-root .ku-topbar {\n  position: absolute !important;\n  top: 0 !important; left: 0 !important; right: 0 !important;\n  height: ".concat(TOPBAR_H, "px !important;\n  z-index: 800 !important;\n  display: flex !important;\n  align-items: center !important;\n  justify-content: center !important;\n  background: transparent !important;\n  overflow: hidden !important;\n}\n#ku-root .ku-topbar-bg {\n  position: absolute !important;\n  inset: 0 !important;\n  width: 100% !important; height: 100% !important;\n}\n#ku-root .ku-topbar-title {\n  position: relative !important;\n  z-index: 1 !important;\n  color: #FFD700 !important;\n  font-size: 22px !important;\n  font-weight: 700 !important;\n  letter-spacing: 3px !important;\n  text-transform: uppercase !important;\n  text-shadow: 2px 2px 4px #8B6000, 0 0 12px rgba(255,215,0,0.5) !important;\n}\n#ku-root .ku-topbar-btns {\n  position: absolute !important;\n  right: 18px !important;\n  top: 50% !important;\n  transform: translateY(-50%) !important;\n  display: flex !important;\n  gap: 10px !important;\n  z-index: 1 !important;\n}\n#ku-root .ku-topbar-btn {\n  position: relative !important;\n  width: 52px !important; height: 52px !important;\n  display: flex !important;\n  align-items: center !important;\n  justify-content: center !important;\n  border: none !important;\n  background: transparent !important;\n  padding: 0 !important;\n  cursor: inherit !important;\n  transition: transform 0.15s, filter 0.15s !important;\n  border-radius: 50% !important;\n  outline-offset: 3px !important;\n}\n#ku-root .ku-topbar-btn:hover { transform: scale(1.12) !important; filter: brightness(1.25) !important; }\n#ku-root .ku-topbar-btn:focus { outline: 3px solid #FFD700 !important; }\n#ku-root .ku-topbar-btn img, #ku-root .ku-topbar-btn svg { position: relative !important; z-index: 1 !important; width: 30px !important; height: 30px !important; }\n#ku-root .ku-topbar-btn .ku-btn-bg {\n  position: absolute !important; inset: 0 !important;\n  width: 100% !important; height: 100% !important;\n  border-radius: 50% !important;\n}\n\n/* === OVERLAY === */\n#ku-root .ku-overlay {\n  position: absolute !important;\n  top: ").concat(TOPBAR_H, "px !important;\n  left: 0 !important; right: 0 !important; bottom: 0 !important;\n  background: rgba(0,2,20,0.85) !important;\n  z-index: 600 !important;\n  display: flex !important;\n  align-items: center !important;\n  justify-content: center !important;\n}\n/* pe\u0142ny overlay (onboarding) \u2014 topbar (z-index 800) i tak go przykrywa */\n#ku-root .ku-overlay.ku-overlay-full {\n  top: 0 !important;\n  z-index: 750 !important;\n}\n\n/* === WELCOME SCREEN === */\n#ku-root .ku-welcome {\n  position: absolute !important;\n  inset: 0 !important;\n  display: flex !important;\n  align-items: center !important;\n  justify-content: center !important;\n}\n#ku-root .ku-welcome-bg {\n  position: absolute !important;\n  inset: 0 !important;\n  width: 100% !important; height: 100% !important;\n  object-fit: cover !important;\n}\n#ku-root .ku-welcome-popup {\n  position: relative !important;\n  z-index: 10 !important;\n  width: 700px !important;\n  min-height: 440px !important;\n  display: flex !important;\n  flex-direction: column !important;\n  align-items: center !important;\n  padding: 40px 50px 30px !important;\n  margin-top: 34px !important;\n}\n#ku-root .ku-welcome-popup-bg {\n  position: absolute !important;\n  inset: 0 !important;\n  width: 100% !important; height: 100% !important;\n}\n#ku-root .ku-welcome-content { position: relative !important; z-index: 1 !important; width: 100% !important; }\n#ku-root .ku-welcome-title {\n  color: #FFD700 !important;\n  font-size: 32px !important;\n  font-weight: 700 !important;\n  text-align: center !important;\n  margin: 0 0 16px !important;\n  text-shadow: 2px 2px 6px rgba(0,0,0,0.8) !important;\n}\n#ku-root .ku-welcome-desc {\n  color: #fff !important;\n  font-size: 17px !important;\n  font-weight: 600 !important;\n  text-align: center !important;\n  line-height: 1.55 !important;\n  margin: 0 0 20px !important;\n}\n#ku-root .ku-task-box {\n  display: flex !important;\n  align-items: flex-start !important;\n  gap: 14px !important;\n  background: rgba(0,0,0,0.3) !important;\n  border-radius: 10px !important;\n  padding: 14px 18px !important;\n  margin-bottom: 24px !important;\n}\n#ku-root .ku-task-icon { width: 52px !important; height: 52px !important; flex-shrink: 0 !important; }\n#ku-root .ku-task-text { color: #fff !important; font-size: 15px !important; line-height: 1.5 !important; }\n#ku-root .ku-task-text strong { color: #FFD700 !important; }\n#ku-root .ku-welcome-footer {\n  display: flex !important;\n  gap: 20px !important;\n  justify-content: center !important;\n  width: 100% !important;\n}\n\n/* Decorations */\n#ku-root .ku-deco {\n  position: absolute !important;\n  pointer-events: none !important;\n  z-index: 5 !important;\n}\n\n/* === SOLAR SCREEN === */\n#ku-root .ku-solar {\n  position: absolute !important;\n  top: ").concat(TOPBAR_H, "px !important;\n  left: 0 !important; right: 0 !important; bottom: 0 !important;\n  display: flex !important;\n}\n#ku-root .ku-left-panel {\n  width: 190px !important;\n  flex-shrink: 0 !important;\n  display: flex !important;\n  flex-direction: column !important;\n  align-items: center !important;\n  justify-content: center !important;\n  gap: 16px !important;\n  padding: 16px 12px !important;\n  position: relative !important;\n  overflow: hidden !important;\n}\n#ku-root .ku-left-panel-bg {\n  position: absolute !important; inset: 0 !important;\n  width: 100% !important; height: 100% !important; object-fit: cover !important;\n}\n#ku-root .ku-portrait-wrap {\n  position: relative !important;\n  z-index: 1 !important;\n  cursor: inherit !important;\n}\n#ku-root .ku-portrait {\n  width: 160px !important; height: 160px !important;\n  border: 3px solid #444 !important;\n  border-radius: 6px !important;\n  object-fit: cover !important;\n  display: block !important;\n  transition: border-color 0.2s, box-shadow 0.2s !important;\n}\n#ku-root .ku-portrait-wrap:hover .ku-portrait,\n#ku-root .ku-portrait-wrap.active .ku-portrait {\n  border-color: #FFD700 !important;\n  box-shadow: 0 0 20px 5px #FFD700 !important;\n}\n#ku-root .ku-portrait-wrap:focus { outline: 3px solid #FFD700 !important; outline-offset: 3px !important; }\n\n#ku-root .ku-portrait-tooltip {\n  position: absolute !important;\n  left: 168px !important;\n  top: 50% !important;\n  transform: translateY(-50%) !important;\n  background: #000 !important;\n  border: 1px solid #FFD700 !important;\n  color: #fff !important;\n  padding: 6px 12px !important;\n  border-radius: 4px !important;\n  white-space: nowrap !important;\n  font-size: 13px !important;\n  font-style: italic !important;\n  z-index: 200 !important;\n  pointer-events: none !important;\n}\n#ku-root .ku-portrait-tooltip strong { color: #FFD700 !important; }\n\n#ku-root .ku-canvas-area {\n  flex: 1 !important;\n  position: relative !important;\n  overflow: hidden !important;\n}\n#ku-root .ku-canvas-title {\n  position: absolute !important;\n  top: 10px !important;\n  left: 50% !important;\n  transform: translateX(-50%) !important;\n  z-index: 50 !important;\n  color: #fff !important;\n  font-size: 22px !important;\n  font-weight: 700 !important;\n  text-shadow: 1px 1px 3px rgba(0,0,0,0.9) !important;\n  background: rgba(0,0,0,0.55) !important;\n  padding: 6px 18px !important;\n  border-radius: 6px !important;\n  white-space: nowrap !important;\n}\n#ku-root .ku-game-canvas {\n  display: block !important;\n  width: 100% !important;\n  height: 100% !important;\n}\n#ku-root .ku-zoom-bar {\n  position: absolute !important;\n  bottom: 50px !important;\n  right: 14px !important;\n  display: flex !important;\n  gap: 6px !important;\n  z-index: 50 !important;\n}\n#ku-root .ku-zoom-btn {\n  width: 36px !important; height: 36px !important;\n  background: rgba(0,0,0,0.6) !important;\n  border: 1px solid rgba(255,255,255,0.3) !important;\n  border-radius: 6px !important;\n  color: #fff !important;\n  font-size: 18px !important;\n  display: flex !important;\n  align-items: center !important;\n  justify-content: center !important;\n  cursor: inherit !important;\n  transition: background 0.15s !important;\n}\n#ku-root .ku-zoom-btn:hover { background: rgba(255,215,0,0.2) !important; border-color: #FFD700 !important; }\n#ku-root .ku-zoom-btn:focus { outline: 3px solid #FFD700 !important; }\n\n#ku-root .ku-astro-deco {\n  position: absolute !important;\n  bottom: 10px !important; right: 14px !important;\n  width: 80px !important;\n  z-index: 30 !important;\n  pointer-events: none !important;\n}\n#ku-root .ku-satellite-deco {\n  position: absolute !important;\n  top: 50px !important; left: 60px !important;\n  width: 55px !important;\n  z-index: 30 !important;\n  pointer-events: none !important;\n}\n\n/* === MODEL SCREEN === */\n#ku-root .ku-model {\n  position: absolute !important;\n  top: ").concat(TOPBAR_H, "px !important;\n  left: 0 !important; right: 0 !important; bottom: 0 !important;\n  display: flex !important;\n  flex-direction: column !important;\n}\n#ku-root .ku-model-title {\n  color: #fff !important;\n  font-size: 22px !important;\n  font-weight: 700 !important;\n  text-align: center !important;\n  padding: 12px 24px !important;\n  background: rgba(0,0,0,0.55) !important;\n  text-shadow: 1px 1px 3px rgba(0,0,0,0.9) !important;\n  flex-shrink: 0 !important;\n}\n#ku-root .ku-model-canvas-wrap {\n  flex: 1 !important;\n  position: relative !important;\n  overflow: hidden !important;\n}\n#ku-root .ku-model-footer {\n  display: flex !important;\n  justify-content: center !important;\n  padding: 10px !important;\n  background: rgba(0,0,0,0.4) !important;\n  flex-shrink: 0 !important;\n}\n\n/* === BUTTONS === */\n#ku-root .ku-btn {\n  position: relative !important;\n  display: inline-flex !important;\n  align-items: center !important;\n  justify-content: center !important;\n  border: none !important;\n  background: transparent !important;\n  padding: 0 !important;\n  cursor: inherit !important;\n  font-weight: 700 !important;\n  color: #FFD700 !important;\n  font-size: 18px !important;\n  text-shadow: 1px 1px 2px rgba(0,0,0,0.8) !important;\n  transition: filter 0.15s, transform 0.15s !important;\n  outline-offset: 3px !important;\n}\n#ku-root .ku-btn:hover { filter: brightness(1.2) !important; transform: scale(1.03) !important; }\n#ku-root .ku-btn:focus { outline: 3px solid #FFD700 !important; }\n#ku-root .ku-btn img { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; }\n#ku-root .ku-btn span { position: relative !important; z-index: 1 !important; }\n#ku-root .ku-btn-280 { width: 280px !important; height: 80px !important; }\n#ku-root .ku-btn-420 { width: 420px !important; height: 80px !important; }\n#ku-root .ku-btn-620 { width: 620px !important; height: 80px !important; }\n\n/* === POPUPS === */\n#ku-root .ku-popup {\n  position: relative !important;\n  display: flex !important;\n  flex-direction: column !important;\n  max-height: calc(1080px - ").concat(TOPBAR_H, "px - 40px) !important;\n  overflow: hidden !important;\n}\n#ku-root .ku-popup-bg {\n  position: absolute !important; inset: 0 !important;\n  width: 100% !important; height: 100% !important;\n  object-fit: fill !important;\n  border-radius: 8px !important;\n}\n#ku-root .ku-popup-inner {\n  position: relative !important;\n  z-index: 1 !important;\n  display: flex !important;\n  flex-direction: column !important;\n  height: 100% !important;\n  padding: 28px 36px !important;\n}\n#ku-root .ku-popup-title {\n  color: #FFD700 !important;\n  font-size: 22px !important;\n  font-weight: 700 !important;\n  margin: 0 0 12px !important;\n  text-align: center !important;\n  text-shadow: 2px 2px 4px rgba(0,0,0,0.8) !important;\n}\n#ku-root .ku-popup-sep {\n  width: 100% !important; height: 3px !important;\n  background: linear-gradient(90deg, transparent, #FFD700, transparent) !important;\n  margin: 0 0 16px !important;\n}\n#ku-root .ku-popup-body {\n  flex: 1 !important;\n  overflow-y: auto !important;\n  color: #fff !important;\n  font-size: 15px !important;\n  line-height: 1.6 !important;\n  scrollbar-width: thin !important;\n}\n#ku-root .ku-popup-footer {\n  display: flex !important;\n  gap: 16px !important;\n  justify-content: center !important;\n  padding-top: 16px !important;\n  flex-shrink: 0 !important;\n}\n\n/* === BIOGRAPHY POPUP === */\n#ku-root .ku-bio-wrap {\n  width: 860px !important;\n}\n#ku-root .ku-bio-body {\n  display: flex !important;\n  gap: 20px !important;\n  align-items: flex-start !important;\n}\n#ku-root .ku-bio-pic {\n  width: 196px !important; height: 236px !important;\n  object-fit: cover !important;\n  border: 2px solid #FFD700 !important;\n  border-radius: 4px !important;\n  flex-shrink: 0 !important;\n}\n#ku-root .ku-bio-text { flex: 1 !important; }\n#ku-root .ku-bio-text p { margin: 0 0 12px !important; }\n\n/* === SETTINGS POPUP === */\n#ku-root .ku-settings-card {\n  width: 680px !important;\n  background: linear-gradient(160deg, #0e2a52, #0a1e3d, #071530) !important;\n  border: 2px solid #2a5090 !important;\n  border-radius: 12px !important;\n  overflow: hidden !important;\n}\n#ku-root .ku-settings-title {\n  color: #FFD700 !important;\n  font-size: 20px !important;\n  font-weight: 700 !important;\n  letter-spacing: 2px !important;\n  text-align: center !important;\n  padding: 20px !important;\n  text-transform: uppercase !important;\n  text-shadow: 2px 2px 4px rgba(0,0,0,0.8) !important;\n  border-bottom: 1px solid rgba(255,255,255,0.1) !important;\n}\n#ku-root .ku-settings-grid {\n  display: grid !important;\n  grid-template-columns: 1fr 1fr !important;\n  gap: 0 !important;\n  padding: 0 !important;\n}\n#ku-root .ku-settings-row {\n  display: flex !important;\n  align-items: center !important;\n  justify-content: space-between !important;\n  padding: 12px 20px !important;\n  border-bottom: 1px solid rgba(255,255,255,0.07) !important;\n  gap: 12px !important;\n}\n#ku-root .ku-settings-row.full {\n  grid-column: 1 / -1 !important;\n}\n#ku-root .ku-settings-label {\n  color: #aac4e0 !important;\n  font-size: 13px !important;\n  font-weight: 600 !important;\n  white-space: nowrap !important;\n}\n#ku-root .ku-toggle {\n  padding: 5px 12px !important;\n  border: 1px solid transparent !important;\n  border-radius: 4px !important;\n  font-size: 12px !important;\n  font-weight: 700 !important;\n  cursor: inherit !important;\n  white-space: nowrap !important;\n  min-width: 100px !important;\n  text-align: center !important;\n}\n#ku-root .ku-toggle.on { background: #FFD700 !important; color: #1a1200 !important; border-color: #FFD700 !important; }\n#ku-root .ku-toggle.off { background: #1e4a8a !important; color: #FFD700 !important; border-color: #3a6aaa !important; }\n#ku-root .ku-toggle:focus { outline: 3px solid #FFD700 !important; }\n#ku-root .ku-text-size-btns { display: flex !important; gap: 4px !important; }\n#ku-root .ku-text-size-btn {\n  width: 30px !important; height: 30px !important;\n  border: 1px solid #3a6aaa !important;\n  background: #1e4a8a !important;\n  color: #FFD700 !important;\n  border-radius: 4px !important;\n  cursor: inherit !important;\n  font-weight: 700 !important;\n  display: flex !important; align-items: center !important; justify-content: center !important;\n}\n#ku-root .ku-text-size-btn.active { background: #FFD700 !important; color: #1a1200 !important; }\n#ku-root .ku-text-size-btn:focus { outline: 3px solid #FFD700 !important; }\n#ku-root .ku-select {\n  background: #1e4a8a !important;\n  color: #FFD700 !important;\n  border: 1px solid #3a6aaa !important;\n  border-radius: 4px !important;\n  padding: 4px 8px !important;\n  font-size: 12px !important;\n  cursor: inherit !important;\n}\n#ku-root .ku-select:focus { outline: 3px solid #FFD700 !important; }\n#ku-root .ku-settings-footer {\n  display: flex !important;\n  justify-content: center !important;\n  padding: 16px !important;\n  border-top: 1px solid rgba(255,255,255,0.1) !important;\n}\n#ku-root .ku-btn-outline {\n  border: 2px solid #4a90d9 !important;\n  background: transparent !important;\n  color: #4a90d9 !important;\n  padding: 10px 30px !important;\n  border-radius: 6px !important;\n  font-size: 15px !important;\n  font-weight: 700 !important;\n  cursor: inherit !important;\n  transition: background 0.15s !important;\n}\n#ku-root .ku-btn-outline:hover { background: rgba(74,144,217,0.2) !important; }\n#ku-root .ku-btn-outline:focus { outline: 3px solid #FFD700 !important; }\n\n/* === ONBOARDING === */\n#ku-root .ku-onboarding-card {\n  width: 490px !important;\n  background: linear-gradient(160deg, #0e2a52, #071530) !important;\n  border: 2px solid #3a70c0 !important;\n  border-radius: 12px !important;\n  padding: 28px 32px !important;\n  color: #fff !important;\n}\n#ku-root .ku-onboarding-icon {\n  font-size: 36px !important;\n  text-align: center !important;\n  margin-bottom: 12px !important;\n}\n#ku-root .ku-onboarding-title {\n  color: #FFD700 !important;\n  font-size: 18px !important;\n  font-weight: 700 !important;\n  text-align: center !important;\n  margin-bottom: 12px !important;\n}\n#ku-root .ku-onboarding-text {\n  font-size: 14px !important;\n  line-height: 1.6 !important;\n  color: #dde !important;\n  margin-bottom: 20px !important;\n}\n#ku-root .ku-onboarding-dots {\n  display: flex !important;\n  justify-content: center !important;\n  gap: 8px !important;\n  margin-bottom: 16px !important;\n}\n#ku-root .ku-dot {\n  width: 10px !important; height: 10px !important;\n  border-radius: 50% !important;\n  background: #3a6aaa !important;\n  border: 1px solid #4a90d9 !important;\n  transition: background 0.2s !important;\n}\n#ku-root .ku-dot.active { background: #FFD700 !important; border-color: #FFD700 !important; }\n#ku-root .ku-onboarding-footer {\n  display: flex !important;\n  justify-content: space-between !important;\n  gap: 12px !important;\n}\n#ku-root .ku-btn-ob {\n  border: 2px solid #3a70c0 !important;\n  background: transparent !important;\n  color: #aac4e0 !important;\n  padding: 8px 20px !important;\n  border-radius: 6px !important;\n  font-size: 14px !important;\n  font-weight: 700 !important;\n  cursor: inherit !important;\n}\n#ku-root .ku-btn-ob.primary { background: #2a5090 !important; color: #fff !important; border-color: #4a90d9 !important; }\n#ku-root .ku-btn-ob:hover { filter: brightness(1.2) !important; }\n#ku-root .ku-btn-ob:focus { outline: 3px solid #FFD700 !important; }\n\n/* === INSTRUCTIONS === */\n#ku-root .ku-instr-wrap { width: 720px !important; }\n#ku-root .ku-instr-section { margin-bottom: 14px !important; }\n#ku-root .ku-instr-section h3 { color: #FFD700 !important; font-size: 15px !important; margin: 0 0 6px !important; }\n#ku-root .ku-instr-section ul { margin: 0 !important; padding-left: 18px !important; }\n#ku-root .ku-instr-section li { margin-bottom: 4px !important; }\n\n/* === PLANET TOOLTIP (quick, PPM) === */\n#ku-root .ku-planet-tooltip {\n  position: absolute !important;\n  background: rgba(0,5,30,0.92) !important;\n  border: 1px solid #4a90d9 !important;\n  border-radius: 8px !important;\n  padding: 10px 16px !important;\n  color: #fff !important;\n  font-size: 14px !important;\n  z-index: 400 !important;\n  pointer-events: none !important;\n  max-width: 220px !important;\n  box-shadow: 0 4px 16px rgba(0,0,0,0.5) !important;\n}\n#ku-root .ku-planet-tooltip-title {\n  color: #FFD700 !important;\n  font-size: 16px !important;\n  font-weight: 700 !important;\n  margin-bottom: 4px !important;\n}\n\n/* === WCAG TEXT SIZE (only popup body) === */\n#ku-root.ku-size-2 .ku-popup-body { font-size: 18px !important; }\n#ku-root.ku-size-3 .ku-popup-body { font-size: 21px !important; }\n#ku-root.ku-size-2 .ku-bio-text { font-size: 18px !important; }\n#ku-root.ku-size-3 .ku-bio-text { font-size: 21px !important; }\n#ku-root.ku-size-2 .ku-onboarding-text { font-size: 17px !important; }\n#ku-root.ku-size-3 .ku-onboarding-text { font-size: 19px !important; }\n\n/* === FOCUS styles === */\n#ku-root :focus-visible { outline: 3px solid #FFD700 !important; outline-offset: 2px !important; }\n\n/* === REDUCE MOTION === */\n#ku-root.ku-noanim * { animation: none !important; transition: none !important; }\n\n/* === HIGH CONTRAST (ku-hc) === */\n#ku-root.ku-hc .ku-settings-card {\n  background: #000000 !important;\n  border: 2px solid #FFD700 !important;\n}\n#ku-root.ku-hc .ku-settings-title {\n  color: #FFD700 !important;\n  border-bottom-color: rgba(255,215,0,0.4) !important;\n}\n#ku-root.ku-hc .ku-settings-label { color: #FFD700 !important; }\n#ku-root.ku-hc .ku-settings-row { border-bottom-color: rgba(255,215,0,0.2) !important; }\n#ku-root.ku-hc .ku-settings-footer { border-top-color: rgba(255,215,0,0.3) !important; }\n#ku-root.ku-hc .ku-toggle.on  { background: #FFD700 !important; color: #000 !important; border-color: #FFD700 !important; }\n#ku-root.ku-hc .ku-toggle.off { background: #000 !important; color: #FFD700 !important; border-color: #FFD700 !important; }\n#ku-root.ku-hc .ku-select { background: #000 !important; color: #FFD700 !important; border-color: #FFD700 !important; }\n#ku-root.ku-hc .ku-text-size-btn { background: #000 !important; color: #FFD700 !important; border-color: #FFD700 !important; }\n#ku-root.ku-hc .ku-text-size-btn.active { background: #FFD700 !important; color: #000 !important; }\n/* Przyciski \u2014 tekst czarny na \u017C\u00F3\u0142tym tle w trybie HC */\n#ku-root.ku-hc .ku-btn span { color: #000 !important; text-shadow: none !important; }\n#ku-root.ku-hc .ku-btn-outline { background: #FFD700 !important; color: #000 !important; border-color: #FFD700 !important; }\n#ku-root.ku-hc .ku-portrait { border-color: #FFD700 !important; }\n#ku-root.ku-hc .ku-canvas-title { background: #000 !important; color: #FFD700 !important; }\n#ku-root.ku-hc .ku-zoom-btn { border-color: #FFD700 !important; background: #000 !important; color: #FFD700 !important; }\n#ku-root.ku-hc .ku-popup-body { color: #fff !important; }\n#ku-root.ku-hc .ku-popup-title { color: #FFD700 !important; }\n\n/* === SCROLLBAR === */\n#ku-root .ku-popup-body::-webkit-scrollbar { width: 8px !important; }\n#ku-root .ku-popup-body::-webkit-scrollbar-track { background: rgba(255,255,255,0.05) !important; }\n#ku-root .ku-popup-body::-webkit-scrollbar-thumb { background: #3a6aaa !important; border-radius: 4px !important; }\n  ");
     document.head.appendChild(style);
 }
 // ============================================================
 // MAIN APP CLASS
 // ============================================================
-class App {
-    container;
-    state;
-    root;
-    engine = null;
-    modelEngine = null;
-    currentPopup = null;
-    popupTrigger = null;
-    tooltipEl = null;
-    hoveredPortraitIdx = -1;
-    constructor(container) {
+var App = /** @class */ (function () {
+    function App(container, params) {
+        this.engine = null;
+        this.modelEngine = null;
+        this.currentPopup = null;
+        this.popupTrigger = null;
+        this.tooltipEl = null;
+        this.hoveredPortraitIdx = -1;
         this.container = container;
+        this.params = params;
         this.state = JSON.parse(JSON.stringify(DEFAULT_STATE));
     }
-    mount() {
+    App.prototype.mount = function () {
         injectCSS();
         // SVG color filter
-        const filterSVG = createColorFilterSVG();
+        var filterSVG = createColorFilterSVG();
         document.body.appendChild(filterSVG);
         // Root element
         this.root = document.createElement('div');
         this.root.id = 'ku-root';
         this.root.className = 'ku-size-1';
-        const game = document.createElement('div');
+        var game = document.createElement('div');
         game.className = 'ku-game';
         this.root.appendChild(game);
         this.container.appendChild(this.root);
         this.renderTopbar(game);
         this.showWelcome(game);
-    }
-    unmount() {
-        this.engine?.destroy();
-        this.modelEngine?.destroy();
-        this.root?.remove();
-        document.getElementById('ku-styles')?.remove();
-        document.getElementById('ku-color-filter')?.remove();
-    }
-    removeListeners() {
+    };
+    App.prototype.unmount = function () {
+        var _a, _b, _c, _d, _e;
+        (_a = this.engine) === null || _a === void 0 ? void 0 : _a.destroy();
+        (_b = this.modelEngine) === null || _b === void 0 ? void 0 : _b.destroy();
+        (_c = this.root) === null || _c === void 0 ? void 0 : _c.remove();
+        (_d = document.getElementById('ku-styles')) === null || _d === void 0 ? void 0 : _d.remove();
+        (_e = document.getElementById('ku-color-filter')) === null || _e === void 0 ? void 0 : _e.remove();
+    };
+    App.prototype.removeListeners = function () {
         // Engines handle their own cleanup
-    }
-    getState() {
-        return this.state;
-    }
-    restoreState(data) {
+    };
+    App.prototype.saveState = function (setState) {
+        setState(this.state);
+    };
+    App.prototype.restoreState = function (data) {
         if (data)
             Object.assign(this.state, data);
-    }
-    freeze() { this.engine?.setPaused(true); this.modelEngine?.setPaused(true); }
-    resume() { this.engine?.setPaused(false); this.modelEngine?.setPaused(false); }
-    p(name) {
-        return path(name);
-    }
+    };
+    App.prototype.freeze = function () { var _a, _b; (_a = this.engine) === null || _a === void 0 ? void 0 : _a.setPaused(true); (_b = this.modelEngine) === null || _b === void 0 ? void 0 : _b.setPaused(true); };
+    App.prototype.resume = function () { var _a, _b; (_a = this.engine) === null || _a === void 0 ? void 0 : _a.setPaused(false); (_b = this.modelEngine) === null || _b === void 0 ? void 0 : _b.setPaused(false); };
+    App.prototype.p = function (name) {
+        return this.params.path(name);
+    };
     // ============================================================
     // TOPBAR
     // ============================================================
-    renderTopbar(game) {
-        const tb = document.createElement('div');
+    App.prototype.renderTopbar = function (game) {
+        var _this = this;
+        var tb = document.createElement('div');
         tb.className = 'ku-topbar';
         tb.setAttribute('aria-label', 'Pasek nawigacji');
         // Background
-        const bg = document.createElement('img');
+        var bg = document.createElement('img');
         bg.className = 'ku-topbar-bg';
         bg.src = this.p('images/top_bar.svg');
         bg.alt = '';
         bg.setAttribute('aria-hidden', 'true');
         tb.appendChild(bg);
         // Title
-        const title = document.createElement('div');
+        var title = document.createElement('div');
         title.className = 'ku-topbar-title';
         title.textContent = 'Kosmiczne Układy';
         tb.appendChild(title);
         // Buttons
-        const btns = document.createElement('div');
+        var btns = document.createElement('div');
         btns.className = 'ku-topbar-btns';
-        const soundBtn = this.createTopbarBtn(this.state.wcag.soundEnabled ? 'images/ico_sound_on.svg' : 'images/ico_sound_off.svg', 'Dźwięk', 'ku-sound-btn');
-        soundBtn.addEventListener('click', () => {
-            this.state.wcag.soundEnabled = !this.state.wcag.soundEnabled;
-            const img = soundBtn.querySelector('img');
-            img.src = this.p(this.state.wcag.soundEnabled ? 'images/ico_sound_on.svg' : 'images/ico_sound_off.svg');
-            playClick(this.state.wcag.soundEnabled);
+        var soundBtn = this.createTopbarBtn(this.state.wcag.soundEnabled ? 'images/ico_sound_on.svg' : 'images/ico_sound_off.svg', 'Dźwięk', 'ku-sound-btn');
+        soundBtn.addEventListener('click', function () {
+            _this.state.wcag.soundEnabled = !_this.state.wcag.soundEnabled;
+            var img = soundBtn.querySelector('img');
+            img.src = _this.p(_this.state.wcag.soundEnabled ? 'images/ico_sound_on.svg' : 'images/ico_sound_off.svg');
+            playClick(_this.state.wcag.soundEnabled);
         });
-        const helpBtn = this.createTopbarBtn('images/ico_help_ico.svg', 'Instrukcja', 'ku-help-btn');
-        helpBtn.addEventListener('click', () => {
-            playClick(this.state.wcag.soundEnabled);
-            this.openInstructions(game, helpBtn);
+        var helpBtn = this.createTopbarBtn('images/ico_help_ico.svg', 'Instrukcja', 'ku-help-btn');
+        helpBtn.addEventListener('click', function () {
+            playClick(_this.state.wcag.soundEnabled);
+            _this.openInstructions(game, helpBtn);
         });
-        const settingBtn = this.createTopbarBtn('images/ico_setting.svg', 'Ustawienia', 'ku-setting-btn');
-        settingBtn.addEventListener('click', () => {
-            playClick(this.state.wcag.soundEnabled);
-            this.openSettings(game, settingBtn);
+        var settingBtn = this.createTopbarBtn('images/ico_setting.svg', 'Ustawienia', 'ku-setting-btn');
+        settingBtn.addEventListener('click', function () {
+            playClick(_this.state.wcag.soundEnabled);
+            _this.openSettings(game, settingBtn);
         });
         btns.append(soundBtn, helpBtn, settingBtn);
         tb.appendChild(btns);
         game.appendChild(tb);
-    }
-    createTopbarBtn(iconSrc, label, id) {
-        const btn = document.createElement('button');
+    };
+    App.prototype.createTopbarBtn = function (iconSrc, label, id) {
+        var btn = document.createElement('button');
         btn.className = 'ku-topbar-btn';
         btn.setAttribute('aria-label', label);
         btn.id = id;
-        const bgImg = document.createElement('img');
+        var bgImg = document.createElement('img');
         bgImg.className = 'ku-btn-bg';
         bgImg.src = this.p('images/btn_circle_bg.svg');
         bgImg.alt = '';
         bgImg.setAttribute('aria-hidden', 'true');
-        const icon = document.createElement('img');
+        var icon = document.createElement('img');
         icon.src = this.p(iconSrc);
         icon.alt = '';
         btn.append(bgImg, icon);
         return btn;
-    }
+    };
     // ============================================================
     // WELCOME SCREEN
     // ============================================================
-    showWelcome(game) {
+    App.prototype.showWelcome = function (game) {
+        var _this = this;
         this.clearScreen(game);
         this.state.currentScreen = 'welcome';
-        const screen = document.createElement('div');
+        var screen = document.createElement('div');
         screen.className = 'ku-welcome';
         screen.id = 'ku-welcome';
         // Background
-        const bg = document.createElement('img');
+        var bg = document.createElement('img');
         bg.className = 'ku-welcome-bg';
         bg.src = this.p('images/bg_all.png');
         bg.alt = '';
         bg.setAttribute('aria-hidden', 'true');
         screen.appendChild(bg);
         // Decorations
-        const decos = [
+        var decos = [
             { file: 'images/rys_01.png', style: 'left:20px;bottom:80px;width:180px;', alt: '' },
             { file: 'images/rys_02.png', style: 'left:60px;top:90px;width:120px;', alt: '' },
             { file: 'images/rys_03.png', style: 'right:80px;top:90px;width:130px;', alt: '' },
             { file: 'images/rys_05.png', style: 'right:30px;bottom:60px;width:100px;', alt: '' },
         ];
-        decos.forEach(d => {
-            const img = document.createElement('img');
+        decos.forEach(function (d) {
+            var img = document.createElement('img');
             img.className = 'ku-deco';
-            img.src = this.p(d.file);
+            img.src = _this.p(d.file);
             img.alt = d.alt;
             img.setAttribute('style', d.style);
             screen.appendChild(img);
         });
         // Popup
-        const popup = document.createElement('div');
+        var popup = document.createElement('div');
         popup.className = 'ku-welcome-popup';
-        const popupBg = document.createElement('img');
+        var popupBg = document.createElement('img');
         popupBg.className = 'ku-welcome-popup-bg';
         popupBg.src = this.p('images/popup_simple_920x650.svg');
         popupBg.alt = '';
         popupBg.setAttribute('aria-hidden', 'true');
         popup.appendChild(popupBg);
-        const content = document.createElement('div');
+        var content = document.createElement('div');
         content.className = 'ku-welcome-content';
-        const titleEl = document.createElement('h1');
+        var titleEl = document.createElement('h1');
         titleEl.className = 'ku-welcome-title';
         titleEl.textContent = 'Witaj w grze';
-        const desc = document.createElement('p');
+        var desc = document.createElement('p');
         desc.className = 'ku-welcome-desc';
         desc.textContent = 'Od wieków ludzkość wpatruje się w gwiazdy, próbując zrozumieć ich porządek… W tej grze staniesz się badaczem idei, które kształtowały nasz obraz Wszechświata. Każda teoria, każdy model to krok w stronę prawdy.';
-        const taskBox = document.createElement('div');
+        var taskBox = document.createElement('div');
         taskBox.className = 'ku-task-box';
-        const taskIcon = document.createElement('img');
+        var taskIcon = document.createElement('img');
         taskIcon.className = 'ku-task-icon';
-        taskIcon.src = this.p('images/icon_clipboard.svg.png');
+        taskIcon.src = this.p('images/icon_clipboard_svg.png');
         taskIcon.alt = '';
-        const taskText = document.createElement('p');
+        var taskText = document.createElement('p');
         taskText.className = 'ku-task-text';
         taskText.innerHTML = '<strong>Twoje zadanie:</strong> poznaj trzy wizje kosmosu: od układu geocentrycznego po heliocentryczny. Zobacz jak zmieniała się ta wizja w zależności od epoki.';
         taskBox.append(taskIcon, taskText);
-        const footer = document.createElement('div');
+        var footer = document.createElement('div');
         footer.className = 'ku-welcome-footer';
-        const instrBtn = this.createBtn('Instrukcja', 280, () => {
-            playClick(this.state.wcag.soundEnabled);
-            this.openInstructions(game, instrBtn);
+        var instrBtn = this.createBtn('Instrukcja', 280, function () {
+            playClick(_this.state.wcag.soundEnabled);
+            _this.openInstructions(game, instrBtn);
         });
-        const startBtn = this.createBtn('Rozpocznij grę', 280, () => {
-            playClick(this.state.wcag.soundEnabled);
-            this.showSolar(game);
+        var startBtn = this.createBtn('Rozpocznij grę', 280, function () {
+            playClick(_this.state.wcag.soundEnabled);
+            _this.showSolar(game);
         });
         footer.append(instrBtn, startBtn);
         content.append(titleEl, desc, taskBox, footer);
@@ -1894,59 +1049,62 @@ class App {
         screen.appendChild(popup);
         game.appendChild(screen);
         // Focus start button
-        setTimeout(() => startBtn.focus(), 100);
-    }
+        setTimeout(function () { return startBtn.focus(); }, 100);
+    };
     // ============================================================
     // SOLAR SCREEN
     // ============================================================
-    showSolar(game, skipOnboarding = false) {
+    App.prototype.showSolar = function (game, skipOnboarding) {
+        var _this = this;
+        var _a;
+        if (skipOnboarding === void 0) { skipOnboarding = false; }
         this.clearScreen(game);
         this.state.currentScreen = 'solar';
-        const screen = document.createElement('div');
+        var screen = document.createElement('div');
         screen.className = 'ku-solar';
         screen.id = 'ku-solar';
         // Left panel
-        const leftPanel = this.buildLeftPanel(game, screen);
+        var leftPanel = this.buildLeftPanel(game, screen);
         // Canvas area
-        const canvasArea = document.createElement('div');
+        var canvasArea = document.createElement('div');
         canvasArea.className = 'ku-canvas-area';
-        const canvasTitle = document.createElement('div');
+        var canvasTitle = document.createElement('div');
         canvasTitle.className = 'ku-canvas-title';
         canvasTitle.id = 'ku-solar-title';
-        const activeIdx = this.state.activeAstronomerIndex;
+        var activeIdx = this.state.activeAstronomerIndex;
         canvasTitle.textContent = activeIdx >= 0
             ? ASTRONOMERS[activeIdx].screenTitle
             : 'Wybierz model układu słonecznego';
-        const canvas = document.createElement('canvas');
+        var canvas = document.createElement('canvas');
         canvas.className = 'ku-game-canvas';
         canvas.id = 'ku-solar-canvas';
-        canvas.width = 1090;
-        canvas.height = 652;
+        canvas.width = 1635;
+        canvas.height = 978;
         // Zoom bar
-        const zoomBar = document.createElement('div');
+        var zoomBar = document.createElement('div');
         zoomBar.className = 'ku-zoom-bar';
-        const zoomIn = document.createElement('button');
+        var zoomIn = document.createElement('button');
         zoomIn.className = 'ku-zoom-btn';
         zoomIn.setAttribute('aria-label', 'Przybliż');
         zoomIn.innerHTML = '+';
-        const zoomOut = document.createElement('button');
+        var zoomOut = document.createElement('button');
         zoomOut.className = 'ku-zoom-btn';
         zoomOut.setAttribute('aria-label', 'Oddal');
         zoomOut.innerHTML = '–';
-        const zoomReset = document.createElement('button');
+        var zoomReset = document.createElement('button');
         zoomReset.className = 'ku-zoom-btn';
         zoomReset.setAttribute('aria-label', 'Resetuj widok');
         zoomReset.style.cssText = 'font-size: 12px !important;';
         zoomReset.innerHTML = '⌖';
         zoomBar.append(zoomIn, zoomOut, zoomReset);
         // Satellite deco
-        const satDeco = document.createElement('img');
+        var satDeco = document.createElement('img');
         satDeco.className = 'ku-satellite-deco';
         satDeco.src = this.p('images/rys_03.png');
         satDeco.alt = '';
         satDeco.setAttribute('aria-hidden', 'true');
         // Astronaut deco
-        const astroDeco = document.createElement('img');
+        var astroDeco = document.createElement('img');
         astroDeco.className = 'ku-astro-deco';
         astroDeco.src = this.p('images/rys_04.png');
         astroDeco.alt = '';
@@ -1955,197 +1113,204 @@ class App {
         screen.append(leftPanel, canvasArea);
         game.appendChild(screen);
         // Init engine
-        const planets = activeIdx >= 0 ? ASTRONOMERS[activeIdx].planets : ASTRONOMERS[2].planets;
-        this.engine?.destroy();
+        var planets = activeIdx >= 0 ? ASTRONOMERS[activeIdx].planets : ASTRONOMERS[2].planets;
+        (_a = this.engine) === null || _a === void 0 ? void 0 : _a.destroy();
         this.engine = new CanvasEngine({
-            canvas,
-            planets,
+            canvas: canvas,
+            planets: planets,
             showOrbits: this.state.wcag.showOrbits,
             reduceMotion: this.state.wcag.reduceMotion,
-            pathFn: path,
-            onHover: (planet) => {
+            pathFn: this.params.path.bind(this.params),
+            onHover: function (planet) {
                 if (planet)
-                    playHover(this.state.wcag.soundEnabled);
+                    playHover(_this.state.wcag.soundEnabled);
             },
-            onLeftClick: (planet) => {
-                playClick(this.state.wcag.soundEnabled);
-                this.openPlanetPopup(game, planet);
+            onLeftClick: function (planet) {
+                playClick(_this.state.wcag.soundEnabled);
+                _this.openPlanetPopup(game, planet);
             },
-            onRightClick: (planet) => {
-                this.showPlanetTooltip(canvasArea, planet, canvas);
+            onRightClick: function (planet) {
+                _this.showPlanetTooltip(canvasArea, planet, canvas);
             },
         });
         this.engine.loadBackground(this.p('images/bg_all.png'));
         this.engine.start();
         // Zoom controls
-        zoomIn.addEventListener('click', () => this.engine?.zoomBy(1));
-        zoomOut.addEventListener('click', () => this.engine?.zoomBy(-1));
-        zoomReset.addEventListener('click', () => this.engine?.resetView());
+        zoomIn.addEventListener('click', function () { var _a; return (_a = _this.engine) === null || _a === void 0 ? void 0 : _a.zoomBy(1); });
+        zoomOut.addEventListener('click', function () { var _a; return (_a = _this.engine) === null || _a === void 0 ? void 0 : _a.zoomBy(-1); });
+        zoomReset.addEventListener('click', function () { var _a; return (_a = _this.engine) === null || _a === void 0 ? void 0 : _a.resetView(); });
         // Nawigacja klawiaturą po planetach (WCAG IX.3_6_2)
         canvas.setAttribute('tabindex', '0');
         canvas.setAttribute('role', 'application');
         canvas.setAttribute('aria-label', 'Interaktywna mapa układu słonecznego. TAB: fokus. Strzałki: zmień planetę. Enter: szczegóły (LPM). Spacja: szybki opis (PPM).');
-        canvas.addEventListener('keydown', (e) => {
-            const eng = this.engine;
+        canvas.addEventListener('keydown', function (e) {
+            var eng = _this.engine;
             if (!eng)
                 return;
-            const ids = eng.getPlanetIds();
+            var ids = eng.getPlanetIds();
             if (ids.length === 0)
                 return;
-            const currentId = eng.getHoveredId();
-            const currentIdx = currentId ? ids.indexOf(currentId) : -1;
+            var currentId = eng.getHoveredId();
+            var currentIdx = currentId ? ids.indexOf(currentId) : -1;
             if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
                 e.preventDefault();
-                const nextIdx = (currentIdx + 1) % ids.length;
+                var nextIdx = (currentIdx + 1) % ids.length;
                 eng.setKeyboardFocus(ids[nextIdx]);
             }
             else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
                 e.preventDefault();
-                const prevIdx = (currentIdx - 1 + ids.length) % ids.length;
+                var prevIdx = (currentIdx - 1 + ids.length) % ids.length;
                 eng.setKeyboardFocus(ids[prevIdx]);
             }
             else if (e.key === 'Enter') {
                 e.preventDefault();
-                const id = eng.getHoveredId();
+                var id = eng.getHoveredId();
                 if (id) {
-                    const planet = eng.getPlanetById(id);
+                    var planet = eng.getPlanetById(id);
                     if (planet) {
-                        playClick(this.state.wcag.soundEnabled);
-                        this.popupTrigger = canvas;
-                        this.openPlanetPopup(game, planet);
+                        playClick(_this.state.wcag.soundEnabled);
+                        _this.popupTrigger = canvas;
+                        _this.openPlanetPopup(game, planet);
                     }
                 }
             }
             else if (e.key === ' ') {
                 e.preventDefault();
-                const id = eng.getHoveredId();
+                var id = eng.getHoveredId();
                 if (id) {
-                    const planet = eng.getPlanetById(id);
+                    var planet = eng.getPlanetById(id);
                     if (planet) {
-                        this.showPlanetTooltip(canvasArea, planet, canvas);
+                        _this.showPlanetTooltip(canvasArea, planet, canvas);
                     }
                 }
             }
         });
-        canvas.addEventListener('blur', () => {
-            this.engine?.setKeyboardFocus(null);
+        canvas.addEventListener('blur', function () {
+            var _a;
+            (_a = _this.engine) === null || _a === void 0 ? void 0 : _a.setKeyboardFocus(null);
         });
         // Onboarding
         if (!skipOnboarding) {
-            setTimeout(() => this.showOnboarding(game), 400);
+            setTimeout(function () { return _this.showOnboarding(game); }, 400);
         }
-    }
-    buildLeftPanel(game, screen) {
-        const panel = document.createElement('div');
+    };
+    App.prototype.buildLeftPanel = function (game, screen) {
+        var _this = this;
+        var panel = document.createElement('div');
         panel.className = 'ku-left-panel';
-        const panelBg = document.createElement('img');
+        var panelBg = document.createElement('img');
         panelBg.className = 'ku-left-panel-bg';
         panelBg.src = this.p('images/apla_dark.png');
         panelBg.alt = '';
         panelBg.setAttribute('aria-hidden', 'true');
         panel.appendChild(panelBg);
-        ASTRONOMERS.forEach((astro, idx) => {
-            const wrap = document.createElement('div');
+        ASTRONOMERS.forEach(function (astro, idx) {
+            var wrap = document.createElement('div');
             wrap.className = 'ku-portrait-wrap';
             wrap.setAttribute('tabindex', '0');
             wrap.setAttribute('role', 'button');
-            wrap.setAttribute('aria-label', `${astro.name} – kliknij by wybrać model`);
-            if (this.state.activeAstronomerIndex === idx) {
+            wrap.setAttribute('aria-label', "".concat(astro.name, " \u2013 kliknij by wybra\u0107 model"));
+            if (_this.state.activeAstronomerIndex === idx) {
                 wrap.classList.add('active');
             }
-            const portrait = document.createElement('img');
+            var portrait = document.createElement('img');
             portrait.className = 'ku-portrait';
-            portrait.src = this.p(`images/${astro.portrait}`);
+            portrait.src = _this.p("images/".concat(astro.portrait));
             portrait.alt = astro.name;
             // Hover effects
-            wrap.addEventListener('mouseenter', () => {
-                if (idx !== this.state.activeAstronomerIndex) {
-                    portrait.src = this.p(`images/${astro.portraitHover}`);
+            wrap.addEventListener('mouseenter', function () {
+                if (idx !== _this.state.activeAstronomerIndex) {
+                    portrait.src = _this.p("images/".concat(astro.portraitHover));
                 }
-                this.showPortraitTooltip(wrap, astro.name);
-                playHover(this.state.wcag.soundEnabled);
+                _this.showPortraitTooltip(wrap, astro.name);
+                playHover(_this.state.wcag.soundEnabled);
             });
-            wrap.addEventListener('mouseleave', () => {
-                if (idx !== this.state.activeAstronomerIndex) {
-                    portrait.src = this.p(`images/${astro.portrait}`);
+            wrap.addEventListener('mouseleave', function () {
+                if (idx !== _this.state.activeAstronomerIndex) {
+                    portrait.src = _this.p("images/".concat(astro.portrait));
                 }
-                this.hidePortraitTooltip(wrap);
+                _this.hidePortraitTooltip(wrap);
             });
             // Click: open biography
-            wrap.addEventListener('click', () => {
-                playClick(this.state.wcag.soundEnabled);
-                this.openBiography(game, astro, idx, wrap);
+            wrap.addEventListener('click', function () {
+                playClick(_this.state.wcag.soundEnabled);
+                _this.openBiography(game, astro, idx, wrap);
             });
-            wrap.addEventListener('keydown', (e) => {
+            wrap.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    this.openBiography(game, astro, idx, wrap);
+                    _this.openBiography(game, astro, idx, wrap);
                 }
             });
             wrap.appendChild(portrait);
             panel.appendChild(wrap);
         });
         return panel;
-    }
-    showPortraitTooltip(wrap, name) {
-        const tip = document.createElement('div');
+    };
+    App.prototype.showPortraitTooltip = function (wrap, name) {
+        var tip = document.createElement('div');
         tip.className = 'ku-portrait-tooltip';
-        tip.innerHTML = `<em>Biografia:</em> <strong>${name}</strong>`;
+        tip.innerHTML = "<em>Biografia:</em> <strong>".concat(name, "</strong>");
         wrap.appendChild(tip);
-    }
-    hidePortraitTooltip(wrap) {
-        wrap.querySelector('.ku-portrait-tooltip')?.remove();
-    }
-    updateSolarTitle(text) {
-        const el = document.getElementById('ku-solar-title');
+    };
+    App.prototype.hidePortraitTooltip = function (wrap) {
+        var _a;
+        (_a = wrap.querySelector('.ku-portrait-tooltip')) === null || _a === void 0 ? void 0 : _a.remove();
+    };
+    App.prototype.updateSolarTitle = function (text) {
+        var el = document.getElementById('ku-solar-title');
         if (el)
             el.textContent = text;
-    }
-    switchModel(idx) {
+    };
+    App.prototype.switchModel = function (idx) {
+        var _this = this;
+        var _a;
         this.state.activeAstronomerIndex = idx;
-        const astro = ASTRONOMERS[idx];
+        var astro = ASTRONOMERS[idx];
         // Update portrait borders
-        document.querySelectorAll('.ku-portrait-wrap').forEach((el, i) => {
+        document.querySelectorAll('.ku-portrait-wrap').forEach(function (el, i) {
             el.classList.toggle('active', i === idx);
-            const img = el.querySelector('.ku-portrait');
+            var img = el.querySelector('.ku-portrait');
             if (img)
-                img.src = this.p(`images/${ASTRONOMERS[i].portrait}`);
+                img.src = _this.p("images/".concat(ASTRONOMERS[i].portrait));
         });
         // Update portrait image for active
-        const activeWrap = document.querySelectorAll('.ku-portrait-wrap')[idx];
+        var activeWrap = document.querySelectorAll('.ku-portrait-wrap')[idx];
         if (activeWrap) {
-            activeWrap.querySelector('.ku-portrait').src = this.p(`images/${astro.portraitHover}`);
+            activeWrap.querySelector('.ku-portrait').src = this.p("images/".concat(astro.portraitHover));
         }
         this.updateSolarTitle(astro.screenTitle);
-        this.engine?.setPlanets(astro.planets);
+        (_a = this.engine) === null || _a === void 0 ? void 0 : _a.setPlanets(astro.planets);
         if (!this.state.visitedAstronomers.includes(astro.id)) {
             this.state.visitedAstronomers.push(astro.id);
         }
-    }
-    showPlanetTooltip(container, planet, canvas) {
-        this.tooltipEl?.remove();
-        const tip = document.createElement('div');
+    };
+    App.prototype.showPlanetTooltip = function (container, planet, canvas) {
+        var _this = this;
+        var _a;
+        (_a = this.tooltipEl) === null || _a === void 0 ? void 0 : _a.remove();
+        var tip = document.createElement('div');
         tip.className = 'ku-planet-tooltip';
-        const title = document.createElement('div');
+        var title = document.createElement('div');
         title.className = 'ku-planet-tooltip-title';
         title.textContent = planet.name;
-        const desc = document.createElement('div');
+        var desc = document.createElement('div');
         desc.textContent = planet.desc || this.getDefaultDesc(planet);
         tip.append(title, desc);
-        const rect = canvas.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        tip.style.cssText = `position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important;`;
+        var rect = canvas.getBoundingClientRect();
+        var containerRect = container.getBoundingClientRect();
+        tip.style.cssText = "position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important;";
         container.appendChild(tip);
         this.tooltipEl = tip;
-        setTimeout(() => {
-            if (this.tooltipEl === tip) {
+        setTimeout(function () {
+            if (_this.tooltipEl === tip) {
                 tip.remove();
-                this.tooltipEl = null;
+                _this.tooltipEl = null;
             }
         }, 3000);
-    }
-    getDefaultDesc(planet) {
-        const descs = {
+    };
+    App.prototype.getDefaultDesc = function (planet) {
+        var descs = {
             ziemia: 'Trzecia planeta od Słońca – nasza planeta',
             ksiezyc: 'Naturalny satelita Ziemi',
             slonce: 'Gwiazda centralna układu',
@@ -2157,294 +1322,278 @@ class App {
             uran: 'Planeta lodowych olbrzymów',
             neptun: 'Najdalsza planeta od Słońca',
         };
-        const base = planet.id.split('_')[0];
+        var base = planet.id.split('_')[0];
         return descs[base] || planet.name;
-    }
+    };
     // ============================================================
     // MODEL SCREEN
     // ============================================================
-    showModel(game, astronomerIdx) {
+    App.prototype.showModel = function (game, astronomerIdx) {
+        var _this = this;
+        var _a;
         this.clearScreen(game);
         this.state.currentScreen = 'model';
-        const astro = ASTRONOMERS[astronomerIdx];
-        const screen = document.createElement('div');
+        var astro = ASTRONOMERS[astronomerIdx];
+        var screen = document.createElement('div');
         screen.className = 'ku-model';
         screen.id = 'ku-model';
         // Background
-        const bg = document.createElement('img');
+        var bg = document.createElement('img');
         bg.style.cssText = 'position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important;';
         bg.src = this.p('images/bg_all.png');
         bg.alt = '';
         screen.appendChild(bg);
-        const title = document.createElement('div');
+        var title = document.createElement('div');
         title.className = 'ku-model-title';
         title.style.cssText = 'position: relative !important; z-index: 10 !important;';
         title.textContent = astro.screenTitle;
-        const canvasWrap = document.createElement('div');
+        var canvasWrap = document.createElement('div');
         canvasWrap.className = 'ku-model-canvas-wrap';
-        const canvas = document.createElement('canvas');
+        var canvas = document.createElement('canvas');
         canvas.className = 'ku-game-canvas';
-        canvas.width = 1280;
-        canvas.height = 540;
+        canvas.width = 1920;
+        canvas.height = 810;
         canvasWrap.appendChild(canvas);
         // Astronaut deco
-        const deco = document.createElement('img');
+        var deco = document.createElement('img');
         deco.className = 'ku-astro-deco';
         deco.src = this.p('images/rys_05.png');
         deco.alt = '';
         canvasWrap.appendChild(deco);
-        const footer = document.createElement('div');
+        var footer = document.createElement('div');
         footer.className = 'ku-model-footer';
         footer.style.cssText = 'position: relative !important; z-index: 10 !important;';
-        const backBtn = this.createBtn('Powrót', 280, () => {
-            playClick(this.state.wcag.soundEnabled);
-            this.modelEngine?.destroy();
-            this.modelEngine = null;
-            this.showSolar(game, true);
+        var backBtn = this.createBtn('Powrót', 280, function () {
+            var _a;
+            playClick(_this.state.wcag.soundEnabled);
+            (_a = _this.modelEngine) === null || _a === void 0 ? void 0 : _a.destroy();
+            _this.modelEngine = null;
+            _this.showSolar(game, true);
         });
         footer.appendChild(backBtn);
         screen.append(title, canvasWrap, footer);
         game.appendChild(screen);
         // Engine
-        this.modelEngine?.destroy();
+        (_a = this.modelEngine) === null || _a === void 0 ? void 0 : _a.destroy();
         this.modelEngine = new CanvasEngine({
-            canvas,
+            canvas: canvas,
             planets: astro.planets,
             showOrbits: this.state.wcag.showOrbits,
             reduceMotion: this.state.wcag.reduceMotion,
-            pathFn: path,
+            pathFn: this.params.path.bind(this.params),
             onHover: undefined,
             onLeftClick: undefined,
             onRightClick: undefined,
         });
         this.modelEngine.loadBackground(this.p('images/bg_all.png'));
         this.modelEngine.start();
-        setTimeout(() => backBtn.focus(), 100);
-    }
+        setTimeout(function () { return backBtn.focus(); }, 100);
+    };
     // ============================================================
     // POPUPS
     // ============================================================
-    openOverlay(game, content, full = false) {
-        const overlay = document.createElement('div');
+    App.prototype.openOverlay = function (game, content, full) {
+        var _this = this;
+        if (full === void 0) { full = false; }
+        var overlay = document.createElement('div');
         overlay.className = full ? 'ku-overlay ku-overlay-full' : 'ku-overlay';
         overlay.id = 'ku-popup-overlay';
-        overlay.addEventListener('click', (e) => {
+        overlay.addEventListener('click', function (e) {
             if (e.target === overlay)
-                this.closePopup();
+                _this.closePopup();
         });
         overlay.appendChild(content);
         game.appendChild(overlay);
         this.currentPopup = overlay;
         return overlay;
-    }
-    closePopup() {
-        this.currentPopup?.remove();
+    };
+    App.prototype.closePopup = function () {
+        var _a, _b;
+        (_a = this.currentPopup) === null || _a === void 0 ? void 0 : _a.remove();
         this.currentPopup = null;
-        this.popupTrigger?.focus();
+        (_b = this.popupTrigger) === null || _b === void 0 ? void 0 : _b.focus();
         this.popupTrigger = null;
-    }
-    bindPopupKeys(overlay) {
-        const handler = (e) => {
+    };
+    App.prototype.bindPopupKeys = function (overlay) {
+        var _this = this;
+        var handler = function (e) {
             if (e.key === 'Escape' || e.key === 'Backspace') {
                 e.preventDefault();
                 overlay.removeEventListener('keydown', handler);
-                this.closePopup();
+                _this.closePopup();
             }
         };
         overlay.addEventListener('keydown', handler);
         // Also global for Escape
-        const globalHandler = (e) => {
+        var globalHandler = function (e) {
             if (e.key === 'Escape') {
                 document.removeEventListener('keydown', globalHandler);
-                if (this.currentPopup === overlay)
-                    this.closePopup();
+                if (_this.currentPopup === overlay)
+                    _this.closePopup();
             }
         };
         document.addEventListener('keydown', globalHandler);
-    }
+    };
     // BIOGRAPHY
-    openBiography(game, astro, idx, trigger) {
+    App.prototype.openBiography = function (game, astro, idx, trigger) {
+        var _this = this;
         this.popupTrigger = trigger;
-        const popup = document.createElement('div');
+        var popup = document.createElement('div');
         popup.className = 'ku-popup ku-bio-wrap';
         popup.setAttribute('role', 'dialog');
-        popup.setAttribute('aria-label', `Biografia: ${astro.name}`);
+        popup.setAttribute('aria-label', "Biografia: ".concat(astro.name));
         popup.setAttribute('aria-modal', 'true');
-        const bg = document.createElement('img');
+        var bg = document.createElement('img');
         bg.className = 'ku-popup-bg';
         bg.src = this.p('images/popup_simple_920x650.svg');
         bg.alt = '';
         popup.appendChild(bg);
-        const inner = document.createElement('div');
+        var inner = document.createElement('div');
         inner.className = 'ku-popup-inner';
-        const title = document.createElement('h2');
+        var title = document.createElement('h2');
         title.className = 'ku-popup-title';
         title.textContent = astro.name;
-        const sep = document.createElement('div');
+        var sep = document.createElement('div');
         sep.className = 'ku-popup-sep';
-        const body = document.createElement('div');
+        var body = document.createElement('div');
         body.className = 'ku-popup-body';
-        const bioWrap = document.createElement('div');
+        var bioWrap = document.createElement('div');
         bioWrap.className = 'ku-bio-body';
-        const pic = document.createElement('img');
+        var pic = document.createElement('img');
         pic.className = 'ku-bio-pic';
-        pic.src = this.p(`images/${astro.bioPic}`);
+        pic.src = this.p("images/".concat(astro.bioPic));
         pic.alt = astro.name;
-        const text = document.createElement('div');
+        var text = document.createElement('div');
         text.className = 'ku-bio-text';
         text.innerHTML = astro.bio;
         bioWrap.append(pic, text);
         body.appendChild(bioWrap);
-        const footer = document.createElement('div');
+        var footer = document.createElement('div');
         footer.className = 'ku-popup-footer';
-        const modelBtn = this.createBtn(astro.modelTitle, 420, () => {
-            playClick(this.state.wcag.soundEnabled);
-            this.closePopup();
-            this.switchModel(idx);
+        var modelBtn = this.createBtn(astro.modelTitle, 420, function () {
+            playClick(_this.state.wcag.soundEnabled);
+            _this.closePopup();
+            _this.switchModel(idx);
         });
-        const backBtn = this.createBtn('Powrót', 280, () => {
-            playClick(this.state.wcag.soundEnabled);
-            this.closePopup();
+        var backBtn = this.createBtn('Powrót', 280, function () {
+            playClick(_this.state.wcag.soundEnabled);
+            _this.closePopup();
         });
         footer.append(modelBtn, backBtn);
         inner.append(title, sep, body, footer);
         popup.appendChild(inner);
-        const overlay = this.openOverlay(game, popup);
+        var overlay = this.openOverlay(game, popup);
         this.bindPopupKeys(overlay);
-        setTimeout(() => modelBtn.focus(), 50);
-    }
+        setTimeout(function () { return modelBtn.focus(); }, 50);
+    };
     // INSTRUCTIONS
-    openInstructions(game, trigger) {
+    App.prototype.openInstructions = function (game, trigger) {
+        var _this = this;
         this.popupTrigger = trigger;
-        const popup = document.createElement('div');
+        var popup = document.createElement('div');
         popup.className = 'ku-popup ku-instr-wrap';
         popup.setAttribute('role', 'dialog');
         popup.setAttribute('aria-label', 'Instrukcja');
         popup.setAttribute('aria-modal', 'true');
-        const bg = document.createElement('img');
+        var bg = document.createElement('img');
         bg.className = 'ku-popup-bg';
         bg.src = this.p('images/popup_simple_920x650.svg');
         bg.alt = '';
         popup.appendChild(bg);
-        const inner = document.createElement('div');
+        var inner = document.createElement('div');
         inner.className = 'ku-popup-inner';
-        const title = document.createElement('h2');
+        var title = document.createElement('h2');
         title.className = 'ku-popup-title';
         title.textContent = 'Instrukcja';
-        const sep = document.createElement('div');
+        var sep = document.createElement('div');
         sep.className = 'ku-popup-sep';
-        const body = document.createElement('div');
+        var body = document.createElement('div');
         body.className = 'ku-popup-body';
-        body.innerHTML = `
-      <div class="ku-instr-section">
-        <h3>🔭 Portrety astronomów (lewa kolumna)</h3>
-        <ul>
-          <li>Kliknij na portret, aby zobaczyć biografię i model układu.</li>
-          <li>Najedź myszką – zobaczysz podpowiedź z nazwiskiem.</li>
-        </ul>
-      </div>
-      <div class="ku-instr-section">
-        <h3>🪐 Interaktywny układ słoneczny</h3>
-        <ul>
-          <li><strong>LPM na planecie</strong> – szczegółowe informacje (popup)</li>
-          <li><strong>PPM na planecie</strong> – szybki opis (tooltip)</li>
-          <li><strong>Hover</strong> – zatrzymuje planetę, podświetla złotą obwódką</li>
-          <li><strong>Kółko myszy / +/–</strong> – przybliżanie i oddalanie</li>
-          <li><strong>Przeciąganie</strong> – przesuwanie widoku</li>
-        </ul>
-      </div>
-      <div class="ku-instr-section">
-        <h3>⌨️ Sterowanie klawiaturą (WCAG)</h3>
-        <ul>
-          <li><strong>TAB</strong> – przejście do kolejnego elementu</li>
-          <li><strong>Enter</strong> – kliknięcie lewym przyciskiem / zatwierdzenie</li>
-          <li><strong>Spacja</strong> – kliknięcie prawym przyciskiem / info dodatkowe</li>
-          <li><strong>Backspace</strong> – powrót do poprzedniego elementu</li>
-          <li><strong>Escape</strong> – zamknięcie okna</li>
-        </ul>
-      </div>
-    `;
-        const footer = document.createElement('div');
+        body.innerHTML = "\n      <div class=\"ku-instr-section\">\n        <h3>\uD83D\uDD2D Portrety astronom\u00F3w (lewa kolumna)</h3>\n        <ul>\n          <li>Kliknij na portret, aby zobaczy\u0107 biografi\u0119 i model uk\u0142adu.</li>\n          <li>Najed\u017A myszk\u0105 \u2013 zobaczysz podpowied\u017A z nazwiskiem.</li>\n        </ul>\n      </div>\n      <div class=\"ku-instr-section\">\n        <h3>\uD83E\uDE90 Interaktywny uk\u0142ad s\u0142oneczny</h3>\n        <ul>\n          <li><strong>LPM na planecie</strong> \u2013 szczeg\u00F3\u0142owe informacje (popup)</li>\n          <li><strong>PPM na planecie</strong> \u2013 szybki opis (tooltip)</li>\n          <li><strong>Hover</strong> \u2013 zatrzymuje planet\u0119, pod\u015Bwietla z\u0142ot\u0105 obw\u00F3dk\u0105</li>\n          <li><strong>K\u00F3\u0142ko myszy / +/\u2013</strong> \u2013 przybli\u017Canie i oddalanie</li>\n          <li><strong>Przeci\u0105ganie</strong> \u2013 przesuwanie widoku</li>\n        </ul>\n      </div>\n      <div class=\"ku-instr-section\">\n        <h3>\u2328\uFE0F Sterowanie klawiatur\u0105 (WCAG)</h3>\n        <ul>\n          <li><strong>TAB</strong> \u2013 przej\u015Bcie do kolejnego elementu</li>\n          <li><strong>Enter</strong> \u2013 klikni\u0119cie lewym przyciskiem / zatwierdzenie</li>\n          <li><strong>Spacja</strong> \u2013 klikni\u0119cie prawym przyciskiem / info dodatkowe</li>\n          <li><strong>Backspace</strong> \u2013 powr\u00F3t do poprzedniego elementu</li>\n          <li><strong>Escape</strong> \u2013 zamkni\u0119cie okna</li>\n        </ul>\n      </div>\n    ";
+        var footer = document.createElement('div');
         footer.className = 'ku-popup-footer';
-        const closeBtn = this.createBtn('Zamknij', 280, () => {
-            playClick(this.state.wcag.soundEnabled);
-            this.closePopup();
+        var closeBtn = this.createBtn('Zamknij', 280, function () {
+            playClick(_this.state.wcag.soundEnabled);
+            _this.closePopup();
         });
         footer.appendChild(closeBtn);
         inner.append(title, sep, body, footer);
         popup.appendChild(inner);
-        const overlay = this.openOverlay(game, popup);
+        var overlay = this.openOverlay(game, popup);
         this.bindPopupKeys(overlay);
-        setTimeout(() => closeBtn.focus(), 50);
-    }
+        setTimeout(function () { return closeBtn.focus(); }, 50);
+    };
     // SETTINGS
-    openSettings(game, trigger) {
+    App.prototype.openSettings = function (game, trigger) {
+        var _this = this;
         this.popupTrigger = trigger;
-        const card = document.createElement('div');
+        var card = document.createElement('div');
         card.className = 'ku-settings-card';
         card.setAttribute('role', 'dialog');
         card.setAttribute('aria-label', 'Ustawienia');
         card.setAttribute('aria-modal', 'true');
-        const titleEl = document.createElement('div');
+        var titleEl = document.createElement('div');
         titleEl.className = 'ku-settings-title';
         titleEl.textContent = 'USTAWIENIA';
-        const grid = document.createElement('div');
+        var grid = document.createElement('div');
         grid.className = 'ku-settings-grid';
-        const w = this.state.wcag;
+        var w = this.state.wcag;
         // Text size
-        const row1 = this.buildSettingsRow('Wielkość tekstu');
-        const sizeBtns = document.createElement('div');
+        var row1 = this.buildSettingsRow('Wielkość tekstu');
+        var sizeBtns = document.createElement('div');
         sizeBtns.className = 'ku-text-size-btns';
-        [1, 2, 3].forEach(sz => {
-            const btn = document.createElement('button');
-            btn.className = `ku-text-size-btn${w.textSize === sz ? ' active' : ''}`;
+        [1, 2, 3].forEach(function (sz) {
+            var btn = document.createElement('button');
+            btn.className = "ku-text-size-btn".concat(w.textSize === sz ? ' active' : '');
             btn.textContent = 'A';
-            btn.style.cssText = `font-size: ${12 + (sz - 1) * 3}px !important;`;
-            btn.setAttribute('aria-label', `Rozmiar tekstu ${sz}`);
-            btn.addEventListener('click', () => {
-                this.state.wcag.textSize = sz;
-                sizeBtns.querySelectorAll('.ku-text-size-btn').forEach((b, i) => {
+            btn.style.cssText = "font-size: ".concat(12 + (sz - 1) * 3, "px !important;");
+            btn.setAttribute('aria-label', "Rozmiar tekstu ".concat(sz));
+            btn.addEventListener('click', function () {
+                _this.state.wcag.textSize = sz;
+                sizeBtns.querySelectorAll('.ku-text-size-btn').forEach(function (b, i) {
                     b.classList.toggle('active', i + 1 === sz);
                 });
-                applyWcag(this.root, this.state.wcag);
+                applyWcag(_this.root, _this.state.wcag);
             });
             sizeBtns.appendChild(btn);
         });
         row1.appendChild(sizeBtns);
         // High contrast
-        const row2 = this.buildSettingsRow('Wysoki kontrast');
-        const hcToggle = this.buildToggle(w.highContrast, (v) => {
-            this.state.wcag.highContrast = v;
-            applyWcag(this.root, this.state.wcag);
+        var row2 = this.buildSettingsRow('Wysoki kontrast');
+        var hcToggle = this.buildToggle(w.highContrast, function (v) {
+            _this.state.wcag.highContrast = v;
+            applyWcag(_this.root, _this.state.wcag);
         });
         row2.appendChild(hcToggle);
         // Reduce motion
-        const row3 = this.buildSettingsRow('Redukcja ruchu');
-        const rmToggle = this.buildToggle(w.reduceMotion, (v) => {
-            this.state.wcag.reduceMotion = v;
-            this.engine?.setReduceMotion(v);
-            this.modelEngine?.setReduceMotion(v);
-            applyWcag(this.root, this.state.wcag);
+        var row3 = this.buildSettingsRow('Redukcja ruchu');
+        var rmToggle = this.buildToggle(w.reduceMotion, function (v) {
+            var _a, _b;
+            _this.state.wcag.reduceMotion = v;
+            (_a = _this.engine) === null || _a === void 0 ? void 0 : _a.setReduceMotion(v);
+            (_b = _this.modelEngine) === null || _b === void 0 ? void 0 : _b.setReduceMotion(v);
+            applyWcag(_this.root, _this.state.wcag);
         });
         row3.appendChild(rmToggle);
         // Show orbits
-        const row4 = this.buildSettingsRow('Widoczność orbit');
-        const orbitToggle = this.buildToggle(w.showOrbits, (v) => {
-            this.state.wcag.showOrbits = v;
-            this.engine?.setShowOrbits(v);
-            this.modelEngine?.setShowOrbits(v);
+        var row4 = this.buildSettingsRow('Widoczność orbit');
+        var orbitToggle = this.buildToggle(w.showOrbits, function (v) {
+            var _a, _b;
+            _this.state.wcag.showOrbits = v;
+            (_a = _this.engine) === null || _a === void 0 ? void 0 : _a.setShowOrbits(v);
+            (_b = _this.modelEngine) === null || _b === void 0 ? void 0 : _b.setShowOrbits(v);
         });
         row4.appendChild(orbitToggle);
         // Learn mode
-        const row5 = this.buildSettingsRow('Tryb nauki');
-        const learnToggle = this.buildToggle(w.learnMode, (v) => {
-            this.state.wcag.learnMode = v;
-            applyWcag(this.root, this.state.wcag);
+        var row5 = this.buildSettingsRow('Tryb nauki');
+        var learnToggle = this.buildToggle(w.learnMode, function (v) {
+            _this.state.wcag.learnMode = v;
+            applyWcag(_this.root, _this.state.wcag);
         });
         row5.appendChild(learnToggle);
         // Color filter
-        const row6 = this.buildSettingsRow('Filtr kolorów');
-        const colorSel = document.createElement('select');
+        var row6 = this.buildSettingsRow('Filtr kolorów');
+        var colorSel = document.createElement('select');
         colorSel.className = 'ku-select';
         [
             { val: 'none', label: 'Brak' },
@@ -2452,140 +1601,143 @@ class App {
             { val: 'deut', label: 'Deuteranopia' },
             { val: 'prot', label: 'Protanopia' },
             { val: 'trit', label: 'Tritanopia' },
-        ].forEach(opt => {
-            const o = document.createElement('option');
+        ].forEach(function (opt) {
+            var o = document.createElement('option');
             o.value = opt.val;
             o.textContent = opt.label;
             o.selected = w.colorFilter === opt.val;
             colorSel.appendChild(o);
         });
-        colorSel.addEventListener('change', () => {
-            this.state.wcag.colorFilter = colorSel.value;
-            applyWcag(this.root, this.state.wcag);
+        colorSel.addEventListener('change', function () {
+            _this.state.wcag.colorFilter = colorSel.value;
+            applyWcag(_this.root, _this.state.wcag);
         });
         row6.appendChild(colorSel);
         // Cursor size
-        const row7 = this.buildSettingsRow('Kursor – rozmiar', true);
-        const cursorSzSel = document.createElement('select');
+        var row7 = this.buildSettingsRow('Kursor – rozmiar', true);
+        var cursorSzSel = document.createElement('select');
         cursorSzSel.className = 'ku-select';
         [
             { val: 'n', label: 'Normalny' },
             { val: 'd', label: 'Duży' },
             { val: 'b', label: 'Bardzo duży' },
-        ].forEach(opt => {
-            const o = document.createElement('option');
+        ].forEach(function (opt) {
+            var o = document.createElement('option');
             o.value = opt.val;
             o.textContent = opt.label;
             o.selected = w.cursorSize === opt.val;
             cursorSzSel.appendChild(o);
         });
-        cursorSzSel.addEventListener('change', () => {
-            this.state.wcag.cursorSize = cursorSzSel.value;
-            applyWcag(this.root, this.state.wcag);
+        cursorSzSel.addEventListener('change', function () {
+            _this.state.wcag.cursorSize = cursorSzSel.value;
+            applyWcag(_this.root, _this.state.wcag);
         });
-        const cursorClrSel = document.createElement('select');
+        var cursorClrSel = document.createElement('select');
         cursorClrSel.className = 'ku-select';
         [
             { val: 'def', label: 'Domyślny' },
             { val: 'w', label: 'Biały' },
             { val: 'y', label: 'Żółty' },
             { val: 'b2', label: 'Błękitny' },
-        ].forEach(opt => {
-            const o = document.createElement('option');
+        ].forEach(function (opt) {
+            var o = document.createElement('option');
             o.value = opt.val;
             o.textContent = opt.label;
             o.selected = w.cursorColor === opt.val;
             cursorClrSel.appendChild(o);
         });
-        cursorClrSel.addEventListener('change', () => {
-            this.state.wcag.cursorColor = cursorClrSel.value;
-            applyWcag(this.root, this.state.wcag);
+        cursorClrSel.addEventListener('change', function () {
+            _this.state.wcag.cursorColor = cursorClrSel.value;
+            applyWcag(_this.root, _this.state.wcag);
         });
-        const cursorSelWrap = document.createElement('div');
+        var cursorSelWrap = document.createElement('div');
         cursorSelWrap.style.cssText = 'display: flex !important; gap: 6px !important;';
         cursorSelWrap.append(cursorSzSel, cursorClrSel);
         row7.appendChild(cursorSelWrap);
         grid.append(row1, row2, row3, row4, row5, row6, row7);
-        const footer = document.createElement('div');
+        var footer = document.createElement('div');
         footer.className = 'ku-settings-footer';
-        const closeBtn = document.createElement('button');
+        var closeBtn = document.createElement('button');
         closeBtn.className = 'ku-btn-outline';
         closeBtn.textContent = 'Zamknij';
-        closeBtn.addEventListener('click', () => {
-            playClick(this.state.wcag.soundEnabled);
-            this.closePopup();
+        closeBtn.addEventListener('click', function () {
+            playClick(_this.state.wcag.soundEnabled);
+            _this.closePopup();
         });
         footer.appendChild(closeBtn);
         card.append(titleEl, grid, footer);
-        const overlay = this.openOverlay(game, card);
+        var overlay = this.openOverlay(game, card);
         this.bindPopupKeys(overlay);
-        setTimeout(() => closeBtn.focus(), 50);
-    }
-    buildSettingsRow(label, full = false) {
-        const row = document.createElement('div');
-        row.className = `ku-settings-row${full ? ' full' : ''}`;
-        const lbl = document.createElement('span');
+        setTimeout(function () { return closeBtn.focus(); }, 50);
+    };
+    App.prototype.buildSettingsRow = function (label, full) {
+        if (full === void 0) { full = false; }
+        var row = document.createElement('div');
+        row.className = "ku-settings-row".concat(full ? ' full' : '');
+        var lbl = document.createElement('span');
         lbl.className = 'ku-settings-label';
         lbl.textContent = label;
         row.appendChild(lbl);
         return row;
-    }
-    buildToggle(initial, onChange) {
-        const btn = document.createElement('button');
-        btn.className = `ku-toggle ${initial ? 'on' : 'off'}`;
+    };
+    App.prototype.buildToggle = function (initial, onChange) {
+        var btn = document.createElement('button');
+        btn.className = "ku-toggle ".concat(initial ? 'on' : 'off');
         btn.textContent = initial ? 'WŁĄCZONY' : 'WYŁĄCZONY';
         btn.setAttribute('role', 'switch');
         btn.setAttribute('aria-checked', String(initial));
-        let state = initial;
-        btn.addEventListener('click', () => {
+        var state = initial;
+        btn.addEventListener('click', function () {
             state = !state;
-            btn.className = `ku-toggle ${state ? 'on' : 'off'}`;
+            btn.className = "ku-toggle ".concat(state ? 'on' : 'off');
             btn.textContent = state ? 'WŁĄCZONY' : 'WYŁĄCZONY';
             btn.setAttribute('aria-checked', String(state));
             onChange(state);
         });
         return btn;
-    }
+    };
     // PLANET POPUP (LPM)
-    openPlanetPopup(game, planet) {
-        const popup = document.createElement('div');
+    App.prototype.openPlanetPopup = function (game, planet) {
+        var _this = this;
+        var popup = document.createElement('div');
         popup.className = 'ku-popup';
         popup.style.cssText = 'width: 560px !important;';
         popup.setAttribute('role', 'dialog');
         popup.setAttribute('aria-label', planet.name);
         popup.setAttribute('aria-modal', 'true');
-        const bg = document.createElement('img');
+        var bg = document.createElement('img');
         bg.className = 'ku-popup-bg';
         bg.src = this.p('images/popup_simple_920x650.svg');
         bg.alt = '';
         popup.appendChild(bg);
-        const inner = document.createElement('div');
+        var inner = document.createElement('div');
         inner.className = 'ku-popup-inner';
-        const title = document.createElement('h2');
+        var title = document.createElement('h2');
         title.className = 'ku-popup-title';
         title.textContent = planet.name;
-        const sep = document.createElement('div');
+        var sep = document.createElement('div');
         sep.className = 'ku-popup-sep';
-        const body = document.createElement('div');
+        var body = document.createElement('div');
         body.className = 'ku-popup-body';
-        body.innerHTML = `<p>${this.getDefaultDesc(planet)}</p>`;
-        const footer = document.createElement('div');
+        body.innerHTML = "<p>".concat(this.getDefaultDesc(planet), "</p>");
+        var footer = document.createElement('div');
         footer.className = 'ku-popup-footer';
-        const closeBtn = this.createBtn('Zamknij', 280, () => {
-            playClick(this.state.wcag.soundEnabled);
-            this.closePopup();
+        var closeBtn = this.createBtn('Zamknij', 280, function () {
+            playClick(_this.state.wcag.soundEnabled);
+            _this.closePopup();
         });
         footer.appendChild(closeBtn);
         inner.append(title, sep, body, footer);
         popup.appendChild(inner);
-        const overlay = this.openOverlay(game, popup);
+        var overlay = this.openOverlay(game, popup);
         this.bindPopupKeys(overlay);
-        setTimeout(() => closeBtn.focus(), 50);
-    }
+        setTimeout(function () { return closeBtn.focus(); }, 50);
+    };
     // ONBOARDING
-    showOnboarding(game) {
-        let step = 0;
-        const steps = [
+    App.prototype.showOnboarding = function (game) {
+        var _this = this;
+        var step = 0;
+        var steps = [
             {
                 icon: '🔭',
                 title: 'Nawigacja',
@@ -2602,92 +1754,83 @@ class App {
                 text: 'Kliknij ikonę ustawień (trybik) w górnym rogu, aby dostosować kontrast, wielkość tekstu, kursor i filtry kolorów.',
             },
         ];
-        const card = document.createElement('div');
+        var card = document.createElement('div');
         card.className = 'ku-onboarding-card';
         card.setAttribute('role', 'dialog');
         card.setAttribute('aria-label', 'Wprowadzenie');
         card.setAttribute('aria-modal', 'true');
-        const render = () => {
-            const s = steps[step];
-            card.innerHTML = `
-        <div class="ku-onboarding-icon">${s.icon}</div>
-        <div class="ku-onboarding-title">${s.title}</div>
-        <div class="ku-onboarding-text">${s.text}</div>
-        <div class="ku-onboarding-dots">
-          ${steps.map((_, i) => `<div class="ku-dot${i === step ? ' active' : ''}"></div>`).join('')}
-        </div>
-        <div class="ku-onboarding-footer"></div>
-      `;
-            const footer = card.querySelector('.ku-onboarding-footer');
-            const skipBtn = document.createElement('button');
+        var render = function () {
+            var s = steps[step];
+            card.innerHTML = "\n        <div class=\"ku-onboarding-icon\">".concat(s.icon, "</div>\n        <div class=\"ku-onboarding-title\">").concat(s.title, "</div>\n        <div class=\"ku-onboarding-text\">").concat(s.text, "</div>\n        <div class=\"ku-onboarding-dots\">\n          ").concat(steps.map(function (_, i) { return "<div class=\"ku-dot".concat(i === step ? ' active' : '', "\"></div>"); }).join(''), "\n        </div>\n        <div class=\"ku-onboarding-footer\"></div>\n      ");
+            var footer = card.querySelector('.ku-onboarding-footer');
+            var skipBtn = document.createElement('button');
             skipBtn.className = 'ku-btn-ob';
             skipBtn.textContent = 'Pomiń';
-            skipBtn.addEventListener('click', () => { playClick(this.state.wcag.soundEnabled); this.closePopup(); });
-            const nextBtn = document.createElement('button');
+            skipBtn.addEventListener('click', function () { playClick(_this.state.wcag.soundEnabled); _this.closePopup(); });
+            var nextBtn = document.createElement('button');
             nextBtn.className = 'ku-btn-ob primary';
             nextBtn.textContent = step < steps.length - 1 ? 'Dalej' : 'Rozumiem';
-            nextBtn.addEventListener('click', () => {
-                playClick(this.state.wcag.soundEnabled);
+            nextBtn.addEventListener('click', function () {
+                playClick(_this.state.wcag.soundEnabled);
                 if (step < steps.length - 1) {
                     step++;
                     render();
                 }
                 else {
-                    this.closePopup();
+                    _this.closePopup();
                 }
             });
             footer.append(skipBtn, nextBtn);
-            setTimeout(() => nextBtn.focus(), 30);
+            setTimeout(function () { return nextBtn.focus(); }, 30);
         };
         render();
-        const overlay = this.openOverlay(game, card, true);
+        var overlay = this.openOverlay(game, card, true);
         this.bindPopupKeys(overlay);
-    }
+    };
     // ============================================================
     // UTILITIES
     // ============================================================
-    clearScreen(game) {
-        this.engine?.destroy();
+    App.prototype.clearScreen = function (game) {
+        var _a, _b;
+        (_a = this.engine) === null || _a === void 0 ? void 0 : _a.destroy();
         this.engine = null;
-        this.modelEngine?.destroy();
+        (_b = this.modelEngine) === null || _b === void 0 ? void 0 : _b.destroy();
         this.modelEngine = null;
-        ['ku-welcome', 'ku-solar', 'ku-model', 'ku-popup-overlay'].forEach(id => {
-            document.getElementById(id)?.remove();
+        ['ku-welcome', 'ku-solar', 'ku-model', 'ku-popup-overlay'].forEach(function (id) {
+            var _a;
+            (_a = document.getElementById(id)) === null || _a === void 0 ? void 0 : _a.remove();
         });
-    }
-    createBtn(label, width, onClick) {
-        const btn = document.createElement('button');
-        btn.className = `ku-btn ku-btn-${width}`;
+    };
+    App.prototype.createBtn = function (label, width, onClick) {
+        var btn = document.createElement('button');
+        btn.className = "ku-btn ku-btn-".concat(width);
         btn.setAttribute('aria-label', label);
-        const bg = document.createElement('img');
-        bg.src = this.p(`images/btn_${width}x80.svg`);
+        var bg = document.createElement('img');
+        bg.src = this.p("images/btn_".concat(width, "x80.svg"));
         bg.alt = '';
         bg.setAttribute('aria-hidden', 'true');
-        const span = document.createElement('span');
+        var span = document.createElement('span');
         span.textContent = label;
         btn.append(bg, span);
         btn.addEventListener('click', onClick);
         return btn;
-    }
-}
+    };
+    return App;
+}());
+
 
 ;// ./src/main.ts
 // ============================================================
-// MAIN.TS — ZPE Entry Point (ZPE-Port 2.0)
+// MAIN.TS — ZPE Entry Point
 // Kosmiczne Układy v1.0 | Vanta AI Studio
 // ============================================================
 
-
-
-let app = null;
-function init(container) {
-    return new Promise((resolve) => {
-        app = new App(container);
-        app.mount();
-        resolve();
-    });
+var app = null;
+function _init(container, params) {
+    app = new App(container, params);
+    app.mount();
 }
-function run(stateData, isFrozen) {
+function _run(stateData, isFrozen) {
     if (stateData && app) {
         app.restoreState(stateData);
     }
@@ -2698,20 +1841,41 @@ function run(stateData, isFrozen) {
         app.resume();
     }
 }
-function unload() {
+function _unload() {
     if (app) {
-        const state = app.getState();
-        setState(state);
+        app.saveState(function (data) {
+            if (typeof ZPE !== 'undefined')
+                ZPE.setState(data);
+        });
         app.removeListeners();
     }
 }
-function destroy() {
+function _destroy(container) {
     if (app) {
         app.unmount();
         app = null;
     }
+    container.innerHTML = '';
 }
-/* harmony default export */ const main = (create(init, run, unload, destroy));
+// For the emulator: ZPE is injected as a global, call immediately via side-effect
+if (typeof ZPE !== 'undefined') {
+    ZPE.create({
+        init: _init,
+        run: _run,
+        unload: _unload,
+        destroy: _destroy
+    });
+}
+// For the real ZPE platform: AMD module must export engineFactory
+// RequireJS captures the return value of define() and the platform calls engineFactory()
+function engineFactory() {
+    return {
+        init: _init,
+        run: _run,
+        unload: _unload,
+        destroy: _destroy
+    };
+}
 
 /******/ 	return __webpack_exports__;
 /******/ })()

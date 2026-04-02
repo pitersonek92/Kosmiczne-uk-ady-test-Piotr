@@ -1,0 +1,7 @@
+{
+  "title": "Kosmiczne układy",
+  "subject": "Historia astronomii",
+  "level": "Szkoła podstawowa / ponadpodstawowa",
+  "duration": 15,
+  "models": ["ptolemeusz", "kopernik", "wspolczesny"]
+}

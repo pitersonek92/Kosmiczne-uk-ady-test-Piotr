@@ -4,8 +4,12 @@
     "useWebGL": false,
     "editor": {
         "entry": "editor.js",
-        "defaultData": {},
-        "demoData": {},
-        "editorIcon": "editor-icon.svg"
+        "editorIcon": "editor-icon.svg",
+        "defaultData": {
+            "enabled": true
+        },
+        "demoData": {
+            "enabled": true
+        }
     }
 }

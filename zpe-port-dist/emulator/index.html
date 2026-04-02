@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZPE Emulator – Kosmiczne Układy</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0a0820;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: Arial;
+}
+#zpe-container {
+  width: 1280px;
+  height: 720px;
+  position: relative;
+  background: #000510;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(0,100,200,0.3);
+}
+</style>
+</head>
+<body>
+<div id="zpe-container"></div>
+<script>
+// AMD stub – obsługuje define() z webpack AMD output
+window.define = function(deps, factory) {
+  if (typeof deps === 'function') { deps(); }
+  else if (typeof factory === 'function') { factory(); }
+};
+window.define.amd = true;
+
+// ZPE mock – emuluje środowisko platformy ZPE
+window.ZPE = {
+  _state: null,
+  create(opts) {
+    const container = document.getElementById('zpe-container');
+    const params = {
+      path: function(assetName) {
+        const name = assetName.replace(/^images\//, '');
+        return 'images/' + name;
+      }
+    };
+    opts.init(container, params);
+    opts.run(window.ZPE._state, false);
+    window.addEventListener('beforeunload', function() { opts.unload(); });
+  },
+  setState(data) { window.ZPE._state = data; }
+};
+</script>
+<script src="entry.js"></script>
+</body>
+</html>

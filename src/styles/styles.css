@@ -1,0 +1,585 @@
+/* ═══════════════════════════════════════════════
+   RESET & BASE — wszystko z !important dla ZPE
+═══════════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#ku-root {
+  width: 1280px !important;
+  height: 720px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  font-family: 'Segoe UI', Arial, sans-serif !important;
+  user-select: none !important;
+}
+
+/* ── CUSTOM CURSOR ── */
+#ku-root.wcag-cursor-blue * { cursor: none !important; }
+#ku-custom-cursor {
+  position: fixed !important;
+  width: 32px !important;
+  height: 32px !important;
+  pointer-events: none !important;
+  z-index: 9999 !important;
+  display: none !important;
+  transform: translate(-50%, -50%) !important;
+}
+#ku-custom-cursor svg { width: 100% !important; height: 100% !important; }
+
+/* ── BACKGROUND ── */
+/* ── IMAGE PATH CONFIG ── */
+.ku-bg {
+  position: absolute !important;
+  inset: 0 !important;
+  background-image: url('../static/bg_all.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+/* ── TOP BAR ── */
+.ku-topbar {
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  height: 70px !important;
+  background-image: url('../static/top_bar.png') !important;
+  background-size: 100% 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 100 !important;
+}
+.ku-topbar-title {
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  color: #FFD700 !important;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.8) !important;
+  letter-spacing: 1px !important;
+  pointer-events: none !important;
+}
+
+/* ── TOP RIGHT BUTTONS ── */
+.ku-topbar-btns {
+  position: absolute !important;
+  right: 12px !important;
+  top: 10px !important;
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+  z-index: 110 !important;
+}
+.ku-circle-btn {
+  width: 48px !important;
+  height: 48px !important;
+  background-image: url('../static/btn_circle_bg.png') !important;
+  background-size: cover !important;
+  border: none !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  outline: none !important;
+  transition: transform 0.15s, filter 0.15s !important;
+  padding: 0 !important;
+}
+.ku-circle-btn:hover { transform: scale(1.1) !important; filter: brightness(1.2) !important; }
+.ku-circle-btn:focus { outline: 3px solid #FFD700 !important; outline-offset: 2px !important; }
+.ku-circle-btn img { width: 26px !important; height: 26px !important; pointer-events: none !important; }
+
+/* ── MAIN CONTENT AREA ── */
+.ku-content {
+  position: absolute !important;
+  top: 70px !important;
+  left: 0 !important; right: 0 !important; bottom: 0 !important;
+  z-index: 10 !important;
+}
+
+/* ══════════════════════════════
+   SCREEN: WELCOME
+══════════════════════════════ */
+.ku-welcome {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.ku-welcome-popup {
+  width: 700px !important;
+  min-height: 420px !important;
+  background-image: url('../static/popup_simple_920x650.png') !important;
+  background-size: 100% 100% !important;
+  padding: 36px 48px 32px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  position: relative !important;
+  z-index: 20 !important;
+}
+.ku-welcome-decos {
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+.ku-deco { position: absolute !important; }
+.ku-deco-earth { left: -90px !important; top: 40px !important; width: 140px !important; }
+.ku-deco-sat { right: -100px !important; top: 20px !important; width: 130px !important; }
+.ku-deco-rocket { left: -50px !important; bottom: 60px !important; width: 90px !important; }
+.ku-deco-asteroids { right: -80px !important; bottom: 20px !important; width: 120px !important; }
+.ku-deco-astronaut { left: -30px !important; bottom: -10px !important; width: 80px !important; }
+
+.ku-welcome-title {
+  font-size: 32px !important;
+  font-weight: 900 !important;
+  color: #FFD700 !important;
+  text-align: center !important;
+  margin-bottom: 20px !important;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.7) !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+.ku-welcome-desc {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  text-align: center !important;
+  line-height: 1.6 !important;
+  margin-bottom: 20px !important;
+  position: relative !important;
+  z-index: 2 !important;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.6) !important;
+}
+.ku-welcome-task {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+  background: rgba(0,0,0,0.25) !important;
+  border-radius: 8px !important;
+  padding: 14px 18px !important;
+  margin-bottom: 28px !important;
+  position: relative !important;
+  z-index: 2 !important;
+  max-width: 540px !important;
+}
+.ku-welcome-task img { width: 54px !important; height: 54px !important; flex-shrink: 0 !important; }
+.ku-welcome-task-text {
+  font-size: 15px !important;
+  color: #fff !important;
+  line-height: 1.6 !important;
+}
+.ku-welcome-task-text strong { color: #FFD700 !important; }
+.ku-welcome-btns {
+  display: flex !important;
+  gap: 16px !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* ══════════════════════════════
+   BUTTONS
+══════════════════════════════ */
+.ku-btn {
+  height: 60px !important;
+  border: none !important;
+  cursor: pointer !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #FFD700 !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.6) !important;
+  background-size: 100% 100% !important;
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  outline: none !important;
+  transition: transform 0.15s, filter 0.15s !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 24px !important;
+}
+.ku-btn:hover { transform: scale(1.04) !important; filter: brightness(1.15) !important; }
+.ku-btn:focus { outline: 3px solid #FFD700 !important; outline-offset: 2px !important; }
+.ku-btn:active { transform: scale(0.97) !important; }
+
+.ku-btn-280 { width: 280px !important; background-image: url('../static/btn_280x80.png') !important; }
+.ku-btn-420 { width: 420px !important; background-image: url('../static/btn_420x80.png') !important; }
+.ku-btn-620 { width: 620px !important; background-image: url('../static/btn_620x80.png') !important; }
+
+/* ══════════════════════════════
+   SCREEN: SOLAR SYSTEM
+══════════════════════════════ */
+.ku-solar {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+}
+/* Left panel - astronomers */
+.ku-left-panel {
+  width: 190px !important;
+  height: 100% !important;
+  background-image: url('../static/apla_dark.png') !important;
+  background-size: cover !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  flex-shrink: 0 !important;
+  padding: 16px 12px !important;
+}
+.ku-astronomer-btn {
+  width: 160px !important;
+  height: 160px !important;
+  border: 3px solid #555 !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  background-color: #1a1a2e !important;
+  overflow: hidden !important;
+  position: relative !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+  outline: none !important;
+  padding: 0 !important;
+}
+.ku-astronomer-btn img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  pointer-events: none !important;
+}
+.ku-astronomer-btn:hover,
+.ku-astronomer-btn.active {
+  border-color: #FFD700 !important;
+  box-shadow: 0 0 18px 4px #FFD700 !important;
+}
+.ku-astronomer-btn:focus {
+  outline: 3px solid #FFD700 !important;
+  outline-offset: 2px !important;
+}
+.ku-astronomer-tooltip {
+  position: absolute !important;
+  left: 170px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  background: rgba(0,0,0,0.85) !important;
+  color: #fff !important;
+  padding: 8px 14px !important;
+  border-radius: 6px !important;
+  white-space: nowrap !important;
+  font-size: 13px !important;
+  pointer-events: none !important;
+  z-index: 200 !important;
+}
+.ku-astronomer-tooltip strong { color: #FFD700 !important; }
+
+/* Solar system main view */
+.ku-solar-main {
+  flex: 1 !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+.ku-solar-title {
+  position: absolute !important;
+  top: 10px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  text-shadow: 2px 2px 4px #000 !important;
+  z-index: 50 !important;
+  white-space: nowrap !important;
+  background: rgba(0,0,0,0.45) !important;
+  padding: 6px 24px !important;
+  border-radius: 6px !important;
+  pointer-events: none !important;
+}
+.ku-solar-image-wrap {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: zoom-in !important;
+  transition: transform 0.4s ease !important;
+}
+.ku-solar-image-wrap.zoomed { transform: scale(1.55) !important; cursor: zoom-out !important; }
+.ku-solar-image-wrap img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  pointer-events: none !important;
+}
+.ku-solar-astronaut {
+  position: absolute !important;
+  bottom: 10px !important;
+  right: 10px !important;
+  width: 90px !important;
+  pointer-events: none !important;
+}
+.ku-solar-bottom-bar {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important; right: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  padding: 10px !important;
+  background: rgba(0,0,0,0.5) !important;
+  z-index: 30 !important;
+}
+.ku-zoom-hint {
+  font-size: 12px !important;
+  color: #aaa !important;
+  text-align: center !important;
+  position: absolute !important;
+  bottom: 55px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+  z-index: 20 !important;
+}
+
+/* ══════════════════════════════
+   POPUPS
+══════════════════════════════ */
+.ku-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  background: rgba(0,0,0,0.7) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 500 !important;
+}
+.ku-popup {
+  background-image: url('../static/popup_simple_920x650.png') !important;
+  background-size: 100% 100% !important;
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+.ku-popup-inner {
+  padding: 28px 36px 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+.ku-popup-title {
+  font-size: 24px !important;
+  font-weight: 900 !important;
+  color: #FFD700 !important;
+  text-align: center !important;
+  margin-bottom: 12px !important;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.7) !important;
+  flex-shrink: 0 !important;
+}
+.ku-popup-sep {
+  width: 100% !important;
+  height: 3px !important;
+  background: url('../static/sep_980.png') center/contain no-repeat !important;
+  margin-bottom: 14px !important;
+  flex-shrink: 0 !important;
+}
+.ku-popup-body {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  color: #fff !important;
+  font-size: 15px !important;
+  line-height: 1.7 !important;
+  padding-right: 4px !important;
+}
+/* scrollbar styling */
+.ku-popup-body::-webkit-scrollbar { width: 6px !important; }
+.ku-popup-body::-webkit-scrollbar-track { background: rgba(255,255,255,0.1) !important; }
+.ku-popup-body::-webkit-scrollbar-thumb { background: #FFD700 !important; border-radius: 3px !important; }
+
+.ku-popup-footer {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 16px !important;
+  margin-top: 16px !important;
+  flex-shrink: 0 !important;
+  flex-wrap: wrap !important;
+}
+
+/* ── POPUP: BIOGRAPHY ── */
+.ku-bio-popup { width: 860px !important; height: 560px !important; }
+.ku-bio-content {
+  display: flex !important;
+  gap: 20px !important;
+}
+.ku-bio-portrait {
+  width: 200px !important;
+  height: 240px !important;
+  flex-shrink: 0 !important;
+  object-fit: cover !important;
+  border-radius: 6px !important;
+  border: 2px solid #FFD700 !important;
+}
+.ku-bio-text { flex: 1 !important; font-size: 15px !important; color: #fff !important; line-height: 1.7 !important; }
+.ku-bio-text strong { color: #FFD700 !important; }
+
+/* ── POPUP: INSTRUKCJA ── */
+.ku-instr-popup { width: 720px !important; height: 480px !important; }
+
+/* ── POPUP: USTAWIENIA ── */
+.ku-settings-popup { width: 720px !important; height: 460px !important; }
+.ku-settings-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 16px 28px !important;
+  padding: 4px 0 !important;
+}
+.ku-setting-row { display: flex !important; flex-direction: column !important; gap: 6px !important; }
+.ku-setting-label { font-size: 13px !important; color: #FFD700 !important; font-weight: 700 !important; }
+.ku-setting-desc { font-size: 12px !important; color: #aaa !important; }
+
+/* Slider */
+.ku-slider-wrap {
+  position: relative !important;
+  height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+.ku-slider {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 100% !important;
+  height: 12px !important;
+  background-image: url('../static/slider_bg.png') !important;
+  background-size: 100% 100% !important;
+  outline: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+}
+.ku-slider::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  width: 28px !important;
+  height: 28px !important;
+  background-image: url('../static/slider_thumb.png') !important;
+  background-size: cover !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  border: none !important;
+}
+.ku-slider:focus { outline: 2px solid #FFD700 !important; }
+
+/* Toggle switch */
+.ku-toggle-wrap { display: flex !important; align-items: center !important; gap: 10px !important; }
+.ku-toggle {
+  position: relative !important;
+  width: 52px !important;
+  height: 28px !important;
+  flex-shrink: 0 !important;
+}
+.ku-toggle input { opacity: 0 !important; width: 0 !important; height: 0 !important; }
+.ku-toggle-slider {
+  position: absolute !important;
+  inset: 0 !important;
+  background: #555 !important;
+  border-radius: 28px !important;
+  cursor: pointer !important;
+  transition: background 0.2s !important;
+}
+.ku-toggle-slider::before {
+  content: '' !important;
+  position: absolute !important;
+  width: 22px !important;
+  height: 22px !important;
+  left: 3px !important;
+  top: 3px !important;
+  background: #fff !important;
+  border-radius: 50% !important;
+  transition: transform 0.2s !important;
+}
+.ku-toggle input:checked ~ .ku-toggle-slider { background: #FFD700 !important; }
+.ku-toggle input:checked ~ .ku-toggle-slider::before { transform: translateX(24px) !important; }
+.ku-toggle input:focus ~ .ku-toggle-slider { outline: 2px solid #FFD700 !important; }
+.ku-toggle-text { font-size: 13px !important; color: #fff !important; }
+
+/* ── POPUP: HISTORIA ── */
+.ku-history-popup { width: 720px !important; height: 480px !important; }
+
+/* ══════════════════════════════
+   SCREEN: UKŁAD SŁONECZNY (full)
+══════════════════════════════ */
+.ku-model-screen {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+.ku-model-title {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  text-shadow: 2px 2px 4px #000 !important;
+  padding: 12px 0 6px !important;
+  text-align: center !important;
+  z-index: 20 !important;
+  flex-shrink: 0 !important;
+}
+.ku-model-image-wrap {
+  flex: 1 !important;
+  position: relative !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: zoom-in !important;
+  transition: transform 0.4s ease !important;
+}
+.ku-model-image-wrap.zoomed { transform: scale(1.6) !important; cursor: zoom-out !important; }
+.ku-model-image-wrap img { max-height: 100% !important; max-width: 100% !important; object-fit: contain !important; pointer-events: none !important; }
+.ku-model-footer {
+  display: flex !important;
+  justify-content: center !important;
+  padding: 10px 0 !important;
+  flex-shrink: 0 !important;
+}
+
+/* ══════════════════════════════
+   WCAG: DISABLE ANIMATIONS
+══════════════════════════════ */
+#ku-root.wcag-no-animations *,
+#ku-root.wcag-no-animations *::before,
+#ku-root.wcag-no-animations *::after {
+  transition: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+/* wyjątek: transformy layoutowe muszą zostać */
+#ku-root.wcag-no-animations .ku-solar-image-wrap.zoomed { transform: scale(1.55) !important; }
+#ku-root.wcag-no-animations .ku-model-image-wrap.zoomed  { transform: scale(1.6)  !important; }
+#ku-root.wcag-no-animations .ku-solar-title              { transform: translateX(-50%) !important; }
+#ku-root.wcag-no-animations .ku-model-title              { transform: none !important; }
+
+/* ══════════════════════════════
+   WCAG SIZE CLASSES
+══════════════════════════════ */
+#ku-root.wcag-size-2 { font-size: 120% !important; }
+#ku-root.wcag-size-3 { font-size: 150% !important; }
+#ku-root.wcag-contrast-high { filter: contrast(1.4) !important; }
+
+/* ══════════════════════════════
+   FOCUS RING (WCAG)
+══════════════════════════════ */
+#ku-root:focus-visible { outline: none !important; }
+.ku-focus-visible:focus { outline: 3px solid #FFD700 !important; outline-offset: 3px !important; }
+
+/* Separator horizontal */
+.ku-sep-h {
+  width: 100% !important;
+  height: 2px !important;
+  background: rgba(255,255,255,0.2) !important;
+  margin: 8px 0 !important;
+}

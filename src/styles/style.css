@@ -1,0 +1,16 @@
+/*
+ * style.css — Kosmiczne Układy
+ * Minimalne style globalne. Właściwe style gry są wstrzykiwane przez app.ts (injectCSS()).
+ * NIE używaj tu globalnych resetów — izolacja CSS przez #ku-root w app.ts.
+ */
+
+:global(body) {
+  margin: 0;
+  padding: 0;
+}
+
+:global(#ku-root) {
+  display: block;
+  -webkit-user-select: none;
+  user-select: none;
+}
