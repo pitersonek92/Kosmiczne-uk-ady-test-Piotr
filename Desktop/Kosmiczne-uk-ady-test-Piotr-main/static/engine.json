@@ -1,0 +1,15 @@
+{
+    "entry": "dist/entry.js",
+    "stateful": true,
+    "useWebGL": false,
+    "editor": {
+        "entry": "editor.js",
+        "editorIcon": "editor-icon.svg",
+        "defaultData": {
+            "enabled": true
+        },
+        "demoData": {
+            "enabled": true
+        }
+    }
+}

@@ -1,0 +1,39 @@
+{
+    "include": [
+        "src/**/*",
+        "test/**/*",
+        "packages/**/*",
+        "./package.json"
+    ],
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "esnext",
+        "sourceMap": true,
+        "lib": [
+            "dom",
+            "dom.iterable",
+            "ESNext"
+        ],
+        "jsx": "react",
+        "moduleResolution": "node",
+        "allowJs": false,
+        "checkJs": false,
+        "composite": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "preserveConstEnums": true,
+        "removeComments": false,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+        "ignoreDeprecations": "6.0",
+        "paths": {
+            "~/*": [
+                "./src/*"
+            ],
+            "@/zpe-port/*": [
+                "../*"
+            ]
+        }
+    }
+}

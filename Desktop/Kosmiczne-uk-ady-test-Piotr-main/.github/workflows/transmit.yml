@@ -1,0 +1,26 @@
+name: Transmit
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: ZPE
+        run: |
+          git remote add zpe https://${{ secrets.ZPE_USER_NAME }}:${{ secrets.ZPE_PASS }}@${{ vars.ZPE_URL }}/app/aplikacje_obszar_9._e-learning/${{ github.event.repository.name }}
+          git fetch zpe
+          git branch master
+          git switch master
+          git reset --hard origin/main
+          git push zpe master --force
