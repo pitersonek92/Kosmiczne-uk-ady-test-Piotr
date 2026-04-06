@@ -85,9 +85,9 @@ if (typeof ZPE !== 'undefined') {
   });
 }
 
-// For the real ZPE platform: AMD module must export engineFactory
-// RequireJS captures the return value of define() and the platform calls engineFactory()
-export default function engineFactory() {
+// For the real ZPE platform: AMD module must export both default and named engineFactory
+// matching the { default: engineFactory, engineFactory } structure the ZPE platform expects
+function engineFactory() {
   return {
     init: _init,
     run: _run,
@@ -97,3 +97,6 @@ export default function engineFactory() {
     getState: _getState
   };
 }
+
+export { engineFactory };
+export default engineFactory;
