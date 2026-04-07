@@ -29,16 +29,15 @@ function injectCSS(): void {
   font-family: 'Segoe UI', Arial, sans-serif !important;
 }
 #ku-root {
-  display: block !important;
   position: absolute !important;
-  top: 0 !important; left: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
   width: 1920px !important;
   height: 1080px !important;
   margin: 0 !important;
   padding: 0 !important;
   overflow: hidden !important;
-  overscroll-behavior: none !important;
-  transform-origin: top left !important;
+  transform-origin: 0 0 !important;
   cursor: var(--ku-cursor, auto) !important;
 }
 #ku-root *, #ku-root input, #ku-root button, #ku-root textarea {
@@ -715,26 +714,22 @@ export class App {
   }
 
   mount(): void {
-    // Style the ZPE container so it becomes a proper stacking/sizing context
+    // Style container exactly like VIII_4 — gives it a proper 16:9 sizing context
     this.container.style.setProperty('position', 'relative', 'important');
     this.container.style.setProperty('width', '100%', 'important');
-    this.container.style.setProperty('aspect-ratio', '16/9', 'important');
+    this.container.style.setProperty('aspect-ratio', '16 / 9', 'important');
     this.container.style.setProperty('min-height', '300px', 'important');
     this.container.style.setProperty('max-width', 'none', 'important');
     this.container.style.setProperty('max-height', 'none', 'important');
     this.container.style.setProperty('display', 'block', 'important');
     this.container.style.setProperty('overflow', 'hidden', 'important');
+    this.container.innerHTML = '';
 
     injectCSS();
 
-    // SVG color filter
-    const filterSVG = createColorFilterSVG();
-    document.body.appendChild(filterSVG);
-
-    // Root element
+    // Root element — absolutely positioned, 1920×1080, scaled to fill container
     this.root = document.createElement('div');
     this.root.id = 'ku-root';
-    this.root.className = 'ku-size-1';
 
     const game = document.createElement('div');
     game.className = 'ku-game';
@@ -742,21 +737,23 @@ export class App {
     this.root.appendChild(game);
     this.container.appendChild(this.root);
 
+    // Apply scale immediately and on every resize
     this._applyScale();
-    const ro = new ResizeObserver(() => this._applyScale());
-    ro.observe(this.container);
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(() => this._applyScale()).observe(this.container);
+    }
 
     this.renderTopbar(game);
     this.showWelcome(game);
   }
 
   private _applyScale(): void {
-    if (!this.root) return;
-    const cw = this.container.clientWidth || 1920;
-    const ch = this.container.clientHeight || 1080;
-    const scale = Math.min(cw / 1920, ch / 1080);
+    if (!this.root || !this.container) return;
+    const cw = this.container.offsetWidth;
+    if (!cw) return;
+    const scale = cw / 1920;
     this.root.style.setProperty('transform', `scale(${scale})`, 'important');
-    this.container.style.setProperty('height', `${1080 * scale}px`, 'important');
+    this.root.style.setProperty('transform-origin', '0 0', 'important');
   }
 
   unmount(): void {

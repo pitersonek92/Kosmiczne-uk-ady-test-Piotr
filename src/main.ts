@@ -6,6 +6,8 @@
 import { App, ZPEParams } from './app';
 import { AppState } from './data';
 
+console.log('[KU] Kosmiczne Układy v1.0.1 loaded');
+
 declare const ZPE: {
   create(opts: {
     init(container: HTMLElement, params: ZPEParams): void;

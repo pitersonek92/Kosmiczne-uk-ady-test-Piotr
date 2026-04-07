@@ -1,5 +1,5 @@
 {
-    "entry": "entry.js",
+    "entry": "loader.js",
     "stateful": true,
     "useWebGL": false,
     "editor": {
