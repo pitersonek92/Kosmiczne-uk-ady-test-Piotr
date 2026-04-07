@@ -4,19 +4,9 @@
 // ============================================================
 
 import { App, ZPEParams } from './app';
-import { AppState } from './data';
+import { AppState } from './data'; // used in _run signature
 
 console.log('[KU] Kosmiczne Układy v1.0.1 loaded');
-
-declare const ZPE: {
-  create(opts: {
-    init(container: HTMLElement, params: ZPEParams): void;
-    run(stateData: Partial<AppState> | null, isFrozen: boolean): void;
-    unload(): void;
-    destroy(container: HTMLElement): void;
-  }): void;
-  setState(data: any): void;
-};
 
 let app: App | null = null;
 let _savedState: any = {};
@@ -50,10 +40,7 @@ function _run(stateData: Partial<AppState> | null, isFrozen: boolean): Promise<v
 
 function _unload(): Promise<void> {
   if (app) {
-    app.saveState((data: any) => {
-      _savedState = data;
-      if (typeof ZPE !== 'undefined') ZPE.setState(data);
-    });
+    app.saveState((data: any) => { _savedState = data; });
     app.removeListeners();
   }
   return Promise.resolve();
@@ -78,16 +65,6 @@ function _getState(): any {
     app.saveState((data: any) => { _savedState = data; });
   }
   return _savedState;
-}
-
-// For the emulator: ZPE is injected as a global, call immediately via side-effect
-if (typeof ZPE !== 'undefined') {
-  ZPE.create({
-    init: _init,
-    run: _run,
-    unload: _unload,
-    destroy: _destroy
-  });
 }
 
 // For the real ZPE platform: AMD module must export both default and named engineFactory

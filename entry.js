@@ -1884,11 +1884,7 @@ function _run(stateData, isFrozen) {
 }
 function _unload() {
     if (app) {
-        app.saveState(function (data) {
-            _savedState = data;
-            if (typeof ZPE !== 'undefined')
-                ZPE.setState(data);
-        });
+        app.saveState(function (data) { _savedState = data; });
         app.removeListeners();
     }
     return Promise.resolve();
@@ -1911,15 +1907,6 @@ function _getState() {
         app.saveState(function (data) { _savedState = data; });
     }
     return _savedState;
-}
-// For the emulator: ZPE is injected as a global, call immediately via side-effect
-if (typeof ZPE !== 'undefined') {
-    ZPE.create({
-        init: _init,
-        run: _run,
-        unload: _unload,
-        destroy: _destroy
-    });
 }
 // For the real ZPE platform: AMD module must export both default and named engineFactory
 // matching the { default: engineFactory, engineFactory } structure the ZPE platform expects
