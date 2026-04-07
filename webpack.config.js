@@ -41,6 +41,7 @@ module.exports = function (env, argv) {
         },
         output: {
             libraryTarget: "amd",
+            libraryExport: "default",
             path: IS_DEV
                 ? path.resolve(PATHS.BUILD, PATHS.PATHNAME)
                 : IS_DEPLOY
