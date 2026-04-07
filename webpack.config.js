@@ -41,13 +41,13 @@ module.exports = function (env, argv) {
         },
         output: {
             libraryTarget: "amd",
-            ...(IS_DEPLOY ? { libraryExport: "default" } : {}),
+            libraryExport: "default",
             path: IS_DEV
                 ? path.resolve(PATHS.BUILD, PATHS.PATHNAME)
                 : IS_DEPLOY
                   ? path.resolve(__dirname, "./")
                   : PATHS.BUILD,
-            filename: IS_DEPLOY ? "loader.js" : "entry.js",
+            filename: "entry.js",
             clean: IS_DEPLOY ? false : {
                 keep: /.git|.github|.gitignore|README.md/
             }
