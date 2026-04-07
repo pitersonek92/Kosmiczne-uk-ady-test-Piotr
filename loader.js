@@ -1135,7 +1135,7 @@ var App = /** @class */ (function () {
             planets: planets,
             showOrbits: this.state.wcag.showOrbits,
             reduceMotion: this.state.wcag.reduceMotion,
-            pathFn: this.params.path.bind(this.params),
+            pathFn: function (name) { return _this.p(name); },
             onHover: function (planet) {
                 if (planet)
                     playHover(_this.state.wcag.soundEnabled);
@@ -1395,7 +1395,7 @@ var App = /** @class */ (function () {
             planets: astro.planets,
             showOrbits: this.state.wcag.showOrbits,
             reduceMotion: this.state.wcag.reduceMotion,
-            pathFn: this.params.path.bind(this.params),
+            pathFn: function (name) { return _this.p(name); },
             onHover: undefined,
             onLeftClick: undefined,
             onRightClick: undefined,
@@ -1844,13 +1844,16 @@ console.log('[KU] Kosmiczne Układy v1.0.1 loaded');
 var app = null;
 var _savedState = {};
 function _init(container, params) {
+    console.log('[KU] init() called, container:', container, 'params keys:', Object.keys(params || {}));
     return new Promise(function (resolve, reject) {
         try {
             app = new App(container, params);
             app.mount();
+            console.log('[KU] mount() done');
             resolve();
         }
         catch (err) {
+            console.error('[KU] init() error:', err);
             reject(err);
         }
     });
@@ -1869,11 +1872,7 @@ function _run(stateData, isFrozen) {
 }
 function _unload() {
     if (app) {
-        app.saveState(function (data) {
-            _savedState = data;
-            if (typeof ZPE !== 'undefined')
-                ZPE.setState(data);
-        });
+        app.saveState(function (data) { _savedState = data; });
         app.removeListeners();
     }
     return Promise.resolve();
@@ -1896,15 +1895,6 @@ function _getState() {
         app.saveState(function (data) { _savedState = data; });
     }
     return _savedState;
-}
-// For the emulator: ZPE is injected as a global, call immediately via side-effect
-if (typeof ZPE !== 'undefined') {
-    ZPE.create({
-        init: _init,
-        run: _run,
-        unload: _unload,
-        destroy: _destroy
-    });
 }
 // For the real ZPE platform: AMD module must export both default and named engineFactory
 // matching the { default: engineFactory, engineFactory } structure the ZPE platform expects
