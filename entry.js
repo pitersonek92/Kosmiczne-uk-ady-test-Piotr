@@ -21,15 +21,27 @@ define(function() { return /******/ (function() { // webpackBootstrap
 /******/ 		__webpack_require__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
 /******/ 	}();
 /******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	!function() {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = function(exports) {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	}();
+/******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
+// ESM COMPAT FLAG
+__webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  "default": function() { return /* binding */ main; }
+  "default": function() { return /* binding */ main; },
+  engineFactory: function() { return /* binding */ engineFactory; }
 });
-
-// UNUSED EXPORTS: engineFactory
 
 ;// ./src/data.ts
 // ============================================================
@@ -1844,13 +1856,16 @@ console.log('[KU] Kosmiczne Układy v1.0.1 loaded');
 var app = null;
 var _savedState = {};
 function _init(container, params) {
+    console.log('[KU] init() called, container:', container, 'params keys:', Object.keys(params || {}));
     return new Promise(function (resolve, reject) {
         try {
             app = new App(container, params);
             app.mount();
+            console.log('[KU] mount() done');
             resolve();
         }
         catch (err) {
+            console.error('[KU] init() error:', err);
             reject(err);
         }
     });
@@ -1921,7 +1936,6 @@ function engineFactory() {
 
 /* harmony default export */ var main = (engineFactory);
 
-__webpack_exports__ = __webpack_exports__["default"];
 /******/ 	return __webpack_exports__;
 /******/ })()
 ;

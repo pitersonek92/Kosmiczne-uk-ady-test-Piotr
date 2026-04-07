@@ -22,12 +22,15 @@ let app: App | null = null;
 let _savedState: any = {};
 
 function _init(container: HTMLElement, params: ZPEParams): Promise<void> {
+  console.log('[KU] init() called, container:', container, 'params keys:', Object.keys(params || {}));
   return new Promise<void>((resolve, reject) => {
     try {
       app = new App(container, params);
       app.mount();
+      console.log('[KU] mount() done');
       resolve();
     } catch (err) {
+      console.error('[KU] init() error:', err);
       reject(err);
     }
   });
