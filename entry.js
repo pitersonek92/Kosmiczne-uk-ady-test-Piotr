@@ -1147,7 +1147,7 @@ var App = /** @class */ (function () {
             planets: planets,
             showOrbits: this.state.wcag.showOrbits,
             reduceMotion: this.state.wcag.reduceMotion,
-            pathFn: this.params.path.bind(this.params),
+            pathFn: function (name) { return _this.p(name); },
             onHover: function (planet) {
                 if (planet)
                     playHover(_this.state.wcag.soundEnabled);
@@ -1407,7 +1407,7 @@ var App = /** @class */ (function () {
             planets: astro.planets,
             showOrbits: this.state.wcag.showOrbits,
             reduceMotion: this.state.wcag.reduceMotion,
-            pathFn: this.params.path.bind(this.params),
+            pathFn: function (name) { return _this.p(name); },
             onHover: undefined,
             onLeftClick: undefined,
             onRightClick: undefined,

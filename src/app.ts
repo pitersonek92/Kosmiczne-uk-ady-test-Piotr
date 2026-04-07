@@ -1034,7 +1034,7 @@ export class App {
       planets,
       showOrbits: this.state.wcag.showOrbits,
       reduceMotion: this.state.wcag.reduceMotion,
-      pathFn: this.params.path.bind(this.params),
+      pathFn: (name: string) => this.p(name),
       onHover: (planet) => {
         if (planet) playHover(this.state.wcag.soundEnabled);
       },
@@ -1316,7 +1316,7 @@ export class App {
       planets: astro.planets,
       showOrbits: this.state.wcag.showOrbits,
       reduceMotion: this.state.wcag.reduceMotion,
-      pathFn: this.params.path.bind(this.params),
+      pathFn: (name: string) => this.p(name),
       onHover: undefined,
       onLeftClick: undefined,
       onRightClick: undefined,
