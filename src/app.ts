@@ -39,23 +39,15 @@ function injectCSS(): void {
   overflow: hidden !important;
   transform-origin: 0 0 !important;
   cursor: var(--ku-cursor, auto) !important;
+  background: #000510 !important;
+  overscroll-behavior: none !important;
+  touch-action: pan-x pan-y !important;
 }
 #ku-root *, #ku-root input, #ku-root button, #ku-root textarea {
   cursor: inherit !important;
 }
 /* select musi mieć jawny kursor — inherit nie działa we wszystkich przeglądarkach */
 #ku-root select { cursor: var(--ku-cursor, auto) !important; }
-
-/* === LAYOUT === */
-#ku-root .ku-game {
-  position: relative !important;
-  width: 1920px !important;
-  height: 1080px !important;
-  overflow: hidden !important;
-  background: #000510 !important;
-  overscroll-behavior: none !important;
-  touch-action: pan-x pan-y !important;
-}
 
 /* === TOPBAR === */
 #ku-root .ku-topbar {
@@ -730,11 +722,6 @@ export class App {
     // Root element — absolutely positioned, 1920×1080, scaled to fill container
     this.root = document.createElement('div');
     this.root.id = 'ku-root';
-
-    const game = document.createElement('div');
-    game.className = 'ku-game';
-
-    this.root.appendChild(game);
     this.container.appendChild(this.root);
 
     // Apply scale immediately and on every resize
@@ -743,8 +730,8 @@ export class App {
       new ResizeObserver(() => this._applyScale()).observe(this.container);
     }
 
-    this.renderTopbar(game);
-    this.showWelcome(game);
+    this.renderTopbar(this.root);
+    this.showWelcome(this.root);
   }
 
   private _applyScale(): void {
