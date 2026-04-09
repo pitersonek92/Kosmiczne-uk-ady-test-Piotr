@@ -30,8 +30,11 @@
             "~/*": [
                 "./src/*"
             ],
+            "@/zpe-port": [
+                "./src/zpe-port/index.ts"
+            ],
             "@/zpe-port/*": [
-                "../*"
+                "./src/zpe-port/*"
             ]
         }
     }

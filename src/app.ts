@@ -6,12 +6,7 @@
 import { ASTRONOMERS, AstronomerData, Planet, AppState, DEFAULT_STATE, DEFAULT_WCAG, WcagState } from './data';
 import { CanvasEngine } from './engine';
 import { applyWcag, createColorFilterSVG, playClick, playHover } from './wcag';
-
-export interface ZPEParams {
-  path?: (name: string) => string;
-  enginePath?: (name: string) => string;
-  [key: string]: any;
-}
+import { path as zpePath } from '@/zpe-port';
 
 const TOPBAR_H = 68;
 
@@ -689,7 +684,6 @@ function injectCSS(): void {
 // ============================================================
 export class App {
   private container: HTMLElement;
-  private params: ZPEParams;
   private state: AppState;
   private root!: HTMLElement;
   private engine: CanvasEngine | null = null;
@@ -699,9 +693,8 @@ export class App {
   private tooltipEl: HTMLElement | null = null;
   private hoveredPortraitIdx = -1;
 
-  constructor(container: HTMLElement, params: ZPEParams) {
+  constructor(container: HTMLElement) {
     this.container = container;
-    this.params = params;
     this.state = JSON.parse(JSON.stringify(DEFAULT_STATE));
   }
 
@@ -767,9 +760,7 @@ export class App {
   resume(): void { this.engine?.setPaused(false); this.modelEngine?.setPaused(false); }
 
   private p(name: string): string {
-    if (typeof this.params.path === 'function') return this.params.path(name);
-    if (typeof this.params.enginePath === 'function') return this.params.enginePath(name);
-    return name;
+    return zpePath(name);
   }
 
   // ============================================================

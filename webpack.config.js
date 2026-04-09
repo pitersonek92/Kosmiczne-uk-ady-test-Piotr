@@ -58,7 +58,7 @@ module.exports = function (env, argv) {
         resolve: {
             alias: {
                 "~": path.join(PATHS.SRC),
-                "@/zpe-port": path.join(__dirname, "..")
+                "@/zpe-port": path.join(PATHS.SRC, "zpe-port")
             },
             modules: ["packages", "node_modules", "src"],
             extensions: [".ts", ".tsx", ".js", ".jsx"]

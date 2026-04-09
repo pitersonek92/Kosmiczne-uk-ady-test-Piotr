@@ -29,7 +29,69 @@ __webpack_require__.d(__webpack_exports__, {
   "default": function() { return /* binding */ main; }
 });
 
-// UNUSED EXPORTS: engineFactory
+;// ./src/zpe-port/index.ts
+// ============================================================
+// ZPE-Port — local implementation
+// Compatible with ZPE-Port 2.0 API (zpe-projekty/zpe-port)
+// ============================================================
+/**
+ * Resolves a resource path using the ZPE platform API.
+ * ZPE exposes its CDN resolver via window._exerciseApi.enginePath().
+ * Falls back to a base-URL detection or the raw path for local dev.
+ */
+function path(relativePath) {
+    var cleanPath = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
+    // 1. Try the global ZPE exercise API (injected by ZPE platform at runtime)
+    var globalApi = (typeof window !== 'undefined') ? window._exerciseApi : undefined;
+    if (globalApi) {
+        if (typeof globalApi.enginePath === 'function') {
+            try {
+                return globalApi.enginePath(cleanPath);
+            }
+            catch (_) { }
+        }
+        if (typeof globalApi.path === 'function') {
+            try {
+                return globalApi.path(cleanPath);
+            }
+            catch (_) { }
+        }
+    }
+    // 2. Try __ZPE_BASE_URL__ (detected from script src)
+    if (typeof window !== 'undefined' && window.__ZPE_BASE_URL__) {
+        var base = window.__ZPE_BASE_URL__;
+        if (!base.endsWith('/'))
+            base += '/';
+        return base + cleanPath;
+    }
+    // 3. Detect base URL from loader.js / entry.js script tag
+    if (typeof document !== 'undefined') {
+        var scripts = document.getElementsByTagName('script');
+        for (var i = 0; i < scripts.length; i++) {
+            var src = scripts[i].src;
+            if (src && (src.indexOf('loader.js') !== -1 || src.indexOf('entry.js') !== -1)) {
+                var lastSlash = src.lastIndexOf('/');
+                var detected = lastSlash !== -1 ? src.substring(0, lastSlash + 1) : './';
+                window.__ZPE_BASE_URL__ = detected;
+                return detected + cleanPath;
+            }
+        }
+    }
+    // 4. Fallback: return path as-is (works in local dev with devServer)
+    return cleanPath;
+}
+/**
+ * Creates a ZPE-compatible engine factory.
+ * Call this as: export default ZPE.create(init, run, unload, destroy)
+ *
+ * The returned factory function is what the AMD loader gets.
+ * ZPE calls engineFactory() → receives { init, run, unload, destroy }.
+ */
+function create(init, run, unload, destroy) {
+    return function engineFactory() {
+        return { init: init, run: run, unload: unload, destroy: destroy };
+    };
+}
 
 ;// ./src/data.ts
 // ============================================================
@@ -837,6 +899,7 @@ function playHover(enabled) {
 
 
 
+
 var TOPBAR_H = 68;
 // ============================================================
 // CSS injection
@@ -853,7 +916,7 @@ function injectCSS() {
 // MAIN APP CLASS
 // ============================================================
 var App = /** @class */ (function () {
-    function App(container, params) {
+    function App(container) {
         this.engine = null;
         this.modelEngine = null;
         this.currentPopup = null;
@@ -861,7 +924,6 @@ var App = /** @class */ (function () {
         this.tooltipEl = null;
         this.hoveredPortraitIdx = -1;
         this.container = container;
-        this.params = params;
         this.state = JSON.parse(JSON.stringify(DEFAULT_STATE));
     }
     App.prototype.mount = function () {
@@ -920,11 +982,7 @@ var App = /** @class */ (function () {
     App.prototype.freeze = function () { var _a, _b; (_a = this.engine) === null || _a === void 0 ? void 0 : _a.setPaused(true); (_b = this.modelEngine) === null || _b === void 0 ? void 0 : _b.setPaused(true); };
     App.prototype.resume = function () { var _a, _b; (_a = this.engine) === null || _a === void 0 ? void 0 : _a.setPaused(false); (_b = this.modelEngine) === null || _b === void 0 ? void 0 : _b.setPaused(false); };
     App.prototype.p = function (name) {
-        if (typeof this.params.path === 'function')
-            return this.params.path(name);
-        if (typeof this.params.enginePath === 'function')
-            return this.params.enginePath(name);
-        return name;
+        return path(name);
     };
     // ============================================================
     // TOPBAR
@@ -1833,80 +1891,106 @@ var App = /** @class */ (function () {
 
 ;// ./src/main.ts
 // ============================================================
-// MAIN.TS — ZPE Entry Point
+// MAIN.TS — ZPE Entry Point (ZPE-Port 2.0)
 // Kosmiczne Układy v1.0 | Vanta AI Studio
 // ============================================================
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 
-console.log('[KU] Kosmiczne Układy v1.0.1 loaded');
+
+console.log('[KU] Kosmiczne Układy v1.0.1 loaded (ZPE-Port 2.0)');
 var app = null;
 var _savedState = {};
-function _init(container, params) {
-    console.log('[KU] init() called, container:', container, 'params keys:', Object.keys(params || {}));
-    return new Promise(function (resolve, reject) {
-        try {
-            app = new App(container, params);
-            app.mount();
-            console.log('[KU] mount() done');
-            resolve();
-        }
-        catch (err) {
-            console.error('[KU] init() error:', err);
-            reject(err);
-        }
+function init(container) {
+    return __awaiter(this, void 0, Promise, function () {
+        return __generator(this, function (_a) {
+            console.log('[KU] init() called, container:', container);
+            try {
+                app = new App(container);
+                app.mount();
+                console.log('[KU] mount() done');
+            }
+            catch (err) {
+                console.error('[KU] init() error:', err);
+                throw err;
+            }
+            return [2 /*return*/];
+        });
     });
 }
-function _run(stateData, isFrozen) {
-    if (stateData && app) {
-        app.restoreState(stateData);
-    }
-    if (isFrozen && app) {
-        app.freeze();
-    }
-    else if (app) {
-        app.resume();
-    }
-    return Promise.resolve();
+function run(stateData, isFrozen) {
+    return __awaiter(this, void 0, Promise, function () {
+        return __generator(this, function (_a) {
+            if (stateData && app) {
+                app.restoreState(stateData);
+            }
+            if (isFrozen && app) {
+                app.freeze();
+            }
+            else if (app) {
+                app.resume();
+            }
+            return [2 /*return*/];
+        });
+    });
 }
-function _unload() {
-    if (app) {
-        app.saveState(function (data) { _savedState = data; });
-        app.removeListeners();
-    }
-    return Promise.resolve();
+function unload() {
+    return __awaiter(this, void 0, Promise, function () {
+        return __generator(this, function (_a) {
+            if (app) {
+                app.saveState(function (data) { _savedState = data; });
+                app.removeListeners();
+            }
+            return [2 /*return*/];
+        });
+    });
 }
-function _destroy(container) {
-    if (app) {
-        app.unmount();
-        app = null;
-    }
-    container.innerHTML = '';
-    return Promise.resolve();
+function destroy() {
+    return __awaiter(this, void 0, Promise, function () {
+        return __generator(this, function (_a) {
+            if (app) {
+                app.unmount();
+                app = null;
+            }
+            return [2 /*return*/];
+        });
+    });
 }
-function _setState(state) {
-    _savedState = state || {};
-    if (app)
-        app.restoreState(_savedState);
-}
-function _getState() {
-    if (app) {
-        app.saveState(function (data) { _savedState = data; });
-    }
-    return _savedState;
-}
-// For the real ZPE platform: AMD module must export both default and named engineFactory
-// matching the { default: engineFactory, engineFactory } structure the ZPE platform expects
-function engineFactory() {
-    return {
-        init: _init,
-        run: _run,
-        unload: _unload,
-        destroy: _destroy,
-        setState: _setState,
-        getState: _getState
-    };
-}
-
-/* harmony default export */ var main = (engineFactory);
+/* harmony default export */ var main = (create(init, run, unload, destroy));
 
 __webpack_exports__ = __webpack_exports__["default"];
 /******/ 	return __webpack_exports__;
