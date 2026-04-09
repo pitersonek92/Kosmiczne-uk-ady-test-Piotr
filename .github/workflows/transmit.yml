@@ -1,0 +1,32 @@
+name: ZPE Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.email "ci-deploy@zpe"
+          git config --global user.name "ZPE CI Deploy"
+
+      - name: Push to ZPE Git Server
+        env:
+          ZPE_USER_NAME: ${{ secrets.ZPE_USER_NAME }}
+          ZPE_PASS: ${{ secrets.ZPE_PASS }}
+          ZPE_URL: ${{ vars.ZPE_URL }}
+        run: |
+          # Build ZPE remote URL with credentials
+          ZPE_REMOTE="https://${ZPE_USER_NAME}:${ZPE_PASS}@${ZPE_URL}"
+          git remote add zpe "$ZPE_REMOTE"
+          git push zpe HEAD:main --force
