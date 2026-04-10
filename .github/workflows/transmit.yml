@@ -4,29 +4,40 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          fetch-depth: 0
+          node-version: '20'
+          cache: 'npm'
 
-      - name: Configure Git
-        run: |
-          git config --global user.email "ci-deploy@zpe"
-          git config --global user.name "ZPE CI Deploy"
+      - name: Install dependencies
+        run: npm install
 
-      - name: Push to ZPE Git Server
+      - name: Build (deploy mode)
+        run: npm run deploy
+
+      - name: Push to zpe-projekty GitHub
         env:
-          ZPE_USER_NAME: ${{ secrets.ZPE_USER_NAME }}
+          ZPE_USER: ${{ secrets.ZPE_USER_NAME }}
           ZPE_PASS: ${{ secrets.ZPE_PASS }}
-          ZPE_URL: ${{ vars.ZPE_URL }}
         run: |
-          # Build ZPE remote URL with credentials
-          ZPE_REMOTE="https://${ZPE_USER_NAME}:${ZPE_PASS}@${ZPE_URL}"
-          git remote add zpe "$ZPE_REMOTE"
-          git push zpe HEAD:main --force
+          echo "ZPE_USER length: ${#ZPE_USER}"
+          echo "ZPE_PASS length: ${#ZPE_PASS}"
+          ZPE_USER_ENC=$(python3 -c "import urllib.parse,os; print(urllib.parse.quote(os.environ['ZPE_USER'],safe=''))")
+          ZPE_PASS_ENC=$(python3 -c "import urllib.parse,os; print(urllib.parse.quote(os.environ['ZPE_PASS'],safe=''))")
+          git config user.email "ci@zpe-deploy"
+          git config user.name "ZPE CI"
+          git add -f entry.js images/ engine.json scenario.json 2>/dev/null || true
+          git diff --staged --quiet || git commit -m "deploy: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git remote add zpe "https://${ZPE_USER_ENC}:${ZPE_PASS_ENC}@github.com/zpe-projekty/IX_3_TEST_Kosmiczne_Uklady.git"
+          git push zpe main --force
