@@ -146,7 +146,9 @@ module.exports = function (env, argv) {
                     loader: "ts-loader",
                     options: {
                         transpileOnly: true,
-                        configFile: "tsconfig.webpack.json"
+                        configFile: "tsconfig.webpack.json",
+                        // Suppress deprecation diagnostics across all TS versions
+                        ignoreDiagnostics: [5101, 5103, 5107]
                     },
                     exclude: /node_modules/
                 },

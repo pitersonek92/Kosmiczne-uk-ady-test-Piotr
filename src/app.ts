@@ -62,7 +62,10 @@ function injectCSS(): void {
   width: 100% !important; height: 100% !important;
 }
 #ku-root .ku-topbar-title {
-  position: relative !important;
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  white-space: nowrap !important;
   z-index: 1 !important;
   color: #FFD700 !important;
   font-size: 22px !important;
@@ -74,7 +77,7 @@ function injectCSS(): void {
 #ku-root .ku-topbar-btns {
   position: absolute !important;
   right: 18px !important;
-  top: 50% !important;
+  top: 55% !important;
   transform: translateY(-50%) !important;
   display: flex !important;
   gap: 10px !important;
@@ -180,10 +183,13 @@ function injectCSS(): void {
 #ku-root .ku-task-text { color: #fff !important; font-size: 15px !important; line-height: 1.5 !important; }
 #ku-root .ku-task-text strong { color: #FFD700 !important; }
 #ku-root .ku-welcome-footer {
+  position: absolute !important;
+  bottom: 40px !important;
+  right: 80px !important;
   display: flex !important;
-  gap: 20px !important;
-  justify-content: center !important;
-  width: 100% !important;
+  gap: 16px !important;
+  align-items: center !important;
+  z-index: 20 !important;
 }
 
 /* Decorations */
@@ -639,8 +645,10 @@ function injectCSS(): void {
 #ku-root.ku-size-2 .ku-onboarding-text { font-size: 17px !important; }
 #ku-root.ku-size-3 .ku-onboarding-text { font-size: 19px !important; }
 
-/* === FOCUS styles === */
+/* === FOCUS styles (Chrome + Firefox) === */
+#ku-root :focus { outline: 3px solid #FFD700 !important; outline-offset: 2px !important; }
 #ku-root :focus-visible { outline: 3px solid #FFD700 !important; outline-offset: 2px !important; }
+#ku-root canvas:focus { outline: 3px solid #FFD700 !important; outline-offset: 4px !important; }
 
 /* === REDUCE MOTION === */
 #ku-root.ku-noanim * { animation: none !important; transition: none !important; }
@@ -670,6 +678,52 @@ function injectCSS(): void {
 #ku-root.ku-hc .ku-zoom-btn { border-color: #FFD700 !important; background: #000 !important; color: #FFD700 !important; }
 #ku-root.ku-hc .ku-popup-body { color: #fff !important; }
 #ku-root.ku-hc .ku-popup-title { color: #FFD700 !important; }
+
+/* === CUSTOM SELECT (replaces native <select> so custom cursor works) === */
+#ku-root .ku-custom-select { position: relative !important; display: inline-block !important; }
+#ku-root .ku-custom-select-btn {
+  min-width: 110px !important;
+  text-align: left !important;
+  padding: 4px 22px 4px 8px !important;
+  position: relative !important;
+}
+#ku-root .ku-custom-select-btn::after {
+  content: '▾' !important;
+  position: absolute !important;
+  right: 6px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  pointer-events: none !important;
+  color: #FFD700 !important;
+}
+#ku-root .ku-custom-select-dropdown {
+  position: absolute !important;
+  top: calc(100% + 2px) !important;
+  left: 0 !important;
+  z-index: 3000 !important;
+  background: #0a1e3d !important;
+  border: 1px solid #3a6aaa !important;
+  border-radius: 4px !important;
+  min-width: 100% !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.7) !important;
+}
+#ku-root .ku-custom-select-item {
+  display: block !important;
+  width: 100% !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  color: #FFD700 !important;
+  padding: 6px 12px !important;
+  text-align: left !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: inherit !important;
+  white-space: nowrap !important;
+}
+#ku-root .ku-custom-select-item:hover { background: rgba(74,144,217,0.25) !important; }
+#ku-root .ku-custom-select-item.selected { background: #1e4a8a !important; }
+#ku-root .ku-custom-select-item:focus { outline: 2px solid #FFD700 !important; outline-offset: -2px !important; }
 
 /* === SCROLLBAR === */
 #ku-root .ku-popup-body::-webkit-scrollbar { width: 8px !important; }
@@ -723,8 +777,24 @@ export class App {
       new ResizeObserver(() => this._applyScale()).observe(this.container);
     }
 
+    this._preloadImages();
     this.renderTopbar(this.root);
     this.showWelcome(this.root);
+  }
+
+  private _preloadImages(): void {
+    const imgs = [
+      'images/bg_all.png', 'images/top_bar.svg',
+      'images/slonce.png', 'images/ziemia.png', 'images/merkury.png',
+      'images/wenus.png',  'images/mars.png',    'images/jowisz.png',
+      'images/saturn.png', 'images/uran.png',    'images/neptun.png',
+      'images/ksiezyc.png',
+      'images/pp_01.png',  'images/pp_02.png',   'images/pp_02_over.png',
+      'images/pp_03.png',  'images/kopernik.png',
+      'images/rys_01.png', 'images/rys_02.png',  'images/rys_03.png',
+      'images/rys_04.png', 'images/rys_05.png',
+    ];
+    imgs.forEach(src => { const i = new Image(); i.src = this.p(src); });
   }
 
   private _applyScale(): void {
@@ -732,6 +802,9 @@ export class App {
     const cw = this.container.offsetWidth;
     if (!cw) return;
     const scale = cw / 1920;
+    // Force container height to always maintain 16:9 — ZPE may not respect aspect-ratio
+    const h = Math.round(cw * (1080 / 1920));
+    this.container.style.setProperty('height', `${h}px`, 'important');
     this.root.style.setProperty('transform', `scale(${scale})`, 'important');
     this.root.style.setProperty('transform-origin', '0 0', 'important');
   }
@@ -922,9 +995,10 @@ export class App {
     });
 
     footer.append(instrBtn, startBtn);
-    content.append(titleEl, desc, taskBox, footer);
+    content.append(titleEl, desc, taskBox);
     popup.appendChild(content);
     screen.appendChild(popup);
+    screen.appendChild(footer);   // bottom-right tile (IX.3_4_4)
     game.appendChild(screen);
 
     // Focus start button
@@ -1312,9 +1386,32 @@ export class App {
     const overlay = document.createElement('div');
     overlay.className = full ? 'ku-overlay ku-overlay-full' : 'ku-overlay';
     overlay.id = 'ku-popup-overlay';
+    overlay.setAttribute('tabindex', '-1');
 
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) this.closePopup();
+    });
+
+    // Focus trap: Tab/Shift+Tab cycles only within the overlay
+    overlay.addEventListener('keydown', (e) => {
+      if (e.key !== 'Tab') return;
+      const focusable = Array.from(overlay.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [tabindex="0"]'
+      ));
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first || document.activeElement === overlay) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     });
 
     overlay.appendChild(content);
@@ -1570,63 +1667,41 @@ export class App {
 
     // Color filter
     const row6 = this.buildSettingsRow('Filtr kolorów');
-    const colorSel = document.createElement('select');
-    colorSel.className = 'ku-select';
-    [
-      { val: 'none', label: 'Brak' },
-      { val: 'gray', label: 'Skala szarości' },
-      { val: 'deut', label: 'Deuteranopia' },
-      { val: 'prot', label: 'Protanopia' },
-      { val: 'trit', label: 'Tritanopia' },
-    ].forEach(opt => {
-      const o = document.createElement('option');
-      o.value = opt.val;
-      o.textContent = opt.label;
-      o.selected = w.colorFilter === opt.val;
-      colorSel.appendChild(o);
-    });
-    colorSel.addEventListener('change', () => {
-      this.state.wcag.colorFilter = colorSel.value as any;
-      applyWcag(this.root, this.state.wcag);
-    });
+    const colorSel = this.buildCustomSelect(
+      [
+        { val: 'none', label: 'Brak' },
+        { val: 'gray', label: 'Skala szarości' },
+        { val: 'deut', label: 'Deuteranopia' },
+        { val: 'prot', label: 'Protanopia' },
+        { val: 'trit', label: 'Tritanopia' },
+      ],
+      w.colorFilter,
+      (val) => { this.state.wcag.colorFilter = val as any; applyWcag(this.root, this.state.wcag); }
+    );
     row6.appendChild(colorSel);
 
     // Cursor size
     const row7 = this.buildSettingsRow('Kursor – rozmiar', true);
-    const cursorSzSel = document.createElement('select');
-    cursorSzSel.className = 'ku-select';
-    [
-      { val: 'n', label: 'Normalny' },
-      { val: 'd', label: 'Duży' },
-      { val: 'b', label: 'Bardzo duży' },
-    ].forEach(opt => {
-      const o = document.createElement('option');
-      o.value = opt.val; o.textContent = opt.label;
-      o.selected = w.cursorSize === opt.val;
-      cursorSzSel.appendChild(o);
-    });
-    cursorSzSel.addEventListener('change', () => {
-      this.state.wcag.cursorSize = cursorSzSel.value as any;
-      applyWcag(this.root, this.state.wcag);
-    });
+    const cursorSzSel = this.buildCustomSelect(
+      [
+        { val: 'n', label: 'Normalny' },
+        { val: 'd', label: 'Duży' },
+        { val: 'b', label: 'Bardzo duży' },
+      ],
+      w.cursorSize,
+      (val) => { this.state.wcag.cursorSize = val as any; applyWcag(this.root, this.state.wcag); }
+    );
 
-    const cursorClrSel = document.createElement('select');
-    cursorClrSel.className = 'ku-select';
-    [
-      { val: 'def', label: 'Domyślny' },
-      { val: 'w', label: 'Biały' },
-      { val: 'y', label: 'Żółty' },
-      { val: 'b2', label: 'Błękitny' },
-    ].forEach(opt => {
-      const o = document.createElement('option');
-      o.value = opt.val; o.textContent = opt.label;
-      o.selected = w.cursorColor === opt.val;
-      cursorClrSel.appendChild(o);
-    });
-    cursorClrSel.addEventListener('change', () => {
-      this.state.wcag.cursorColor = cursorClrSel.value as any;
-      applyWcag(this.root, this.state.wcag);
-    });
+    const cursorClrSel = this.buildCustomSelect(
+      [
+        { val: 'def', label: 'Domyślny' },
+        { val: 'w', label: 'Biały' },
+        { val: 'y', label: 'Żółty' },
+        { val: 'b2', label: 'Błękitny' },
+      ],
+      w.cursorColor,
+      (val) => { this.state.wcag.cursorColor = val as any; applyWcag(this.root, this.state.wcag); }
+    );
 
     const cursorSelWrap = document.createElement('div');
     cursorSelWrap.style.cssText = 'display: flex !important; gap: 6px !important;';
@@ -1637,10 +1712,7 @@ export class App {
 
     const footer = document.createElement('div');
     footer.className = 'ku-settings-footer';
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'ku-btn-outline';
-    closeBtn.textContent = 'Zamknij';
-    closeBtn.addEventListener('click', () => {
+    const closeBtn = this.createBtn('Zamknij', 280, () => {
       playClick(this.state.wcag.soundEnabled);
       this.closePopup();
     });
@@ -1805,6 +1877,65 @@ export class App {
     ['ku-welcome', 'ku-solar', 'ku-model', 'ku-popup-overlay'].forEach(id => {
       document.getElementById(id)?.remove();
     });
+  }
+
+  private buildCustomSelect(
+    options: Array<{val: string; label: string}>,
+    initialVal: string,
+    onChange: (val: string) => void
+  ): HTMLElement {
+    const wrap = document.createElement('div');
+    wrap.className = 'ku-custom-select';
+
+    const btn = document.createElement('button');
+    btn.className = 'ku-select ku-custom-select-btn';
+    btn.setAttribute('aria-haspopup', 'listbox');
+    btn.textContent = options.find(o => o.val === initialVal)?.label ?? options[0]?.label ?? '';
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'ku-custom-select-dropdown';
+    dropdown.setAttribute('role', 'listbox');
+    dropdown.style.display = 'none';
+
+    const close = () => { dropdown.style.display = 'none'; };
+    const open  = () => { dropdown.style.display = 'block'; };
+
+    options.forEach(opt => {
+      const item = document.createElement('button');
+      item.className = 'ku-custom-select-item';
+      item.setAttribute('role', 'option');
+      if (opt.val === initialVal) item.classList.add('selected');
+      item.textContent = opt.label;
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        btn.textContent = opt.label;
+        dropdown.querySelectorAll('.ku-custom-select-item').forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        close();
+        btn.focus();
+        onChange(opt.val);
+      });
+      dropdown.appendChild(item);
+    });
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.style.display === 'none' ? open() : close();
+    });
+    btn.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { close(); }
+      if (e.key === 'ArrowDown' || (e.key === 'Enter' && dropdown.style.display === 'none')) {
+        e.preventDefault();
+        open();
+        (dropdown.firstElementChild as HTMLElement)?.focus();
+      }
+    });
+    wrap.addEventListener('focusout', (e) => {
+      if (!wrap.contains(e.relatedTarget as Node)) close();
+    });
+
+    wrap.append(btn, dropdown);
+    return wrap;
   }
 
   private createBtn(label: string, width: 280 | 420 | 620, onClick: () => void): HTMLButtonElement {

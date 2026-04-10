@@ -7,6 +7,6 @@
     "moduleResolution": "node",
     "allowImportingTsExtensions": false,
     "lib": ["es5", "es6", "dom", "dom.iterable"],
-    "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "5.0"
   }
 }
