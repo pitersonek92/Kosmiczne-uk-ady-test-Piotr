@@ -3,6 +3,11 @@
 // Kosmiczne Układy v1.0 | Vanta AI Studio
 // ============================================================
 
+export interface PlanetStat {
+  l: string; // label
+  v: string; // value
+}
+
 export interface Planet {
   id: string;
   name: string;
@@ -17,6 +22,7 @@ export interface Planet {
     h: string; c: string; d: string; atm?: string; bands?: boolean;
   };
   desc?: string;
+  stats?: PlanetStat[];
 }
 
 export interface AstronomerData {
@@ -83,15 +89,33 @@ export const ASTRONOMERS: AstronomerData[] = [
     modelTitle: 'Układ słoneczny Współczesny',
     screenTitle: 'Współczesny model układu słonecznego',
     planets: [
-      { id:'slonce_w',  name:'Słońce',  r:30, orbit:0,   speed:0,    glow:true,  clr:'#FFB700' },
-      { id:'merkury_w', name:'Merkury', r:7,  orbit:58,  speed:2.5,  glow:false, clr:'#aaaaaa', palette:{h:'#e0e0e0',c:'#999',d:'#555'} },
-      { id:'wenus_w',   name:'Wenus',   r:11, orbit:100, speed:1.65, glow:false, clr:'#e8c060', palette:{h:'#ffe8a0',c:'#d4a840',d:'#806020',atm:'rgba(255,220,120,0.5)'} },
-      { id:'ziemia_w',  name:'Ziemia',  r:12, orbit:148, speed:1.0,  glow:false, clr:'#4488cc', palette:{h:'#88ccff',c:'#2266aa',d:'#0a2244',atm:'rgba(80,140,255,0.5)'} },
-      { id:'mars_w',    name:'Mars',    r:10, orbit:200, speed:0.62, glow:false, clr:'#cc4422', palette:{h:'#ee8866',c:'#aa3311',d:'#551108',atm:'rgba(200,80,40,0.5)'} },
-      { id:'jowisz_w',  name:'Jowisz',  r:24, orbit:265, speed:0.31, glow:false, clr:'#c8a060', palette:{h:'#f0d090',c:'#a07030',d:'#503010',bands:true} },
-      { id:'saturn_w',  name:'Saturn',  r:21, orbit:335, speed:0.21, glow:false, clr:'#d4b870', ring:true, palette:{h:'#f8e0a0',c:'#b09040',d:'#604808',bands:true} },
-      { id:'uran_w',    name:'Uran',    r:16, orbit:400, speed:0.12, glow:false, clr:'#7de8e8', palette:{h:'#b0ffff',c:'#40c0c0',d:'#105050',atm:'rgba(100,230,230,0.5)'} },
-      { id:'neptun_w',  name:'Neptun',  r:15, orbit:460, speed:0.08, glow:false, clr:'#3a70e8', palette:{h:'#80b0ff',c:'#2050cc',d:'#0a1866',atm:'rgba(60,100,240,0.5)'} },
+      { id:'slonce_w',  name:'Słońce',  r:30, orbit:0,   speed:0,    glow:true,  clr:'#FFB700',
+        desc:'Gwiazda centralna Układu Słonecznego — żółty karzeł.',
+        stats:[{l:'Typ:',v:'Żółty karzeł (G2V)'},{l:'Średnica:',v:'1,39 mln km'},{l:'Masa:',v:'2×10³⁰ kg'},{l:'Temperatura:',v:'5 778 K'}] },
+      { id:'merkury_w', name:'Merkury', r:7,  orbit:58,  speed:2.5,  glow:false, clr:'#aaaaaa', palette:{h:'#e0e0e0',c:'#999',d:'#555'},
+        desc:'Najmniejsza planeta, najbliżej Słońca. Ogromne wahania temperatur.',
+        stats:[{l:'Odległość:',v:'57,9 mln km'},{l:'Rok:',v:'88 dni'},{l:'Średnica:',v:'4 879 km'},{l:'Temperatura:',v:'-180 do +430°C'}] },
+      { id:'wenus_w',   name:'Wenus',   r:11, orbit:100, speed:1.65, glow:false, clr:'#e8c060', palette:{h:'#ffe8a0',c:'#d4a840',d:'#806020',atm:'rgba(255,220,120,0.5)'},
+        desc:'Najjaśniejszy punkt nieba po Słońcu i Księżycu. Gęsta atmosfera CO₂.',
+        stats:[{l:'Odległość:',v:'108,2 mln km'},{l:'Rok:',v:'225 dni'},{l:'Średnica:',v:'12 104 km'},{l:'Temperatura:',v:'465°C'}] },
+      { id:'ziemia_w',  name:'Ziemia',  r:12, orbit:148, speed:1.0,  glow:false, clr:'#4488cc', palette:{h:'#88ccff',c:'#2266aa',d:'#0a2244',atm:'rgba(80,140,255,0.5)'},
+        desc:'Nasza planeta — jedyne znane miejsce z życiem we Wszechświecie.',
+        stats:[{l:'Odległość:',v:'149,6 mln km'},{l:'Rok:',v:'365,25 dnia'},{l:'Średnica:',v:'12 742 km'},{l:'Księżyce:',v:'1'}] },
+      { id:'mars_w',    name:'Mars',    r:10, orbit:200, speed:0.62, glow:false, clr:'#cc4422', palette:{h:'#ee8866',c:'#aa3311',d:'#551108',atm:'rgba(200,80,40,0.5)'},
+        desc:'Czerwona planeta. Ma najwyższy wulkan i najgłębszy kanion w Układzie.',
+        stats:[{l:'Odległość:',v:'227,9 mln km'},{l:'Rok:',v:'687 dni'},{l:'Średnica:',v:'6 779 km'},{l:'Księżyce:',v:'2'}] },
+      { id:'jowisz_w',  name:'Jowisz',  r:24, orbit:265, speed:0.31, glow:false, clr:'#c8a060', palette:{h:'#f0d090',c:'#a07030',d:'#503010',bands:true},
+        desc:'Największa planeta — gazowy olbrzym. Wielka Czerwona Plama to burza od 350 lat.',
+        stats:[{l:'Odległość:',v:'778,5 mln km'},{l:'Rok:',v:'11,86 lat'},{l:'Średnica:',v:'139 820 km'},{l:'Księżyce:',v:'95'}] },
+      { id:'saturn_w',  name:'Saturn',  r:21, orbit:335, speed:0.21, glow:false, clr:'#d4b870', ring:true, palette:{h:'#f8e0a0',c:'#b09040',d:'#604808',bands:true},
+        desc:'Planeta z pierścieniami z lodu i skał. Lżejsza od wody.',
+        stats:[{l:'Odległość:',v:'1,43 mld km'},{l:'Rok:',v:'29,46 lat'},{l:'Średnica:',v:'116 460 km'},{l:'Księżyce:',v:'146'}] },
+      { id:'uran_w',    name:'Uran',    r:16, orbit:400, speed:0.12, glow:false, clr:'#7de8e8', palette:{h:'#b0ffff',c:'#40c0c0',d:'#105050',atm:'rgba(100,230,230,0.5)'},
+        desc:'Lodowy olbrzym obraca się na boku — jego oś nachylona jest o 98°.',
+        stats:[{l:'Odległość:',v:'2,87 mld km'},{l:'Rok:',v:'84 lata'},{l:'Średnica:',v:'50 724 km'},{l:'Księżyce:',v:'28'}] },
+      { id:'neptun_w',  name:'Neptun',  r:15, orbit:460, speed:0.08, glow:false, clr:'#3a70e8', palette:{h:'#80b0ff',c:'#2050cc',d:'#0a1866',atm:'rgba(60,100,240,0.5)'},
+        desc:'Najbardziej oddalona planeta. Ma najsilniejsze wiatry w Układzie Słonecznym.',
+        stats:[{l:'Odległość:',v:'4,5 mld km'},{l:'Rok:',v:'164,8 lat'},{l:'Średnica:',v:'49 244 km'},{l:'Księżyce:',v:'16'}] },
     ]
   }
 ];

@@ -53,13 +53,10 @@ function injectCSS(): void {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  background: transparent !important;
+  background-color: transparent !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
   overflow: hidden !important;
-}
-#ku-root .ku-topbar-bg {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important; height: 100% !important;
 }
 #ku-root .ku-topbar-title {
   position: absolute !important;
@@ -90,7 +87,9 @@ function injectCSS(): void {
   align-items: center !important;
   justify-content: center !important;
   border: none !important;
-  background: transparent !important;
+  background-color: transparent !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
   padding: 0 !important;
   cursor: inherit !important;
   transition: transform 0.15s, filter 0.15s !important;
@@ -99,12 +98,7 @@ function injectCSS(): void {
 }
 #ku-root .ku-topbar-btn:hover { transform: scale(1.12) !important; filter: brightness(1.25) !important; }
 #ku-root .ku-topbar-btn:focus { outline: 3px solid #FFD700 !important; }
-#ku-root .ku-topbar-btn img, #ku-root .ku-topbar-btn svg { position: relative !important; z-index: 1 !important; width: 30px !important; height: 30px !important; }
-#ku-root .ku-topbar-btn .ku-btn-bg {
-  position: absolute !important; inset: 0 !important;
-  width: 100% !important; height: 100% !important;
-  border-radius: 50% !important;
-}
+#ku-root .ku-topbar-btn img { width: 28px !important; height: 28px !important; pointer-events: none !important; }
 
 /* === OVERLAY === */
 #ku-root .ku-overlay {
@@ -140,20 +134,22 @@ function injectCSS(): void {
 #ku-root .ku-welcome-popup {
   position: relative !important;
   z-index: 10 !important;
-  width: 700px !important;
-  min-height: 440px !important;
+  width: 680px !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  padding: 40px 50px 30px !important;
-  margin-top: 34px !important;
-}
-#ku-root .ku-welcome-popup-bg {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important; height: 100% !important;
+  padding: 36px 44px 28px !important;
+  background-color: transparent !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
 }
 #ku-root .ku-welcome-content { position: relative !important; z-index: 1 !important; width: 100% !important; }
+#ku-root .ku-welcome-btns {
+  display: flex !important;
+  gap: 14px !important;
+  justify-content: center !important;
+  margin-top: 8px !important;
+}
 #ku-root .ku-welcome-title {
   color: #FFD700 !important;
   font-size: 32px !important;
@@ -182,15 +178,7 @@ function injectCSS(): void {
 #ku-root .ku-task-icon { width: 52px !important; height: 52px !important; flex-shrink: 0 !important; }
 #ku-root .ku-task-text { color: #fff !important; font-size: 15px !important; line-height: 1.5 !important; }
 #ku-root .ku-task-text strong { color: #FFD700 !important; }
-#ku-root .ku-welcome-footer {
-  position: absolute !important;
-  bottom: 40px !important;
-  right: 80px !important;
-  display: flex !important;
-  gap: 16px !important;
-  align-items: center !important;
-  z-index: 20 !important;
-}
+/* .ku-welcome-footer removed — buttons now inside popup via .ku-welcome-btns */
 
 /* Decorations */
 #ku-root .ku-deco {
@@ -207,40 +195,43 @@ function injectCSS(): void {
   display: flex !important;
 }
 #ku-root .ku-left-panel {
-  width: 190px !important;
+  width: 180px !important;
   flex-shrink: 0 !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 16px !important;
-  padding: 16px 12px !important;
-  position: relative !important;
-  overflow: hidden !important;
-}
-#ku-root .ku-left-panel-bg {
-  position: absolute !important; inset: 0 !important;
-  width: 100% !important; height: 100% !important; object-fit: cover !important;
+  gap: 10px !important;
+  padding: 14px 10px !important;
+  background-color: transparent !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
 }
 #ku-root .ku-portrait-wrap {
-  position: relative !important;
-  z-index: 1 !important;
-  cursor: inherit !important;
-}
-#ku-root .ku-portrait {
-  width: 160px !important; height: 160px !important;
-  border: 3px solid #444 !important;
+  width: 155px !important; height: 155px !important;
+  border: 3px solid #555 !important;
   border-radius: 6px !important;
-  object-fit: cover !important;
+  cursor: inherit !important;
+  background-color: #1a1a2e !important;
+  overflow: hidden !important;
+  position: relative !important;
   display: block !important;
+  outline: none !important;
+  padding: 0 !important;
   transition: border-color 0.2s, box-shadow 0.2s !important;
 }
-#ku-root .ku-portrait-wrap:hover .ku-portrait,
-#ku-root .ku-portrait-wrap.active .ku-portrait {
-  border-color: #FFD700 !important;
-  box-shadow: 0 0 20px 5px #FFD700 !important;
+#ku-root .ku-portrait {
+  width: 100% !important; height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  pointer-events: none !important;
 }
-#ku-root .ku-portrait-wrap:focus { outline: 3px solid #FFD700 !important; outline-offset: 3px !important; }
+#ku-root .ku-portrait-wrap:hover,
+#ku-root .ku-portrait-wrap.active {
+  border-color: #FFD700 !important;
+  box-shadow: 0 0 16px 4px #FFD700 !important;
+}
+#ku-root .ku-portrait-wrap:focus { outline: 3px solid #FFD700 !important; outline-offset: 2px !important; }
 
 #ku-root .ku-portrait-tooltip {
   position: absolute !important;
@@ -357,28 +348,30 @@ function injectCSS(): void {
 
 /* === BUTTONS === */
 #ku-root .ku-btn {
-  position: relative !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   border: none !important;
-  background: transparent !important;
-  padding: 0 !important;
+  background-color: transparent !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  padding: 0 20px !important;
   cursor: inherit !important;
   font-weight: 700 !important;
   color: #FFD700 !important;
-  font-size: 18px !important;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.8) !important;
+  font-size: 17px !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.6) !important;
   transition: filter 0.15s, transform 0.15s !important;
   outline-offset: 3px !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
 }
-#ku-root .ku-btn:hover { filter: brightness(1.2) !important; transform: scale(1.03) !important; }
+#ku-root .ku-btn:hover { filter: brightness(1.15) !important; transform: scale(1.04) !important; }
+#ku-root .ku-btn:active { transform: scale(0.97) !important; }
 #ku-root .ku-btn:focus { outline: 3px solid #FFD700 !important; }
-#ku-root .ku-btn img { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; }
-#ku-root .ku-btn span { position: relative !important; z-index: 1 !important; }
-#ku-root .ku-btn-280 { width: 280px !important; height: 80px !important; }
-#ku-root .ku-btn-420 { width: 420px !important; height: 80px !important; }
-#ku-root .ku-btn-620 { width: 620px !important; height: 80px !important; }
+#ku-root .ku-btn-280 { width: 280px !important; height: 58px !important; }
+#ku-root .ku-btn-420 { width: 420px !important; height: 58px !important; }
+#ku-root .ku-btn-620 { width: 620px !important; height: 58px !important; }
 
 /* === POPUPS === */
 #ku-root .ku-popup {
@@ -387,20 +380,16 @@ function injectCSS(): void {
   flex-direction: column !important;
   max-height: calc(1080px - ${TOPBAR_H}px - 40px) !important;
   overflow: hidden !important;
-}
-#ku-root .ku-popup-bg {
-  position: absolute !important; inset: 0 !important;
-  width: 100% !important; height: 100% !important;
-  object-fit: fill !important;
-  border-radius: 8px !important;
+  background-color: transparent !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
 }
 #ku-root .ku-popup-inner {
-  position: relative !important;
-  z-index: 1 !important;
   display: flex !important;
   flex-direction: column !important;
   height: 100% !important;
-  padding: 28px 36px !important;
+  padding: 26px 34px 22px !important;
+  overflow: hidden !important;
 }
 #ku-root .ku-popup-title {
   color: #FFD700 !important;
@@ -725,6 +714,24 @@ function injectCSS(): void {
 #ku-root .ku-custom-select-item.selected { background: #1e4a8a !important; }
 #ku-root .ku-custom-select-item:focus { outline: 2px solid #FFD700 !important; outline-offset: -2px !important; }
 
+/* === PLANET STATS GRID === */
+#ku-root .ku-planet-stats {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 6px 16px !important;
+  margin-top: 12px !important;
+}
+#ku-root .ku-stat-item {
+  font-size: 13px !important;
+  color: #ddd !important;
+  line-height: 1.4 !important;
+}
+#ku-root .ku-stat-item strong {
+  color: #FFD700 !important;
+  display: block !important;
+  font-size: 11px !important;
+}
+
 /* === SCROLLBAR === */
 #ku-root .ku-popup-body::-webkit-scrollbar { width: 8px !important; }
 #ku-root .ku-popup-body::-webkit-scrollbar-track { background: rgba(255,255,255,0.05) !important; }
@@ -843,14 +850,7 @@ export class App {
     const tb = document.createElement('div');
     tb.className = 'ku-topbar';
     tb.setAttribute('aria-label', 'Pasek nawigacji');
-
-    // Background
-    const bg = document.createElement('img');
-    bg.className = 'ku-topbar-bg';
-    bg.src = this.p('images/top_bar.svg');
-    bg.alt = '';
-    bg.setAttribute('aria-hidden', 'true');
-    tb.appendChild(bg);
+    tb.style.setProperty('background-image', `url(${this.p('images/top_bar.svg')})`, 'important');
 
     // Title
     const title = document.createElement('div');
@@ -895,18 +895,14 @@ export class App {
     btn.className = 'ku-topbar-btn';
     btn.setAttribute('aria-label', label);
     btn.id = id;
-
-    const bgImg = document.createElement('img');
-    bgImg.className = 'ku-btn-bg';
-    bgImg.src = this.p('images/btn_circle_bg.svg');
-    bgImg.alt = '';
-    bgImg.setAttribute('aria-hidden', 'true');
+    btn.style.setProperty('background-image', `url(${this.p('images/btn_circle_bg.svg')})`, 'important');
 
     const icon = document.createElement('img');
     icon.src = this.p(iconSrc);
     icon.alt = '';
+    icon.setAttribute('aria-hidden', 'true');
 
-    btn.append(bgImg, icon);
+    btn.appendChild(icon);
     return btn;
   }
 
@@ -948,13 +944,7 @@ export class App {
     // Popup
     const popup = document.createElement('div');
     popup.className = 'ku-welcome-popup';
-
-    const popupBg = document.createElement('img');
-    popupBg.className = 'ku-welcome-popup-bg';
-    popupBg.src = this.p('images/popup_simple_920x650.svg');
-    popupBg.alt = '';
-    popupBg.setAttribute('aria-hidden', 'true');
-    popup.appendChild(popupBg);
+    popup.style.setProperty('background-image', `url(${this.p('images/popup_simple_920x650.png')})`, 'important');
 
     const content = document.createElement('div');
     content.className = 'ku-welcome-content';
@@ -965,7 +955,7 @@ export class App {
 
     const desc = document.createElement('p');
     desc.className = 'ku-welcome-desc';
-    desc.textContent = 'Od wieków ludzkość wpatruje się w gwiazdy, próbując zrozumieć ich porządek… W tej grze staniesz się badaczem idei, które kształtowały nasz obraz Wszechświata. Każda teoria, każdy model to krok w stronę prawdy.';
+    desc.textContent = 'Od wieków ludzkość wpatruje się w gwiazdy, próbując zrozumieć ich porządek… Staniesz się badaczem idei, które kształtowały nasz obraz Wszechświata.';
 
     const taskBox = document.createElement('div');
     taskBox.className = 'ku-task-box';
@@ -977,12 +967,12 @@ export class App {
 
     const taskText = document.createElement('p');
     taskText.className = 'ku-task-text';
-    taskText.innerHTML = '<strong>Twoje zadanie:</strong> poznaj trzy wizje kosmosu: od układu geocentrycznego po heliocentryczny. Zobacz jak zmieniała się ta wizja w zależności od epoki.';
+    taskText.innerHTML = '<strong>Twoje zadanie:</strong> poznaj trzy wizje kosmosu — od układu geocentrycznego po heliocentryczny. Zobacz jak zmieniała się ta wizja.';
 
     taskBox.append(taskIcon, taskText);
 
-    const footer = document.createElement('div');
-    footer.className = 'ku-welcome-footer';
+    const btns = document.createElement('div');
+    btns.className = 'ku-welcome-btns';
 
     const instrBtn = this.createBtn('Instrukcja', 280, () => {
       playClick(this.state.wcag.soundEnabled);
@@ -994,11 +984,10 @@ export class App {
       this.showSolar(game);
     });
 
-    footer.append(instrBtn, startBtn);
-    content.append(titleEl, desc, taskBox);
+    btns.append(instrBtn, startBtn);
+    content.append(titleEl, desc, taskBox, btns);
     popup.appendChild(content);
     screen.appendChild(popup);
-    screen.appendChild(footer);   // bottom-right tile (IX.3_4_4)
     game.appendChild(screen);
 
     // Focus start button
@@ -1161,13 +1150,7 @@ export class App {
   private buildLeftPanel(game: HTMLElement, screen: HTMLElement): HTMLElement {
     const panel = document.createElement('div');
     panel.className = 'ku-left-panel';
-
-    const panelBg = document.createElement('img');
-    panelBg.className = 'ku-left-panel-bg';
-    panelBg.src = this.p('images/apla_dark.png');
-    panelBg.alt = '';
-    panelBg.setAttribute('aria-hidden', 'true');
-    panel.appendChild(panelBg);
+    panel.style.setProperty('background-image', `url(${this.p('images/apla_dark.png')})`, 'important');
 
     ASTRONOMERS.forEach((astro, idx) => {
       const wrap = document.createElement('div');
@@ -1455,12 +1438,7 @@ export class App {
     popup.setAttribute('role', 'dialog');
     popup.setAttribute('aria-label', `Biografia: ${astro.name}`);
     popup.setAttribute('aria-modal', 'true');
-
-    const bg = document.createElement('img');
-    bg.className = 'ku-popup-bg';
-    bg.src = this.p('images/popup_simple_920x650.svg');
-    bg.alt = '';
-    popup.appendChild(bg);
+    popup.style.setProperty('background-image', `url(${this.p('images/popup_simple_920x650.png')})`, 'important');
 
     const inner = document.createElement('div');
     inner.className = 'ku-popup-inner';
@@ -1523,12 +1501,7 @@ export class App {
     popup.setAttribute('role', 'dialog');
     popup.setAttribute('aria-label', 'Instrukcja');
     popup.setAttribute('aria-modal', 'true');
-
-    const bg = document.createElement('img');
-    bg.className = 'ku-popup-bg';
-    bg.src = this.p('images/popup_simple_920x650.svg');
-    bg.alt = '';
-    popup.appendChild(bg);
+    popup.style.setProperty('background-image', `url(${this.p('images/popup_simple_920x650.png')})`, 'important');
 
     const inner = document.createElement('div');
     inner.className = 'ku-popup-inner';
@@ -1757,16 +1730,11 @@ export class App {
   private openPlanetPopup(game: HTMLElement, planet: Planet): void {
     const popup = document.createElement('div');
     popup.className = 'ku-popup';
-    popup.style.cssText = 'width: 560px !important;';
+    popup.style.setProperty('width', '560px', 'important');
     popup.setAttribute('role', 'dialog');
     popup.setAttribute('aria-label', planet.name);
     popup.setAttribute('aria-modal', 'true');
-
-    const bg = document.createElement('img');
-    bg.className = 'ku-popup-bg';
-    bg.src = this.p('images/popup_simple_920x650.svg');
-    bg.alt = '';
-    popup.appendChild(bg);
+    popup.style.setProperty('background-image', `url(${this.p('images/popup_simple_920x650.png')})`, 'important');
 
     const inner = document.createElement('div');
     inner.className = 'ku-popup-inner';
@@ -1780,7 +1748,24 @@ export class App {
 
     const body = document.createElement('div');
     body.className = 'ku-popup-body';
-    body.innerHTML = `<p>${this.getDefaultDesc(planet)}</p>`;
+    const descP = document.createElement('p');
+    descP.textContent = planet.desc || this.getDefaultDesc(planet);
+    body.appendChild(descP);
+
+    if (planet.stats && planet.stats.length > 0) {
+      const statsGrid = document.createElement('div');
+      statsGrid.className = 'ku-planet-stats';
+      planet.stats.forEach(s => {
+        const item = document.createElement('div');
+        item.className = 'ku-stat-item';
+        const strong = document.createElement('strong');
+        strong.textContent = s.l;
+        const val = document.createTextNode(' ' + s.v);
+        item.append(strong, val);
+        statsGrid.appendChild(item);
+      });
+      body.appendChild(statsGrid);
+    }
 
     const footer = document.createElement('div');
     footer.className = 'ku-popup-footer';
@@ -1942,16 +1927,10 @@ export class App {
     const btn = document.createElement('button');
     btn.className = `ku-btn ku-btn-${width}`;
     btn.setAttribute('aria-label', label);
-
-    const bg = document.createElement('img');
-    bg.src = this.p(`images/btn_${width}x80.svg`);
-    bg.alt = '';
-    bg.setAttribute('aria-hidden', 'true');
-
-    const span = document.createElement('span');
-    span.textContent = label;
-
-    btn.append(bg, span);
+    // Use PNG where available, SVG for 420 (no PNG exists)
+    const ext = width === 420 ? 'svg' : 'png';
+    btn.style.setProperty('background-image', `url(${this.p(`images/btn_${width}x80.${ext}`)})`, 'important');
+    btn.textContent = label;
     btn.addEventListener('click', onClick);
     return btn;
   }
