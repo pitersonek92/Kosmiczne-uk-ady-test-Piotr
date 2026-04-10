@@ -9,6 +9,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -26,18 +28,11 @@ jobs:
       - name: Build (deploy mode)
         run: npm run deploy
 
-      - name: Push to zpe-projekty GitHub
-        env:
-          ZPE_USER: ${{ secrets.ZPE_USER_NAME }}
-          ZPE_PASS: ${{ secrets.ZPE_PASS }}
+      - name: Commit & push built files
         run: |
-          echo "ZPE_USER length: ${#ZPE_USER}"
-          echo "ZPE_PASS length: ${#ZPE_PASS}"
-          ZPE_USER_ENC=$(python3 -c "import urllib.parse,os; print(urllib.parse.quote(os.environ['ZPE_USER'],safe=''))")
-          ZPE_PASS_ENC=$(python3 -c "import urllib.parse,os; print(urllib.parse.quote(os.environ['ZPE_PASS'],safe=''))")
           git config user.email "ci@zpe-deploy"
           git config user.name "ZPE CI"
-          git add -f entry.js images/ engine.json scenario.json 2>/dev/null || true
-          git diff --staged --quiet || git commit -m "deploy: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git remote add zpe "https://${ZPE_USER_ENC}:${ZPE_PASS_ENC}@github.com/zpe-projekty/IX_3_TEST_Kosmiczne_Uklady.git"
-          git push zpe main --force
+          git add -f entry.js images/ engine.json scenario.json
+          git diff --staged --quiet && echo "Nothing to commit" && exit 0
+          git commit -m "build: $(date -u +%Y-%m-%dT%H:%M:%SZ) [skip ci]"
+          git push origin main
