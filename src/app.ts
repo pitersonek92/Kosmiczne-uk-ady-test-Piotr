@@ -736,6 +736,21 @@ function injectCSS(): void {
 #ku-root .ku-popup-body::-webkit-scrollbar { width: 8px !important; }
 #ku-root .ku-popup-body::-webkit-scrollbar-track { background: rgba(255,255,255,0.05) !important; }
 #ku-root .ku-popup-body::-webkit-scrollbar-thumb { background: #3a6aaa !important; border-radius: 4px !important; }
+
+/* === SOLAR BOTTOM BAR === */
+#ku-root .ku-solar-bottom-bar {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 72px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  padding: 0 24px !important;
+  background: rgba(0,5,30,0.7) !important;
+  z-index: 40 !important;
+}
   `;
   document.head.appendChild(style);
 }
@@ -1012,13 +1027,16 @@ export class App {
     const canvasArea = document.createElement('div');
     canvasArea.className = 'ku-canvas-area';
 
+    // Default to Współczesny (idx 2) if no astronomer selected yet
+    if (this.state.activeAstronomerIndex < 0) {
+      this.state.activeAstronomerIndex = 2;
+    }
+    const activeIdx = this.state.activeAstronomerIndex;
+
     const canvasTitle = document.createElement('div');
     canvasTitle.className = 'ku-canvas-title';
     canvasTitle.id = 'ku-solar-title';
-    const activeIdx = this.state.activeAstronomerIndex;
-    canvasTitle.textContent = activeIdx >= 0
-      ? ASTRONOMERS[activeIdx].screenTitle
-      : 'Wybierz model układu słonecznego';
+    canvasTitle.textContent = ASTRONOMERS[activeIdx].screenTitle;
 
     const canvas = document.createElement('canvas');
     canvas.className = 'ku-game-canvas';
@@ -1062,12 +1080,26 @@ export class App {
     astroDeco.alt = '';
     astroDeco.setAttribute('aria-hidden', 'true');
 
-    canvasArea.append(canvasTitle, canvas, zoomBar, satDeco, astroDeco);
+    // Bottom bar with model button
+    const bottomBar = document.createElement('div');
+    bottomBar.className = 'ku-solar-bottom-bar';
+
+    const modelBtn = document.createElement('button');
+    modelBtn.id = 'ku-solar-model-btn';
+    modelBtn.className = 'ku-btn ku-btn-420';
+    modelBtn.style.setProperty('background-image', `url(${this.p('images/btn_420x80.svg')})`, 'important');
+    modelBtn.textContent = ASTRONOMERS[activeIdx].modelTitle;
+    modelBtn.addEventListener('click', () => {
+      this.showModel(game, this.state.activeAstronomerIndex);
+    });
+    bottomBar.appendChild(modelBtn);
+
+    canvasArea.append(canvasTitle, canvas, zoomBar, satDeco, astroDeco, bottomBar);
     screen.append(leftPanel, canvasArea);
     game.appendChild(screen);
 
     // Init engine
-    const planets = activeIdx >= 0 ? ASTRONOMERS[activeIdx].planets : ASTRONOMERS[2].planets;
+    const planets = ASTRONOMERS[activeIdx].planets;
 
     this.engine?.destroy();
     this.engine = new CanvasEngine({
@@ -1239,6 +1271,13 @@ export class App {
 
     this.updateSolarTitle(astro.screenTitle);
     this.engine?.setPlanets(astro.planets);
+
+    // Update bottom bar button text and click handler
+    const modelBtn = document.getElementById('ku-solar-model-btn') as HTMLButtonElement | null;
+    if (modelBtn) {
+      modelBtn.textContent = astro.modelTitle;
+      modelBtn.onclick = () => { this.showModel(this.root, idx); };
+    }
 
     if (!this.state.visitedAstronomers.includes(astro.id)) {
       this.state.visitedAstronomers.push(astro.id);
@@ -1583,7 +1622,7 @@ export class App {
     const w = this.state.wcag;
 
     // Text size
-    const row1 = this.buildSettingsRow('Wielkość tekstu');
+    const row1 = this.buildSettingsRow('T  Wielkość tekstu');
     const sizeBtns = document.createElement('div');
     sizeBtns.className = 'ku-text-size-btns';
     [1, 2, 3].forEach(sz => {
@@ -1604,7 +1643,7 @@ export class App {
     row1.appendChild(sizeBtns);
 
     // High contrast
-    const row2 = this.buildSettingsRow('Wysoki kontrast');
+    const row2 = this.buildSettingsRow('⊙  Wysoki kontrast');
     const hcToggle = this.buildToggle(w.highContrast, (v) => {
       this.state.wcag.highContrast = v;
       applyWcag(this.root, this.state.wcag);
@@ -1612,7 +1651,7 @@ export class App {
     row2.appendChild(hcToggle);
 
     // Reduce motion
-    const row3 = this.buildSettingsRow('Redukcja ruchu');
+    const row3 = this.buildSettingsRow('∿  Redukcja ruchu');
     const rmToggle = this.buildToggle(w.reduceMotion, (v) => {
       this.state.wcag.reduceMotion = v;
       this.engine?.setReduceMotion(v);
@@ -1622,7 +1661,7 @@ export class App {
     row3.appendChild(rmToggle);
 
     // Show orbits
-    const row4 = this.buildSettingsRow('Widoczność orbit');
+    const row4 = this.buildSettingsRow('∿  Widoczność orbit');
     const orbitToggle = this.buildToggle(w.showOrbits, (v) => {
       this.state.wcag.showOrbits = v;
       this.engine?.setShowOrbits(v);
@@ -1631,7 +1670,7 @@ export class App {
     row4.appendChild(orbitToggle);
 
     // Learn mode
-    const row5 = this.buildSettingsRow('Tryb nauki');
+    const row5 = this.buildSettingsRow('⊡  Tryb nauki (ślady)');
     const learnToggle = this.buildToggle(w.learnMode, (v) => {
       this.state.wcag.learnMode = v;
       applyWcag(this.root, this.state.wcag);
@@ -1639,14 +1678,14 @@ export class App {
     row5.appendChild(learnToggle);
 
     // Color filter
-    const row6 = this.buildSettingsRow('Filtr kolorów');
+    const row6 = this.buildSettingsRow('🎨  Filtr kolorów');
     const colorSel = this.buildCustomSelect(
       [
         { val: 'none', label: 'Brak' },
         { val: 'gray', label: 'Skala szarości' },
-        { val: 'deut', label: 'Deuteranopia' },
-        { val: 'prot', label: 'Protanopia' },
-        { val: 'trit', label: 'Tritanopia' },
+        { val: 'deut', label: 'Daltonizm (Deuteranopia)' },
+        { val: 'prot', label: 'Daltonizm (Protanopia)' },
+        { val: 'trit', label: 'Daltonizm (Tritanopia)' },
       ],
       w.colorFilter,
       (val) => { this.state.wcag.colorFilter = val as any; applyWcag(this.root, this.state.wcag); }
@@ -1654,7 +1693,7 @@ export class App {
     row6.appendChild(colorSel);
 
     // Cursor size
-    const row7 = this.buildSettingsRow('Kursor – rozmiar', true);
+    const row7 = this.buildSettingsRow('▷  Kursor – rozmiar', true);
     const cursorSzSel = this.buildCustomSelect(
       [
         { val: 'n', label: 'Normalny' },
