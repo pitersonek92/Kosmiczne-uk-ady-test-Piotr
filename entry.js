@@ -1242,7 +1242,7 @@ var App = /** @class */ (function () {
         titleEl.textContent = 'Witaj w grze';
         var desc = document.createElement('p');
         desc.className = 'ku-welcome-desc';
-        desc.textContent = 'Od wieków ludzkość wpatruje się w gwiazdy, próbując zrozumieć ich porządek… Staniesz się badaczem idei, które kształtowały nasz obraz Wszechświata.';
+        desc.textContent = 'Od wieków ludzkość wpatruje się w gwiazdy, próbując zrozumieć ich porządek… W tej grze staniesz się badaczem idei, które kształtowały nasz obraz Wszechświata. Każda teoria, każdy model to krok w stronę prawdy.';
         var taskBox = document.createElement('div');
         taskBox.className = 'ku-task-box';
         var taskIcon = document.createElement('img');
@@ -1251,7 +1251,7 @@ var App = /** @class */ (function () {
         taskIcon.alt = '';
         var taskText = document.createElement('p');
         taskText.className = 'ku-task-text';
-        taskText.innerHTML = '<strong>Twoje zadanie:</strong> poznaj trzy wizje kosmosu — od układu geocentrycznego po heliocentryczny. Zobacz jak zmieniała się ta wizja.';
+        taskText.innerHTML = '<strong>Twoje zadanie:</strong> poznaj trzy wizje kosmosu: od układu geocentrycznego po heliocentryczny. Zobacz jak zmieniała się ta wizja w zależności od epoki.';
         taskBox.append(taskIcon, taskText);
         var btns = document.createElement('div');
         btns.className = 'ku-welcome-btns';
@@ -1331,19 +1331,7 @@ var App = /** @class */ (function () {
         astroDeco.src = this.p('images/rys_04.png');
         astroDeco.alt = '';
         astroDeco.setAttribute('aria-hidden', 'true');
-        // Bottom bar with model button
-        var bottomBar = document.createElement('div');
-        bottomBar.className = 'ku-solar-bottom-bar';
-        var modelBtn = document.createElement('button');
-        modelBtn.id = 'ku-solar-model-btn';
-        modelBtn.className = 'ku-btn ku-btn-420';
-        modelBtn.style.setProperty('background-image', "url(".concat(this.p('images/btn_420x80.svg'), ")"), 'important');
-        modelBtn.textContent = ASTRONOMERS[activeIdx].modelTitle;
-        modelBtn.addEventListener('click', function () {
-            _this.showModel(game, _this.state.activeAstronomerIndex);
-        });
-        bottomBar.appendChild(modelBtn);
-        canvasArea.append(canvasTitle, canvas, zoomBar, satDeco, astroDeco, bottomBar);
+        canvasArea.append(canvasTitle, canvas, zoomBar, satDeco, astroDeco);
         screen.append(leftPanel, canvasArea);
         game.appendChild(screen);
         // Init engine
@@ -1510,12 +1498,6 @@ var App = /** @class */ (function () {
         }
         this.updateSolarTitle(astro.screenTitle);
         (_a = this.engine) === null || _a === void 0 ? void 0 : _a.setPlanets(astro.planets);
-        // Update bottom bar button text and click handler
-        var modelBtn = document.getElementById('ku-solar-model-btn');
-        if (modelBtn) {
-            modelBtn.textContent = astro.modelTitle;
-            modelBtn.onclick = function () { _this.showModel(_this.root, idx); };
-        }
         if (!this.state.visitedAstronomers.includes(astro.id)) {
             this.state.visitedAstronomers.push(astro.id);
         }
@@ -1578,9 +1560,12 @@ var App = /** @class */ (function () {
         bg.src = this.p('images/bg_all.png');
         bg.alt = '';
         screen.appendChild(bg);
+        // Left panel (same as solar screen)
+        var leftPanel = this.buildLeftPanel(game, screen);
+        var mainArea = document.createElement('div');
+        mainArea.style.cssText = 'display: flex !important; flex-direction: column !important; flex: 1 !important; position: relative !important; z-index: 10 !important;';
         var title = document.createElement('div');
         title.className = 'ku-model-title';
-        title.style.cssText = 'position: relative !important; z-index: 10 !important;';
         title.textContent = astro.screenTitle;
         var canvasWrap = document.createElement('div');
         canvasWrap.className = 'ku-model-canvas-wrap';
@@ -1598,7 +1583,7 @@ var App = /** @class */ (function () {
         var footer = document.createElement('div');
         footer.className = 'ku-model-footer';
         footer.style.cssText = 'position: relative !important; z-index: 10 !important;';
-        var backBtn = this.createBtn('Powrót', 280, function () {
+        var backBtn = this.createBtn('Powrót', 620, function () {
             var _a;
             playClick(_this.state.wcag.soundEnabled);
             (_a = _this.modelEngine) === null || _a === void 0 ? void 0 : _a.destroy();
@@ -1606,7 +1591,8 @@ var App = /** @class */ (function () {
             _this.showSolar(game, true);
         });
         footer.appendChild(backBtn);
-        screen.append(title, canvasWrap, footer);
+        mainArea.append(title, canvasWrap, footer);
+        screen.append(leftPanel, mainArea);
         game.appendChild(screen);
         // Engine
         (_a = this.modelEngine) === null || _a === void 0 ? void 0 : _a.destroy();
@@ -1727,7 +1713,12 @@ var App = /** @class */ (function () {
         var modelBtn = this.createBtn(astro.modelTitle, 420, function () {
             playClick(_this.state.wcag.soundEnabled);
             _this.closePopup();
-            _this.switchModel(idx);
+            if (_this.state.currentScreen === 'model') {
+                _this.showModel(game, idx);
+            }
+            else {
+                _this.switchModel(idx);
+            }
         });
         var backBtn = this.createBtn('Powrót', 280, function () {
             playClick(_this.state.wcag.soundEnabled);

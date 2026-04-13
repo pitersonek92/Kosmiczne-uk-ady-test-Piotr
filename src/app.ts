@@ -970,7 +970,7 @@ export class App {
 
     const desc = document.createElement('p');
     desc.className = 'ku-welcome-desc';
-    desc.textContent = 'Od wieków ludzkość wpatruje się w gwiazdy, próbując zrozumieć ich porządek… Staniesz się badaczem idei, które kształtowały nasz obraz Wszechświata.';
+    desc.textContent = 'Od wieków ludzkość wpatruje się w gwiazdy, próbując zrozumieć ich porządek… W tej grze staniesz się badaczem idei, które kształtowały nasz obraz Wszechświata. Każda teoria, każdy model to krok w stronę prawdy.';
 
     const taskBox = document.createElement('div');
     taskBox.className = 'ku-task-box';
@@ -982,7 +982,7 @@ export class App {
 
     const taskText = document.createElement('p');
     taskText.className = 'ku-task-text';
-    taskText.innerHTML = '<strong>Twoje zadanie:</strong> poznaj trzy wizje kosmosu — od układu geocentrycznego po heliocentryczny. Zobacz jak zmieniała się ta wizja.';
+    taskText.innerHTML = '<strong>Twoje zadanie:</strong> poznaj trzy wizje kosmosu: od układu geocentrycznego po heliocentryczny. Zobacz jak zmieniała się ta wizja w zależności od epoki.';
 
     taskBox.append(taskIcon, taskText);
 
@@ -1080,21 +1080,7 @@ export class App {
     astroDeco.alt = '';
     astroDeco.setAttribute('aria-hidden', 'true');
 
-    // Bottom bar with model button
-    const bottomBar = document.createElement('div');
-    bottomBar.className = 'ku-solar-bottom-bar';
-
-    const modelBtn = document.createElement('button');
-    modelBtn.id = 'ku-solar-model-btn';
-    modelBtn.className = 'ku-btn ku-btn-420';
-    modelBtn.style.setProperty('background-image', `url(${this.p('images/btn_420x80.svg')})`, 'important');
-    modelBtn.textContent = ASTRONOMERS[activeIdx].modelTitle;
-    modelBtn.addEventListener('click', () => {
-      this.showModel(game, this.state.activeAstronomerIndex);
-    });
-    bottomBar.appendChild(modelBtn);
-
-    canvasArea.append(canvasTitle, canvas, zoomBar, satDeco, astroDeco, bottomBar);
+    canvasArea.append(canvasTitle, canvas, zoomBar, satDeco, astroDeco);
     screen.append(leftPanel, canvasArea);
     game.appendChild(screen);
 
@@ -1272,13 +1258,6 @@ export class App {
     this.updateSolarTitle(astro.screenTitle);
     this.engine?.setPlanets(astro.planets);
 
-    // Update bottom bar button text and click handler
-    const modelBtn = document.getElementById('ku-solar-model-btn') as HTMLButtonElement | null;
-    if (modelBtn) {
-      modelBtn.textContent = astro.modelTitle;
-      modelBtn.onclick = () => { this.showModel(this.root, idx); };
-    }
-
     if (!this.state.visitedAstronomers.includes(astro.id)) {
       this.state.visitedAstronomers.push(astro.id);
     }
@@ -1347,9 +1326,14 @@ export class App {
     bg.alt = '';
     screen.appendChild(bg);
 
+    // Left panel (same as solar screen)
+    const leftPanel = this.buildLeftPanel(game, screen);
+
+    const mainArea = document.createElement('div');
+    mainArea.style.cssText = 'display: flex !important; flex-direction: column !important; flex: 1 !important; position: relative !important; z-index: 10 !important;';
+
     const title = document.createElement('div');
     title.className = 'ku-model-title';
-    title.style.cssText = 'position: relative !important; z-index: 10 !important;';
     title.textContent = astro.screenTitle;
 
     const canvasWrap = document.createElement('div');
@@ -1372,7 +1356,7 @@ export class App {
     footer.className = 'ku-model-footer';
     footer.style.cssText = 'position: relative !important; z-index: 10 !important;';
 
-    const backBtn = this.createBtn('Powrót', 280, () => {
+    const backBtn = this.createBtn('Powrót', 620, () => {
       playClick(this.state.wcag.soundEnabled);
       this.modelEngine?.destroy();
       this.modelEngine = null;
@@ -1380,7 +1364,8 @@ export class App {
     });
 
     footer.appendChild(backBtn);
-    screen.append(title, canvasWrap, footer);
+    mainArea.append(title, canvasWrap, footer);
+    screen.append(leftPanel, mainArea);
     game.appendChild(screen);
 
     // Engine
@@ -1513,7 +1498,11 @@ export class App {
     const modelBtn = this.createBtn(astro.modelTitle, 420, () => {
       playClick(this.state.wcag.soundEnabled);
       this.closePopup();
-      this.switchModel(idx);
+      if (this.state.currentScreen === 'model') {
+        this.showModel(game, idx);
+      } else {
+        this.switchModel(idx);
+      }
     });
 
     const backBtn = this.createBtn('Powrót', 280, () => {
