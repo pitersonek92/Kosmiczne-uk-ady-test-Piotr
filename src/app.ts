@@ -814,7 +814,7 @@ export class App {
       'images/pp_01.png',  'images/pp_02.png',   'images/pp_02_over.png',
       'images/pp_03.png',  'images/kopernik.png',
       'images/rys_01.png', 'images/rys_02.png',  'images/rys_03.png',
-      'images/rys_04.png', 'images/rys_05.png',
+      'images/rys_04.png', 'images/rys_05.png', 'images/asteroids.png',
     ];
     imgs.forEach(src => { const i = new Image(); i.src = this.p(src); });
   }
@@ -945,7 +945,7 @@ export class App {
       { file: 'images/rys_01.png', style: 'left:20px;bottom:80px;width:180px;', alt: '' },
       { file: 'images/rys_02.png', style: 'left:60px;top:90px;width:120px;', alt: '' },
       { file: 'images/rys_03.png', style: 'right:80px;top:90px;width:130px;', alt: '' },
-      { file: 'images/rys_05.png', style: 'right:30px;bottom:60px;width:100px;', alt: '' },
+      { file: 'images/asteroids.png', style: 'right:20px;bottom:120px;width:160px;', alt: '' },
     ];
     decos.forEach(d => {
       const img = document.createElement('img');
