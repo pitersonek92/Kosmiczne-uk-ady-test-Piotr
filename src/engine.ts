@@ -334,7 +334,9 @@ export class CanvasEngine {
     const baseId = p.id.split('_')[0];
     const img = this.planetImages[baseId];
 
-    if (p.glow) {
+    if (p.glow && img) {
+      this.drawSunFromImage(img, px, py, r);
+    } else if (p.glow) {
       this.drawSun(px, py, r, t);
     } else if (img) {
       this.drawPlanetFromImage(img, p, px, py, r);
@@ -368,6 +370,32 @@ export class CanvasEngine {
     ctx.restore();
 
     // Saturn rings drawn after
+  }
+
+  private drawSunFromImage(img: HTMLImageElement, px: number, py: number, r: number): void {
+    const ctx = this.ctx;
+
+    // Outer glow
+    const glow = ctx.createRadialGradient(px, py, r * 0.5, px, py, r * 3.5);
+    glow.addColorStop(0, 'rgba(255,120,0,0.5)');
+    glow.addColorStop(0.5, 'rgba(255,60,0,0.2)');
+    glow.addColorStop(1, 'rgba(160,10,0,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(px, py, r * 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw sun image (includes flames and black ring - baked in PNG)
+    ctx.drawImage(img, px - r, py - r, r * 2, r * 2);
+
+    // "Słońce" text on top
+    ctx.fillStyle = 'white';
+    ctx.font = `bold ${Math.max(10, r * 0.55)}px 'Segoe UI', Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Słońce', px, py);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
   }
 
   private drawSun(px: number, py: number, r: number, t: number): void {

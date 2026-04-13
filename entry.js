@@ -631,7 +631,10 @@ var CanvasEngine = /** @class */ (function () {
         var t = Date.now();
         var baseId = p.id.split('_')[0];
         var img = this.planetImages[baseId];
-        if (p.glow) {
+        if (p.glow && img) {
+            this.drawSunFromImage(img, px, py, r);
+        }
+        else if (p.glow) {
             this.drawSun(px, py, r, t);
         }
         else if (img) {
@@ -663,6 +666,28 @@ var CanvasEngine = /** @class */ (function () {
         ctx.drawImage(img, px - r, py - r, r * 2, r * 2);
         ctx.restore();
         // Saturn rings drawn after
+    };
+    CanvasEngine.prototype.drawSunFromImage = function (img, px, py, r) {
+        var ctx = this.ctx;
+        // Outer glow
+        var glow = ctx.createRadialGradient(px, py, r * 0.5, px, py, r * 3.5);
+        glow.addColorStop(0, 'rgba(255,120,0,0.5)');
+        glow.addColorStop(0.5, 'rgba(255,60,0,0.2)');
+        glow.addColorStop(1, 'rgba(160,10,0,0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(px, py, r * 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        // Draw sun image (includes flames and black ring - baked in PNG)
+        ctx.drawImage(img, px - r, py - r, r * 2, r * 2);
+        // "Słońce" text on top
+        ctx.fillStyle = 'white';
+        ctx.font = "bold ".concat(Math.max(10, r * 0.55), "px 'Segoe UI', Arial");
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Słońce', px, py);
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
     };
     CanvasEngine.prototype.drawSun = function (px, py, r, t) {
         var ctx = this.ctx;
