@@ -660,6 +660,7 @@ function injectCSS(): void {
 #ku-root.ku-hc .ku-text-size-btn { background: #000 !important; color: #FFD700 !important; border-color: #FFD700 !important; }
 #ku-root.ku-hc .ku-text-size-btn.active { background: #FFD700 !important; color: #000 !important; }
 /* Przyciski — tekst czarny na żółtym tle w trybie HC */
+#ku-root.ku-hc .ku-btn { color: #000 !important; text-shadow: none !important; }
 #ku-root.ku-hc .ku-btn span { color: #000 !important; text-shadow: none !important; }
 #ku-root.ku-hc .ku-btn-outline { background: #FFD700 !important; color: #000 !important; border-color: #FFD700 !important; }
 #ku-root.ku-hc .ku-portrait { border-color: #FFD700 !important; }
