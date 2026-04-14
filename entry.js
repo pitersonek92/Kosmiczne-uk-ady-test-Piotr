@@ -2153,7 +2153,7 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 };
 
 
-console.log('[KU] Kosmiczne Układy v1.0.1 loaded (ZPE-Port 2.0)');
+console.log('[KU] Kosmiczne Układy v1.0.2 loaded (ZPE-Port 2.0)');
 var app = null;
 var _savedState = {};
 function init(container) {
