@@ -816,6 +816,7 @@ export class App {
       'images/pp_03.png',  'images/kopernik.png',
       'images/rys_01.png', 'images/rys_02.png',  'images/rys_03.png',
       'images/rys_04.png', 'images/rys_05.png', 'images/asteroids.png',
+      'images/icon_clipboard.png',
     ];
     imgs.forEach(src => { const i = new Image(); i.src = this.p(src); });
   }
@@ -978,7 +979,7 @@ export class App {
 
     const taskIcon = document.createElement('img');
     taskIcon.className = 'ku-task-icon';
-    taskIcon.src = this.p('images/icon_clipboard.svg.png');
+    taskIcon.src = this.p('images/icon_clipboard.png');
     taskIcon.alt = '';
 
     const taskText = document.createElement('p');

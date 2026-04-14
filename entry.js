@@ -1134,6 +1134,7 @@ var App = /** @class */ (function () {
             'images/pp_03.png', 'images/kopernik.png',
             'images/rys_01.png', 'images/rys_02.png', 'images/rys_03.png',
             'images/rys_04.png', 'images/rys_05.png', 'images/asteroids.png',
+            'images/icon_clipboard.png',
         ];
         imgs.forEach(function (src) { var i = new Image(); i.src = _this.p(src); });
     };
@@ -1272,7 +1273,7 @@ var App = /** @class */ (function () {
         taskBox.className = 'ku-task-box';
         var taskIcon = document.createElement('img');
         taskIcon.className = 'ku-task-icon';
-        taskIcon.src = this.p('images/icon_clipboard.svg.png');
+        taskIcon.src = this.p('images/icon_clipboard.png');
         taskIcon.alt = '';
         var taskText = document.createElement('p');
         taskText.className = 'ku-task-text';
