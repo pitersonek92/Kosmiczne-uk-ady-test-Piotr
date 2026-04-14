@@ -27,31 +27,42 @@ body {
 <body>
 <div id="zpe-container"></div>
 <script>
-// AMD stub – obsługuje define() z webpack AMD output
+// AMD stub – obsługuje define() z webpack AMD output (libraryTarget: "amd")
+// entry.js wywołuje: define(factory) gdzie factory zwraca { default: engineFactory }
 window.define = function(deps, factory) {
-  if (typeof deps === 'function') { deps(); }
-  else if (typeof factory === 'function') { factory(); }
-};
-window.define.amd = true;
-
-// ZPE mock – emuluje środowisko platformy ZPE
-window.ZPE = {
-  _state: null,
-  create(opts) {
-    const container = document.getElementById('zpe-container');
-    const params = {
-      path: function(assetName) {
-        const name = assetName.replace(/^images\//, '');
-        return 'images/' + name;
+  var result;
+  if (typeof deps === 'function') {
+    result = deps(); // define(factory) — factory jest pierwszym arg
+  } else if (typeof factory === 'function') {
+    result = factory();
+  }
+  // result = { default: engineFactory } lub sam engineFactory
+  var engineFactory = (result && typeof result.default === 'function') ? result.default : result;
+  if (typeof engineFactory === 'function') {
+    var engine = engineFactory();
+    var container = document.getElementById('zpe-container');
+    var api = {
+      enginePath: function(assetName) {
+        // Assets are served from /prev/RESOURCE-ID/pl/main/ (devServer static)
+        return '/prev/RESOURCE-ID/pl/main/' + assetName;
       }
     };
-    opts.init(container, params);
-    opts.run(window.ZPE._state, false);
-    window.addEventListener('beforeunload', function() { opts.unload(); });
-  },
-  setState(data) { window.ZPE._state = data; }
+    // Load savedata then start
+    fetch('savedata.json')
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .catch(function() { return null; })
+      .then(function(stateData) {
+        engine.init(container, api, {}).then(function() {
+          engine.setState(stateData);
+        });
+      });
+    window.addEventListener('beforeunload', function() {
+      if (engine.destroy) engine.destroy(container);
+    });
+  }
 };
+window.define.amd = true;
 </script>
-<script src="entry.js"></script>
+<script src="/entry.js"></script>
 </body>
 </html>
