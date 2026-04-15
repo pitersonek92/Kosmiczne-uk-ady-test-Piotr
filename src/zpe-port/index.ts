@@ -87,9 +87,10 @@ export function create(
   runFn:     (stateData: any, isFrozen: boolean) => Promise<void> | void,
   unloadFn:  () => Promise<void> | void,
   destroyFn: () => Promise<void> | void
-): any {
-  // Return the engine object directly — ZPE PluginLoader checks for engine.init
-  // on the AMD export, it does NOT call a factory wrapper first.
+): () => any {
+  // Return a factory function — ZPE does: var engine = module.default()
+  // so module.default must be a callable factory, not the engine object directly.
+  return function engineFactory(): any {
   return {
     init: function(container: HTMLElement, api: any, options: any): Promise<void> {
       _exerciseApi = api;
@@ -150,4 +151,5 @@ export function create(
       });
     }
   };
+  }; // end engineFactory
 }

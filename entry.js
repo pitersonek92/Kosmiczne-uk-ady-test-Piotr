@@ -21,8 +21,21 @@ define(function() { return /******/ (function() { // webpackBootstrap
 /******/ 		__webpack_require__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
 /******/ 	}();
 /******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	!function() {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = function(exports) {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	}();
+/******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
+// ESM COMPAT FLAG
+__webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
@@ -117,75 +130,77 @@ function getData() {
  *   engine.destroy(container)             — calls unloadFn then destroyFn
  */
 function create(initFn, runFn, unloadFn, destroyFn) {
-    // Return the engine object directly — ZPE PluginLoader checks for engine.init
-    // on the AMD export, it does NOT call a factory wrapper first.
-    return {
-        init: function (container, api, options) {
-            _exerciseApi = api;
-            _engineOptions = options;
-            _state = null;
-            _isFrozen = false;
-            _isRunning = false;
-            return initFn(container).catch(function (e) {
-                console.error('[ZPEPort] init error:', e);
-            });
-        },
-        setState: function (stateData) {
-            _state = (stateData && typeof stateData === 'object') ? stateData : null;
-            _isFrozen = false;
-            var unloadPromise;
-            if (_isRunning) {
-                try {
-                    var r = unloadFn();
-                    unloadPromise = (r instanceof Promise) ? r : Promise.resolve();
+    // Return a factory function — ZPE does: var engine = module.default()
+    // so module.default must be a callable factory, not the engine object directly.
+    return function engineFactory() {
+        return {
+            init: function (container, api, options) {
+                _exerciseApi = api;
+                _engineOptions = options;
+                _state = null;
+                _isFrozen = false;
+                _isRunning = false;
+                return initFn(container).catch(function (e) {
+                    console.error('[ZPEPort] init error:', e);
+                });
+            },
+            setState: function (stateData) {
+                _state = (stateData && typeof stateData === 'object') ? stateData : null;
+                _isFrozen = false;
+                var unloadPromise;
+                if (_isRunning) {
+                    try {
+                        var r = unloadFn();
+                        unloadPromise = (r instanceof Promise) ? r : Promise.resolve();
+                    }
+                    catch (e) {
+                        unloadPromise = Promise.resolve();
+                    }
                 }
-                catch (e) {
+                else {
                     unloadPromise = Promise.resolve();
                 }
+                unloadPromise.then(function () {
+                    try {
+                        var result = runFn(JSON.parse(JSON.stringify(_state)), _isFrozen);
+                        if (result instanceof Promise)
+                            return result;
+                    }
+                    catch (e) {
+                        console.error('[ZPEPort] run error:', e);
+                    }
+                    _isRunning = true;
+                });
+            },
+            getState: function () {
+                return _state;
+            },
+            setStateFrozen: function (value) {
+                _isFrozen = value;
+            },
+            getStateProgress: function (_data) {
+                return {};
+            },
+            destroy: function (_container) {
+                return Promise.resolve().then(function () {
+                    try {
+                        var r = unloadFn();
+                        if (r instanceof Promise)
+                            return r;
+                    }
+                    catch (e) { }
+                }).then(function () {
+                    try {
+                        var r = destroyFn();
+                        if (r instanceof Promise)
+                            return r;
+                    }
+                    catch (e) { }
+                    _isRunning = false;
+                });
             }
-            else {
-                unloadPromise = Promise.resolve();
-            }
-            unloadPromise.then(function () {
-                try {
-                    var result = runFn(JSON.parse(JSON.stringify(_state)), _isFrozen);
-                    if (result instanceof Promise)
-                        return result;
-                }
-                catch (e) {
-                    console.error('[ZPEPort] run error:', e);
-                }
-                _isRunning = true;
-            });
-        },
-        getState: function () {
-            return _state;
-        },
-        setStateFrozen: function (value) {
-            _isFrozen = value;
-        },
-        getStateProgress: function (_data) {
-            return {};
-        },
-        destroy: function (_container) {
-            return Promise.resolve().then(function () {
-                try {
-                    var r = unloadFn();
-                    if (r instanceof Promise)
-                        return r;
-                }
-                catch (e) { }
-            }).then(function () {
-                try {
-                    var r = destroyFn();
-                    if (r instanceof Promise)
-                        return r;
-                }
-                catch (e) { }
-                _isRunning = false;
-            });
-        }
-    };
+        };
+    }; // end engineFactory
 }
 
 ;// ./src/data.ts
@@ -2213,7 +2228,6 @@ function destroy() {
 }
 /* harmony default export */ var main = (create(init, run, unload, destroy));
 
-__webpack_exports__ = __webpack_exports__["default"];
 /******/ 	return __webpack_exports__;
 /******/ })()
 ;
