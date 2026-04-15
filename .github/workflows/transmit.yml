@@ -31,7 +31,7 @@ jobs:
         run: |
           git config user.email "ci@zpe-deploy"
           git config user.name "ZPE CI"
-          git add -f entry.js images/ engine.json scenario.json
+          git add -f entry_v1_0_0.js images/ engine.json scenario.json style.css
           git diff --staged --quiet && echo "Nothing to commit" && exit 0
           git commit -m "build: $(date -u +%Y-%m-%dT%H:%M:%SZ) [skip ci]"
           git push origin main
