@@ -133,6 +133,27 @@ module.exports = function (env, argv) {
                     }
                 );
 
+                // Root-level routes for emulator (uses absolute paths)
+                // Serve static assets under /assets/ path (emulator uses enginePath: /assets/{path})
+                devServer.app.use("/assets", require("express").static(path.resolve(PATHS.STATIC)));
+
+                devServer.app.get("/engine.json", (req, res) => {
+                    const engineFile = path.resolve(PATHS.STATIC, "engine.json");
+                    res.sendFile(engineFile);
+                });
+
+                devServer.app.get("/savedata.json", (req, res) => {
+                    const savedataFile = path.resolve(
+                        PATHS.DATA,
+                        env.savedata || "savedata.json"
+                    );
+                    if (fs.existsSync(savedataFile)) {
+                        res.sendFile(savedataFile);
+                    } else {
+                        res.send("null");
+                    }
+                });
+
                 return middlewares;
             }
         },
@@ -150,20 +171,7 @@ module.exports = function (env, argv) {
                     test: /\.css$/i,
                     use: [
                         {
-                            loader: "style-loader",
-                            options: {
-                                injectType: "singletonStyleTag",
-                                insert: "body"
-                            }
-                        },
-                        {
-                            loader: "css-loader",
-                            options: {
-                                modules: {
-                                    mode: "local",
-                                    localIdentName: "[local]--[hash:base64:5]"
-                                }
-                            }
+                            loader: "raw-loader"
                         }
                     ]
                 }

@@ -1,169 +1,720 @@
-/* KOSMICZNE UKŁADY - Game Styles - !important overrides for ZPE platform */
+/* ═══════════════════════════════════════════════════════════════
+   KOSMICZNE UKŁADY — ZPE-Port CSS
+   All rules use !important for isolation inside ZPE platform
+   ═══════════════════════════════════════════════════════════════ */
 
-.gameWrapper {
-    position: relative !important;
-    width: 100% !important;
-    min-height: 600px !important;
-    background-size: cover !important;
-    background-position: center !important;
-    background-color: #0a0a1a !important;
-    font-family: Arial, sans-serif !important;
-    overflow: hidden !important;
-    box-sizing: border-box !important;
-    color: #ffffff !important;
-    user-select: none !important;
+/* ─── ROOT ─────────────────────────────────────────────────────── */
+.ku-root {
+  position: relative !important;
+  width: 1280px !important;
+  height: 720px !important;
+  overflow: hidden !important;
+  font-family: 'Segoe UI', Arial, sans-serif !important;
+  font-size: 15px !important;
+  color: #e8e8f0 !important;
+  user-select: none !important;
+  box-sizing: border-box !important;
 }
-.topBar {
-    position: relative !important;
-    width: 100% !important;
-    height: 70px !important;
-    background-color: #1a2a4a !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    z-index: 1 !important;
-    box-sizing: border-box !important;
+.ku-root *, .ku-root *::before, .ku-root *::after {
+  box-sizing: border-box !important;
 }
-.topBarTitle {
-    font-size: 1.4rem !important;
-    font-weight: bold !important;
-    color: #f5c518 !important;
-    text-align: center !important;
-    letter-spacing: 1px !important;
-}
-.topBarIcons {
-    position: absolute !important;
-    right: 16px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    display: flex !important;
-    gap: 8px !important;
-    align-items: center !important;
-}
-.iconBtn {
-    width: 40px !important;
-    height: 40px !important;
-    background: rgba(255,255,255,0.1) !important;
-    border: 2px solid rgba(255,255,255,0.3) !important;
-    border-radius: 50% !important;
-    cursor: pointer !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0 !important;
-}
-.iconBtn:hover { background: rgba(255,255,255,0.25) !important; }
-.iconBtn img { width: 22px !important; height: 22px !important; }
-.screen { display: none !important; width: 100% !important; box-sizing: border-box !important; }
-.screenActive { display: flex !important; }
-.welcomeScreen.screenActive { display: flex !important; }
-.gameScreen.screenActive { display: flex !important; }
-.modelScreen.screenActive { display: flex !important; }
 
-/* WELCOME SCREEN */
-.welcomeScreen {
-    position: relative !important;
-    padding: 20px !important;
-    min-height: 530px !important;
-    align-items: center !important;
-    justify-content: center !important;
+/* ─── BACKGROUND ───────────────────────────────────────────────── */
+.ku-bg {
+  position: absolute !important;
+  inset: 0 !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  z-index: 0 !important;
 }
-.welcomeDecoLeft { position: absolute !important; left: 10px !important; top: 20px !important; display: flex !important; flex-direction: column !important; gap: 10px !important; }
-.welcomeDecoLeft img { width: 80px !important; height: auto !important; }
-.welcomeDecoRight { position: absolute !important; right: 10px !important; top: 10px !important; }
-.welcomeDecoRight img { width: 100px !important; height: auto !important; }
-.welcomeAstronaut { position: absolute !important; left: 10px !important; bottom: 10px !important; }
-.welcomeAstronaut img { width: 90px !important; height: auto !important; }
-.welcomePopup {
-    position: relative !important;
-    background: rgba(40, 60, 100, 0.92) !important;
-    border: 3px solid rgba(100, 150, 255, 0.5) !important;
-    border-radius: 16px !important;
-    padding: 30px 40px !important;
-    max-width: 620px !important;
-    width: 90% !important;
-    text-align: center !important;
-    box-shadow: 0 0 40px rgba(100, 150, 255, 0.3) !important;
+
+/* ─── TOPBAR ───────────────────────────────────────────────────── */
+.ku-topbar {
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  height: 56px !important;
+  background: linear-gradient(180deg, rgba(5,15,40,.95) 0%, rgba(10,25,60,.85) 100%) !important;
+  border-bottom: 2px solid rgba(100,160,255,.3) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 100 !important;
 }
-.welcomeTitle { font-size: 2rem !important; font-weight: bold !important; color: #f5c518 !important; margin-bottom: 20px !important; }
-.welcomeText { font-size: 1rem !important; color: #ffffff !important; line-height: 1.6 !important; margin-bottom: 16px !important; font-weight: bold !important; }
-.welcomeTask { display: flex !important; align-items: flex-start !important; gap: 12px !important; background: rgba(255,255,255,0.05) !important; border-radius: 10px !important; padding: 14px !important; margin-bottom: 24px !important; text-align: left !important; }
-.welcomeTaskIcon { width: 50px !important; height: auto !important; flex-shrink: 0 !important; }
-.welcomeTaskText { font-size: 0.95rem !important; color: #ffffff !important; line-height: 1.5 !important; }
-.welcomeTaskLabel { color: #f5c518 !important; font-weight: bold !important; }
-.welcomeButtons { display: flex !important; gap: 16px !important; justify-content: center !important; flex-wrap: wrap !important; }
-
-/* BUTTONS */
-.btn {
-    position: relative !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0 24px !important;
-    height: 50px !important;
-    min-width: 160px !important;
-    background: linear-gradient(180deg, #3a5a9a 0%, #1a3a6a 100%) !important;
-    border: 2px solid rgba(100, 150, 255, 0.6) !important;
-    border-radius: 8px !important;
-    color: #f5c518 !important;
-    font-size: 1rem !important;
-    font-weight: bold !important;
-    cursor: pointer !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
-    letter-spacing: 0.5px !important;
+.ku-topbar-title {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  letter-spacing: 3px !important;
+  text-transform: uppercase !important;
+  color: #FFD700 !important;
+  text-shadow: 0 0 20px rgba(255,215,0,.5) !important;
 }
-.btn:hover { background: linear-gradient(180deg, #4a6aaa 0%, #2a4a7a 100%) !important; border-color: rgba(245, 197, 24, 0.8) !important; }
-.btn:active { box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important; }
+.ku-topbar-btns {
+  position: absolute !important;
+  right: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  display: flex !important;
+  gap: 8px !important;
+}
+.ku-cbtn {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background: rgba(255,255,255,.1) !important;
+  border: 1.5px solid rgba(255,255,255,.25) !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: background .2s !important;
+  padding: 0 !important;
+}
+.ku-cbtn:hover { background: rgba(255,255,255,.22) !important; }
+.ku-cbtn img { width: 22px !important; height: 22px !important; }
 
-/* MAIN GAME SCREEN */
-.gameScreen { width: 100% !important; min-height: 530px !important; box-sizing: border-box !important; }
-.astronomersPanel { width: 200px !important; flex-shrink: 0 !important; display: flex !important; flex-direction: column !important; gap: 8px !important; padding: 10px 8px !important; background: rgba(0,0,0,0.3) !important; box-sizing: border-box !important; }
-.astronomerCard { position: relative !important; width: 100% !important; cursor: pointer !important; border: 3px solid transparent !important; border-radius: 8px !important; overflow: visible !important; box-sizing: border-box !important; }
-.astronomerCard:hover { border-color: rgba(245, 197, 24, 0.7) !important; }
-.astronomerCardActive { border-color: #f5c518 !important; box-shadow: 0 0 15px rgba(245, 197, 24, 0.5) !important; }
-.astronomerCard img { width: 100% !important; height: 150px !important; object-fit: cover !important; display: block !important; border-radius: 5px !important; }
-.astronomerTooltip { display: none !important; position: absolute !important; left: calc(100% + 8px) !important; top: 50% !important; transform: translateY(-50%) !important; background: rgba(0,0,0,0.9) !important; color: #ffffff !important; padding: 8px 12px !important; border-radius: 6px !important; white-space: nowrap !important; font-size: 0.85rem !important; z-index: 10 !important; pointer-events: none !important; border: 1px solid rgba(255,255,255,0.2) !important; }
-.astronomerTooltipLabel { color: #aaaaaa !important; font-style: italic !important; }
-.astronomerTooltipName { color: #f5c518 !important; font-weight: bold !important; }
-.astronomerCard:hover .astronomerTooltip { display: block !important; }
-.solarSystemPanel { flex: 1 !important; position: relative !important; overflow: hidden !important; display: flex !important; flex-direction: column !important; align-items: center !important; }
-.solarSystemTitle { font-size: 1.2rem !important; font-weight: bold !important; color: #ffffff !important; text-align: center !important; padding: 14px 20px 8px !important; position: relative !important; z-index: 2 !important; width: 100% !important; box-sizing: border-box !important; }
-.solarSystemContainer { flex: 1 !important; width: 100% !important; position: relative !important; overflow: hidden !important; cursor: grab !important; display: flex !important; align-items: center !important; justify-content: center !important; }
-.solarSystemContainer:active { cursor: grabbing !important; }
-.solarSystemImage { max-width: 100% !important; max-height: 420px !important; object-fit: contain !important; transform-origin: center center !important; display: block !important; pointer-events: none !important; }
-.astronomerDecoration { position: absolute !important; bottom: 10px !important; right: 10px !important; pointer-events: none !important; z-index: 1 !important; }
-.astronomerDecoration img { width: 80px !important; height: auto !important; }
+/* ─── CONTENT AREA ─────────────────────────────────────────────── */
+.ku-content {
+  position: absolute !important;
+  top: 56px !important;
+  left: 0 !important; right: 0 !important; bottom: 0 !important;
+  z-index: 10 !important;
+}
 
-/* POPUP */
-.overlay { display: none !important; position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; background: rgba(0,0,0,0.7) !important; z-index: 100 !important; align-items: center !important; justify-content: center !important; }
-.overlayVisible { display: flex !important; }
-.popup { position: relative !important; background: rgba(30, 50, 90, 0.97) !important; border: 3px solid rgba(100, 150, 255, 0.5) !important; border-radius: 16px !important; padding: 28px 32px !important; max-width: 700px !important; width: 92% !important; max-height: 85vh !important; overflow-y: auto !important; box-shadow: 0 0 50px rgba(100, 150, 255, 0.3) !important; box-sizing: border-box !important; }
-.bioPopup { display: flex !important; gap: 20px !important; align-items: flex-start !important; }
-.bioPortraitCol { flex-shrink: 0 !important; }
-.bioPortraitMain { width: 120px !important; height: 140px !important; object-fit: cover !important; border-radius: 8px !important; border: 2px solid rgba(245, 197, 24, 0.5) !important; }
-.bioContent { flex: 1 !important; }
-.bioTitle { font-size: 1.6rem !important; font-weight: bold !important; color: #f5c518 !important; margin-bottom: 12px !important; text-align: center !important; }
-.bioSeparator { width: 100% !important; height: 2px !important; background: rgba(100, 150, 255, 0.4) !important; margin-bottom: 14px !important; }
-.bioText { font-size: 0.95rem !important; color: #e0e0e0 !important; line-height: 1.7 !important; white-space: pre-line !important; }
-.popupButtons { display: flex !important; gap: 12px !important; justify-content: center !important; margin-top: 20px !important; flex-wrap: wrap !important; }
+/* ─── WELCOME SCREEN ───────────────────────────────────────────── */
+.ku-welcome {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.ku-welcome-box {
+  background: rgba(5,20,60,.82) !important;
+  border: 2px solid rgba(100,160,255,.35) !important;
+  border-radius: 16px !important;
+  padding: 36px 48px !important;
+  max-width: 680px !important;
+  width: 90% !important;
+  text-align: center !important;
+  backdrop-filter: blur(6px) !important;
+  position: relative !important;
+  z-index: 5 !important;
+}
+.ku-welcome-title {
+  font-size: 34px !important;
+  font-weight: 900 !important;
+  color: #FFD700 !important;
+  text-shadow: 0 0 24px rgba(255,215,0,.5) !important;
+  margin: 0 0 18px !important;
+}
+.ku-welcome-desc {
+  font-size: 16px !important;
+  line-height: 1.7 !important;
+  color: #e8e8f0 !important;
+  font-weight: 600 !important;
+  margin: 0 0 20px !important;
+}
+.ku-welcome-task {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+  background: rgba(255,255,255,.06) !important;
+  border-radius: 10px !important;
+  padding: 14px 18px !important;
+  margin-bottom: 24px !important;
+  text-align: left !important;
+}
+.ku-welcome-task-text {
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+  color: #e8e8f0 !important;
+  margin: 0 !important;
+}
+.ku-welcome-task-text strong { color: #FFD700 !important; }
+.ku-welcome-btns {
+  display: flex !important;
+  gap: 16px !important;
+  justify-content: center !important;
+}
 
-/* MODEL SCREEN */
-.modelScreen { width: 100% !important; min-height: 530px !important; flex-direction: column !important; align-items: center !important; position: relative !important; }
-.modelTitle { font-size: 1.3rem !important; font-weight: bold !important; color: #ffffff !important; text-align: center !important; padding: 16px 20px 8px !important; width: 100% !important; box-sizing: border-box !important; z-index: 2 !important; position: relative !important; }
-.modelContent { display: flex !important; width: 100% !important; flex: 1 !important; }
-.modelAstronomersPanel { width: 200px !important; flex-shrink: 0 !important; display: flex !important; flex-direction: column !important; gap: 8px !important; padding: 10px 8px !important; background: rgba(0,0,0,0.3) !important; box-sizing: border-box !important; }
-.modelImageArea { flex: 1 !important; position: relative !important; overflow: hidden !important; cursor: grab !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-direction: column !important; }
-.modelImageArea:active { cursor: grabbing !important; }
-.modelImage { max-width: 100% !important; max-height: 400px !important; object-fit: contain !important; transform-origin: center center !important; display: block !important; pointer-events: none !important; }
-.modelButtons { padding: 16px !important; display: flex !important; justify-content: center !important; width: 100% !important; box-sizing: border-box !important; }
-.geocentricSvg { width: 100% !important; max-width: 500px !important; height: auto !important; max-height: 400px !important; }
+/* Decorations */
+.ku-deco {
+  position: absolute !important;
+  pointer-events: none !important;
+  z-index: 2 !important;
+}
+.ku-deco-earth { left: 30px !important; top: 40px !important; width: 140px !important; }
+.ku-deco-sat   { right: 40px !important; top: 20px !important; width: 160px !important; }
+.ku-deco-rocket { left: 120px !important; top: 160px !important; width: 90px !important; }
+.ku-deco-astronaut { left: 20px !important; bottom: 30px !important; width: 130px !important; }
 
-/* INSTRUCTION / SETTINGS */
-.instrTitle { font-size: 1.5rem !important; font-weight: bold !important; color: #f5c518 !important; margin-bottom: 16px !important; text-align: center !important; }
-.instrText { font-size: 0.95rem !important; color: #e0e0e0 !important; line-height: 1.7 !important; margin-bottom: 20px !important; text-align: center !important; }
-.settingsTitle { font-size: 1.5rem !important; font-weight: bold !important; color: #f5c518 !important; margin-bottom: 20px !important; text-align: center !important; }
-.settingsRow { display: flex !important; align-items: center !important; justify-content: space-between !important; padding: 12px 0 !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important; gap: 20px !important; }
-.settingsLabel { font-size: 1rem !important; color: #e0e0e0 !important; }
-.popup::-webkit-scrollbar { width: 6px !important; }
-.popup::-webkit-scrollbar-track { background: rgba(255,255,255,0.05) !important; }
-.popup::-webkit-scrollbar-thumb { background: rgba(100, 150, 255, 0.5) !important; border-radius: 3px !important; }
+/* ─── BUTTONS ──────────────────────────────────────────────────── */
+.ku-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 52px !important;
+  border-radius: 8px !important;
+  border: 2px solid rgba(255,215,0,.5) !important;
+  background: linear-gradient(180deg, rgba(30,60,120,.9) 0%, rgba(10,30,80,.95) 100%) !important;
+  color: #FFD700 !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  cursor: pointer !important;
+  transition: all .2s !important;
+  padding: 0 20px !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,.5) !important;
+}
+.ku-btn:hover {
+  background: linear-gradient(180deg, rgba(50,90,180,.95) 0%, rgba(20,50,120,.95) 100%) !important;
+  border-color: #FFD700 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 16px rgba(255,215,0,.25) !important;
+}
+.ku-btn:focus-visible {
+  outline: 3px solid #FFD700 !important;
+  outline-offset: 2px !important;
+}
+.ku-btn-280 { width: 280px !important; }
+.ku-btn-420 { width: 420px !important; }
+.ku-btn-620 { width: 620px !important; }
+
+/* ─── SOLAR SCREEN ─────────────────────────────────────────────── */
+.ku-solar {
+  display: flex !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Left panel */
+.ku-left-panel {
+  width: 200px !important;
+  flex-shrink: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  padding: 12px 10px !important;
+  background: rgba(0,0,0,.35) !important;
+  border-right: 1px solid rgba(100,160,255,.15) !important;
+}
+.ku-astro-btn {
+  width: 170px !important;
+  height: 170px !important;
+  border-radius: 8px !important;
+  border: 3px solid rgba(100,160,255,.3) !important;
+  background: rgba(0,0,0,.4) !important;
+  cursor: pointer !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  transition: border-color .2s !important;
+}
+.ku-astro-btn:hover, .ku-astro-btn:focus-visible {
+  border-color: rgba(255,215,0,.7) !important;
+}
+.ku-astro-btn.active {
+  border-color: #FFD700 !important;
+  box-shadow: 0 0 16px rgba(255,215,0,.4) !important;
+}
+.ku-astro-btn img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+.ku-astro-tooltip {
+  position: absolute !important;
+  left: 180px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  background: rgba(5,15,50,.95) !important;
+  border: 1px solid rgba(255,215,0,.5) !important;
+  border-radius: 6px !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  color: #e8e8f0 !important;
+  white-space: nowrap !important;
+  z-index: 200 !important;
+  pointer-events: none !important;
+}
+.ku-astro-tooltip strong { color: #FFD700 !important; }
+
+/* Canvas area */
+.ku-canvas-wrap {
+  flex: 1 !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+.ku-solar-title {
+  position: absolute !important;
+  top: 10px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,.8) !important;
+  z-index: 20 !important;
+  pointer-events: none !important;
+  white-space: nowrap !important;
+}
+
+/* Zoom buttons */
+.ku-zoom-btns {
+  position: absolute !important;
+  bottom: 60px !important;
+  right: 14px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  z-index: 30 !important;
+}
+.ku-zoom-btn {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 6px !important;
+  background: rgba(10,30,80,.85) !important;
+  border: 1.5px solid rgba(100,160,255,.4) !important;
+  color: #FFD700 !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: background .15s !important;
+}
+.ku-zoom-btn:hover { background: rgba(30,60,140,.9) !important; }
+
+/* Astronaut decoration */
+.ku-astronaut-deco {
+  position: absolute !important;
+  bottom: 8px !important;
+  right: 60px !important;
+  width: 80px !important;
+  pointer-events: none !important;
+  z-index: 20 !important;
+}
+
+/* Bottom bar */
+.ku-solar-bottom-bar {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important; right: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  padding: 8px !important;
+  background: rgba(0,0,0,.5) !important;
+  z-index: 30 !important;
+}
+
+/* Planet tooltip (PPM) */
+.ku-planet-tooltip {
+  position: absolute !important;
+  background: rgba(5,15,50,.96) !important;
+  border: 1.5px solid rgba(255,215,0,.5) !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+  max-width: 260px !important;
+  font-size: 13px !important;
+  color: #e8e8f0 !important;
+  pointer-events: none !important;
+  z-index: 350 !important;
+  line-height: 1.5 !important;
+}
+.ku-planet-tooltip strong { color: #FFD700 !important; display: block !important; margin-bottom: 4px !important; }
+
+/* Planet detail popup (LPM) */
+.ku-planet-popup-wrap {
+  position: absolute !important;
+  inset: 0 !important;
+  background: rgba(0,0,0,.55) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 400 !important;
+}
+.ku-planet-popup {
+  background: linear-gradient(160deg, rgba(10,25,70,.97) 0%, rgba(5,15,50,.97) 100%) !important;
+  border: 2px solid rgba(100,160,255,.4) !important;
+  border-radius: 12px !important;
+  padding: 24px 28px !important;
+  max-width: 420px !important;
+  width: 90% !important;
+  color: #e8e8f0 !important;
+}
+.ku-planet-popup h3 {
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  color: #FFD700 !important;
+  margin: 0 0 12px !important;
+}
+.ku-planet-popup p {
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  margin: 0 0 14px !important;
+}
+.ku-planet-popup .stats {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+  margin-bottom: 16px !important;
+}
+.ku-planet-popup .stat-item {
+  background: rgba(255,255,255,.07) !important;
+  border-radius: 6px !important;
+  padding: 6px 10px !important;
+  font-size: 13px !important;
+}
+.ku-planet-popup .stat-item strong {
+  display: block !important;
+  color: #aad4ff !important;
+  font-size: 11px !important;
+  margin-bottom: 2px !important;
+}
+.ku-planet-close {
+  display: block !important;
+  margin: 0 auto !important;
+  padding: 8px 28px !important;
+  background: rgba(30,60,140,.8) !important;
+  border: 1.5px solid rgba(255,215,0,.5) !important;
+  border-radius: 6px !important;
+  color: #FFD700 !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+}
+.ku-planet-close:hover { background: rgba(50,90,180,.9) !important; }
+
+/* ─── MODEL SCREEN ─────────────────────────────────────────────── */
+.ku-model-screen {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 16px !important;
+}
+.ku-model-title {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,.8) !important;
+  margin-bottom: 12px !important;
+  text-align: center !important;
+}
+.ku-model-img-wrap {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: zoom-in !important;
+  transition: transform .3s !important;
+  max-height: 520px !important;
+}
+.ku-model-img-wrap.zoomed {
+  transform: scale(1.45) !important;
+  cursor: zoom-out !important;
+  z-index: 50 !important;
+}
+.ku-model-img-wrap img {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  border-radius: 8px !important;
+}
+.ku-model-footer {
+  display: flex !important;
+  justify-content: center !important;
+  padding: 10px 0 !important;
+}
+
+/* ─── POPUP OVERLAY ────────────────────────────────────────────── */
+.ku-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  background: rgba(0,0,0,.65) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 500 !important;
+}
+.ku-popup {
+  background: linear-gradient(160deg, rgba(8,22,65,.98) 0%, rgba(4,12,40,.98) 100%) !important;
+  border: 2px solid rgba(100,160,255,.4) !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  max-height: 90% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.ku-popup-inner {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+.ku-popup-title {
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  color: #FFD700 !important;
+  text-align: center !important;
+  padding: 20px 24px 12px !important;
+  text-shadow: 0 0 16px rgba(255,215,0,.4) !important;
+}
+.ku-popup-sep {
+  height: 2px !important;
+  background: linear-gradient(90deg, transparent, rgba(100,160,255,.4), transparent) !important;
+  margin: 0 24px 12px !important;
+}
+.ku-popup-body {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 0 24px 12px !important;
+  font-size: 14px !important;
+  line-height: 1.65 !important;
+  color: #e8e8f0 !important;
+}
+.ku-popup-body strong { color: #FFD700 !important; }
+.ku-popup-body::-webkit-scrollbar { width: 6px !important; }
+.ku-popup-body::-webkit-scrollbar-track { background: rgba(255,255,255,.05) !important; }
+.ku-popup-body::-webkit-scrollbar-thumb { background: rgba(100,160,255,.4) !important; border-radius: 3px !important; }
+.ku-popup-footer {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 14px !important;
+  padding: 14px 24px 20px !important;
+  border-top: 1px solid rgba(100,160,255,.15) !important;
+  flex-wrap: wrap !important;
+}
+
+/* Bio popup */
+.ku-bio-content {
+  display: flex !important;
+  gap: 20px !important;
+  align-items: flex-start !important;
+}
+.ku-bio-portrait {
+  width: 110px !important;
+  height: 140px !important;
+  object-fit: cover !important;
+  border-radius: 8px !important;
+  border: 2px solid rgba(100,160,255,.35) !important;
+  flex-shrink: 0 !important;
+}
+.ku-bio-text {
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+  color: #e8e8f0 !important;
+}
+.ku-bio-text strong { color: #FFD700 !important; }
+
+/* ─── SETTINGS ─────────────────────────────────────────────────── */
+.ku-settings-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+}
+.ku-setting-card {
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(100,160,255,.15) !important;
+  border-radius: 10px !important;
+  padding: 14px !important;
+}
+.ku-setting-card-full {
+  grid-column: 1 / -1 !important;
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(100,160,255,.15) !important;
+  border-radius: 10px !important;
+  padding: 14px !important;
+}
+.ku-setting-label {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #aad4ff !important;
+  margin-bottom: 10px !important;
+}
+.ku-setting-desc {
+  font-size: 12px !important;
+  color: #8899bb !important;
+}
+.ku-textsize-btns {
+  display: flex !important;
+  gap: 8px !important;
+}
+.ku-textsize-btn {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 8px !important;
+  background: rgba(255,255,255,.08) !important;
+  border: 1.5px solid rgba(100,160,255,.3) !important;
+  color: #e8e8f0 !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+}
+.ku-textsize-btn.active {
+  background: rgba(255,215,0,.2) !important;
+  border-color: #FFD700 !important;
+  color: #FFD700 !important;
+}
+.ku-toggle-btn {
+  padding: 8px 18px !important;
+  border-radius: 6px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  border: 1.5px solid transparent !important;
+  letter-spacing: 0.5px !important;
+}
+.ku-toggle-btn.on {
+  background: rgba(255,215,0,.2) !important;
+  border-color: #FFD700 !important;
+  color: #FFD700 !important;
+}
+.ku-toggle-btn.off {
+  background: rgba(255,255,255,.07) !important;
+  border-color: rgba(100,160,255,.3) !important;
+  color: #8899bb !important;
+}
+.ku-select {
+  width: 100% !important;
+  padding: 8px 10px !important;
+  background: rgba(5,15,50,.9) !important;
+  border: 1.5px solid rgba(100,160,255,.35) !important;
+  border-radius: 6px !important;
+  color: #e8e8f0 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  appearance: auto !important;
+}
+.ku-cursor-row {
+  display: flex !important;
+  gap: 20px !important;
+}
+.ku-cursor-row > div { flex: 1 !important; }
+
+/* ─── ONBOARDING ───────────────────────────────────────────────── */
+.ku-onboard-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  background: rgba(0,0,0,.55) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 600 !important;
+}
+.ku-onboard-box {
+  background: linear-gradient(160deg, rgba(8,22,65,.98) 0%, rgba(4,12,40,.98) 100%) !important;
+  border: 2px solid rgba(100,160,255,.4) !important;
+  border-radius: 16px !important;
+  padding: 32px 40px !important;
+  max-width: 480px !important;
+  width: 90% !important;
+  text-align: center !important;
+}
+.ku-onboard-icon {
+  font-size: 44px !important;
+  display: block !important;
+  margin-bottom: 12px !important;
+}
+.ku-onboard-title {
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  color: #FFD700 !important;
+  margin-bottom: 14px !important;
+}
+.ku-onboard-text {
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+  color: #e8e8f0 !important;
+  margin-bottom: 20px !important;
+}
+.ku-onboard-text strong { color: #FFD700 !important; }
+.ku-onboard-dots {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  margin-bottom: 20px !important;
+}
+.ku-onboard-dot {
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  background: rgba(255,255,255,.3) !important;
+}
+.ku-onboard-dot.active { background: #FFD700 !important; }
+.ku-onboard-btns {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 14px !important;
+}
+.ku-onboard-btn {
+  padding: 10px 28px !important;
+  border-radius: 8px !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  border: 1.5px solid rgba(100,160,255,.4) !important;
+  background: rgba(255,255,255,.07) !important;
+  color: #aad4ff !important;
+  transition: all .2s !important;
+}
+.ku-onboard-btn.primary {
+  background: rgba(255,215,0,.15) !important;
+  border-color: #FFD700 !important;
+  color: #FFD700 !important;
+}
+.ku-onboard-btn:hover { opacity: .85 !important; }
+
+/* ─── WCAG: TEXT SIZE ──────────────────────────────────────────── */
+.ku-size-2 .ku-popup-body,
+.ku-size-2 .ku-welcome-desc,
+.ku-size-2 .ku-bio-text,
+.ku-size-2 .ku-onboard-text { font-size: 17px !important; }
+.ku-size-3 .ku-popup-body,
+.ku-size-3 .ku-welcome-desc,
+.ku-size-3 .ku-bio-text,
+.ku-size-3 .ku-onboard-text { font-size: 20px !important; }
+
+/* ─── WCAG: HIGH CONTRAST ──────────────────────────────────────── */
+.ku-contrast .ku-popup,
+.ku-contrast .ku-welcome-box,
+.ku-contrast .ku-onboard-box {
+  background: #000 !important;
+  border-color: #FFD700 !important;
+}
+.ku-contrast .ku-btn {
+  background: #000 !important;
+  border-color: #FFD700 !important;
+  color: #FFD700 !important;
+}
+.ku-contrast .ku-topbar { background: #000 !important; border-bottom-color: #FFD700 !important; }
+.ku-contrast .ku-setting-card,
+.ku-contrast .ku-setting-card-full { background: #111 !important; border-color: #FFD700 !important; }
+
+/* ─── WCAG: COLOR FILTERS ──────────────────────────────────────── */
+.ku-filter-grayscale { filter: grayscale(1) !important; }
+.ku-filter-deuteranopia { filter: url(#filter-deuteranopia) !important; }
+.ku-filter-protanopia  { filter: url(#filter-protanopia) !important; }
+.ku-filter-tritanopia  { filter: url(#filter-tritanopia) !important; }
+
+/* ─── WCAG: REDUCE MOTION ──────────────────────────────────────── */
+.ku-no-anim * { animation: none !important; transition: none !important; }
+
+/* ─── WCAG: CUSTOM CURSOR ──────────────────────────────────────── */
+.ku-cursor-none, .ku-cursor-none * { cursor: none !important; }
+#ku-custom-cursor {
+  position: fixed !important;
+  pointer-events: none !important;
+  z-index: 99999 !important;
+  transform: translate(-4px, -4px) !important;
+}
+
+/* ─── FOCUS VISIBLE ────────────────────────────────────────────── */
+.ku-root *:focus-visible {
+  outline: 3px solid #FFD700 !important;
+  outline-offset: 2px !important;
+}
