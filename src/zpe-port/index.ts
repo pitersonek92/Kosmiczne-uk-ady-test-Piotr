@@ -87,69 +87,67 @@ export function create(
   runFn:     (stateData: any, isFrozen: boolean) => Promise<void> | void,
   unloadFn:  () => Promise<void> | void,
   destroyFn: () => Promise<void> | void
-): () => any {
-  return function engineFactory(): any {
-    return {
-      init: function(container: HTMLElement, api: any, options: any): Promise<void> {
-        _exerciseApi = api;
-        _engineOptions = options;
-        _state = null;
-        _isFrozen = false;
-        _isRunning = false;
-        return initFn(container).catch(function(e: any) {
-          console.error('[ZPEPort] init error:', e);
-        });
-      },
+): any {
+  // Return the engine object directly — ZPE PluginLoader checks for engine.init
+  // on the AMD export, it does NOT call a factory wrapper first.
+  return {
+    init: function(container: HTMLElement, api: any, options: any): Promise<void> {
+      _exerciseApi = api;
+      _engineOptions = options;
+      _state = null;
+      _isFrozen = false;
+      _isRunning = false;
+      return initFn(container).catch(function(e: any) {
+        console.error('[ZPEPort] init error:', e);
+      });
+    },
 
-      setState: function(stateData: any): void {
-        _state = (stateData && typeof stateData === 'object') ? stateData : null;
-        _isFrozen = false;
-        var self = this;
-        // If already running, call unload first
-        var unloadPromise: Promise<void>;
-        if (_isRunning) {
-          try {
-            var r = unloadFn();
-            unloadPromise = (r instanceof Promise) ? r : Promise.resolve();
-          } catch(e) { unloadPromise = Promise.resolve(); }
-        } else {
-          unloadPromise = Promise.resolve();
-        }
-        unloadPromise.then(function() {
-          try {
-            var result = runFn(JSON.parse(JSON.stringify(_state)), _isFrozen);
-            if (result instanceof Promise) return result;
-          } catch(e) { console.error('[ZPEPort] run error:', e); }
-          _isRunning = true;
-        });
-      },
-
-      getState: function(): any {
-        return _state;
-      },
-
-      setStateFrozen: function(value: boolean): void {
-        _isFrozen = value;
-      },
-
-      getStateProgress: function(_data: any): Record<string, any> {
-        return {};
-      },
-
-      destroy: function(_container?: HTMLElement): Promise<void> {
-        return Promise.resolve().then(function() {
-          try {
-            var r = unloadFn();
-            if (r instanceof Promise) return r;
-          } catch(e) {}
-        }).then(function() {
-          try {
-            var r = destroyFn();
-            if (r instanceof Promise) return r;
-          } catch(e) {}
-          _isRunning = false;
-        });
+    setState: function(stateData: any): void {
+      _state = (stateData && typeof stateData === 'object') ? stateData : null;
+      _isFrozen = false;
+      var unloadPromise: Promise<void>;
+      if (_isRunning) {
+        try {
+          var r = unloadFn();
+          unloadPromise = (r instanceof Promise) ? r : Promise.resolve();
+        } catch(e) { unloadPromise = Promise.resolve(); }
+      } else {
+        unloadPromise = Promise.resolve();
       }
-    };
+      unloadPromise.then(function() {
+        try {
+          var result = runFn(JSON.parse(JSON.stringify(_state)), _isFrozen);
+          if (result instanceof Promise) return result;
+        } catch(e) { console.error('[ZPEPort] run error:', e); }
+        _isRunning = true;
+      });
+    },
+
+    getState: function(): any {
+      return _state;
+    },
+
+    setStateFrozen: function(value: boolean): void {
+      _isFrozen = value;
+    },
+
+    getStateProgress: function(_data: any): Record<string, any> {
+      return {};
+    },
+
+    destroy: function(_container?: HTMLElement): Promise<void> {
+      return Promise.resolve().then(function() {
+        try {
+          var r = unloadFn();
+          if (r instanceof Promise) return r;
+        } catch(e) {}
+      }).then(function() {
+        try {
+          var r = destroyFn();
+          if (r instanceof Promise) return r;
+        } catch(e) {}
+        _isRunning = false;
+      });
+    }
   };
 }

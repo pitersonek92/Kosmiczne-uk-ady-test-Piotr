@@ -117,76 +117,74 @@ function getData() {
  *   engine.destroy(container)             — calls unloadFn then destroyFn
  */
 function create(initFn, runFn, unloadFn, destroyFn) {
-    return function engineFactory() {
-        return {
-            init: function (container, api, options) {
-                _exerciseApi = api;
-                _engineOptions = options;
-                _state = null;
-                _isFrozen = false;
-                _isRunning = false;
-                return initFn(container).catch(function (e) {
-                    console.error('[ZPEPort] init error:', e);
-                });
-            },
-            setState: function (stateData) {
-                _state = (stateData && typeof stateData === 'object') ? stateData : null;
-                _isFrozen = false;
-                var self = this;
-                // If already running, call unload first
-                var unloadPromise;
-                if (_isRunning) {
-                    try {
-                        var r = unloadFn();
-                        unloadPromise = (r instanceof Promise) ? r : Promise.resolve();
-                    }
-                    catch (e) {
-                        unloadPromise = Promise.resolve();
-                    }
+    // Return the engine object directly — ZPE PluginLoader checks for engine.init
+    // on the AMD export, it does NOT call a factory wrapper first.
+    return {
+        init: function (container, api, options) {
+            _exerciseApi = api;
+            _engineOptions = options;
+            _state = null;
+            _isFrozen = false;
+            _isRunning = false;
+            return initFn(container).catch(function (e) {
+                console.error('[ZPEPort] init error:', e);
+            });
+        },
+        setState: function (stateData) {
+            _state = (stateData && typeof stateData === 'object') ? stateData : null;
+            _isFrozen = false;
+            var unloadPromise;
+            if (_isRunning) {
+                try {
+                    var r = unloadFn();
+                    unloadPromise = (r instanceof Promise) ? r : Promise.resolve();
                 }
-                else {
+                catch (e) {
                     unloadPromise = Promise.resolve();
                 }
-                unloadPromise.then(function () {
-                    try {
-                        var result = runFn(JSON.parse(JSON.stringify(_state)), _isFrozen);
-                        if (result instanceof Promise)
-                            return result;
-                    }
-                    catch (e) {
-                        console.error('[ZPEPort] run error:', e);
-                    }
-                    _isRunning = true;
-                });
-            },
-            getState: function () {
-                return _state;
-            },
-            setStateFrozen: function (value) {
-                _isFrozen = value;
-            },
-            getStateProgress: function (_data) {
-                return {};
-            },
-            destroy: function (_container) {
-                return Promise.resolve().then(function () {
-                    try {
-                        var r = unloadFn();
-                        if (r instanceof Promise)
-                            return r;
-                    }
-                    catch (e) { }
-                }).then(function () {
-                    try {
-                        var r = destroyFn();
-                        if (r instanceof Promise)
-                            return r;
-                    }
-                    catch (e) { }
-                    _isRunning = false;
-                });
             }
-        };
+            else {
+                unloadPromise = Promise.resolve();
+            }
+            unloadPromise.then(function () {
+                try {
+                    var result = runFn(JSON.parse(JSON.stringify(_state)), _isFrozen);
+                    if (result instanceof Promise)
+                        return result;
+                }
+                catch (e) {
+                    console.error('[ZPEPort] run error:', e);
+                }
+                _isRunning = true;
+            });
+        },
+        getState: function () {
+            return _state;
+        },
+        setStateFrozen: function (value) {
+            _isFrozen = value;
+        },
+        getStateProgress: function (_data) {
+            return {};
+        },
+        destroy: function (_container) {
+            return Promise.resolve().then(function () {
+                try {
+                    var r = unloadFn();
+                    if (r instanceof Promise)
+                        return r;
+                }
+                catch (e) { }
+            }).then(function () {
+                try {
+                    var r = destroyFn();
+                    if (r instanceof Promise)
+                        return r;
+                }
+                catch (e) { }
+                _isRunning = false;
+            });
+        }
     };
 }
 
