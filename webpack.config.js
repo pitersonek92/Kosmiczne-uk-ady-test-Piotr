@@ -46,7 +46,7 @@ module.exports = function (env, argv) {
                 : IS_DEPLOY
                   ? path.resolve(__dirname, "./")
                   : PATHS.BUILD,
-            filename: "entry.js",
+            filename: "entry_v1_0_0.js",
             clean: IS_DEPLOY ? false : {
                 keep: /.git|.github|.gitignore|README.md/
             }

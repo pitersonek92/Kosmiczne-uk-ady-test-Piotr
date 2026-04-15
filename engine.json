@@ -1,5 +1,5 @@
 {
-    "entry": "entry.js",
+    "entry": "entry_v1_0_0.js",
     "stateful": true,
     "useWebGL": false,
     "editor": {
