@@ -860,6 +860,16 @@ export class App {
     return zpePath(name);
   }
 
+  // Sets img.src with automatic fallback to jsDelivr CDN when ZPE CDN returns 404
+  private setImg(img: HTMLImageElement, assetPath: string): void {
+    img.onerror = null;
+    img.src = this.p(assetPath);
+    img.onerror = () => {
+      img.onerror = null;
+      img.src = 'https://cdn.jsdelivr.net/gh/pitersonek92/Kosmiczne-uk-ady-test-Piotr@main/' + assetPath;
+    };
+  }
+
   // ============================================================
   // TOPBAR
   // ============================================================
@@ -937,7 +947,7 @@ export class App {
     // Background
     const bg = document.createElement('img');
     bg.className = 'ku-welcome-bg';
-    bg.src = this.p('images/bg_all.png');
+    this.setImg(bg, 'images/bg_all.png');
     bg.alt = '';
     bg.setAttribute('aria-hidden', 'true');
     screen.appendChild(bg);
@@ -952,7 +962,7 @@ export class App {
     decos.forEach(d => {
       const img = document.createElement('img');
       img.className = 'ku-deco';
-      img.src = this.p(d.file);
+      this.setImg(img, d.file);
       img.alt = d.alt;
       img.setAttribute('style', d.style);
       screen.appendChild(img);
@@ -979,7 +989,7 @@ export class App {
 
     const taskIcon = document.createElement('img');
     taskIcon.className = 'ku-task-icon';
-    taskIcon.src = this.p('images/icon_clipboard.png');
+    this.setImg(taskIcon, 'images/icon_clipboard.png');
     taskIcon.alt = '';
 
     const taskText = document.createElement('p');
@@ -1071,14 +1081,14 @@ export class App {
     // Satellite deco
     const satDeco = document.createElement('img');
     satDeco.className = 'ku-satellite-deco';
-    satDeco.src = this.p('images/rys_03.png');
+    this.setImg(satDeco, 'images/rys_03.png');
     satDeco.alt = '';
     satDeco.setAttribute('aria-hidden', 'true');
 
     // Astronaut deco
     const astroDeco = document.createElement('img');
     astroDeco.className = 'ku-astro-deco';
-    astroDeco.src = this.p('images/rys_04.png');
+    this.setImg(astroDeco, 'images/rys_04.png');
     astroDeco.alt = '';
     astroDeco.setAttribute('aria-hidden', 'true');
 
@@ -1185,13 +1195,13 @@ export class App {
 
       const portrait = document.createElement('img');
       portrait.className = 'ku-portrait';
-      portrait.src = this.p(`images/${astro.portrait}`);
+      this.setImg(portrait, `images/${astro.portrait}`);
       portrait.alt = astro.name;
 
       // Hover effects
       wrap.addEventListener('mouseenter', () => {
         if (idx !== this.state.activeAstronomerIndex) {
-          portrait.src = this.p(`images/${astro.portraitHover}`);
+          this.setImg(portrait, `images/${astro.portraitHover}`);
         }
         this.showPortraitTooltip(wrap, astro.name);
         playHover(this.state.wcag.soundEnabled);
@@ -1199,7 +1209,7 @@ export class App {
 
       wrap.addEventListener('mouseleave', () => {
         if (idx !== this.state.activeAstronomerIndex) {
-          portrait.src = this.p(`images/${astro.portrait}`);
+          this.setImg(portrait, `images/${astro.portrait}`);
         }
         this.hidePortraitTooltip(wrap);
       });
@@ -1248,13 +1258,13 @@ export class App {
     document.querySelectorAll('.ku-portrait-wrap').forEach((el, i) => {
       el.classList.toggle('active', i === idx);
       const img = el.querySelector('.ku-portrait') as HTMLImageElement;
-      if (img) img.src = this.p(`images/${ASTRONOMERS[i].portrait}`);
+      if (img) this.setImg(img, `images/${ASTRONOMERS[i].portrait}`);
     });
 
     // Update portrait image for active
     const activeWrap = document.querySelectorAll('.ku-portrait-wrap')[idx];
     if (activeWrap) {
-      (activeWrap.querySelector('.ku-portrait') as HTMLImageElement).src = this.p(`images/${astro.portraitHover}`);
+      this.setImg(activeWrap.querySelector('.ku-portrait') as HTMLImageElement, `images/${astro.portraitHover}`);
     }
 
     this.updateSolarTitle(astro.screenTitle);
@@ -1324,7 +1334,7 @@ export class App {
     // Background
     const bg = document.createElement('img');
     bg.style.cssText = 'position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important;';
-    bg.src = this.p('images/bg_all.png');
+    this.setImg(bg, 'images/bg_all.png');
     bg.alt = '';
     screen.appendChild(bg);
 
@@ -1350,7 +1360,7 @@ export class App {
     // Astronaut deco
     const deco = document.createElement('img');
     deco.className = 'ku-astro-deco';
-    deco.src = this.p('images/rys_05.png');
+    this.setImg(deco, 'images/rys_05.png');
     deco.alt = '';
     canvasWrap.appendChild(deco);
 
@@ -1484,7 +1494,7 @@ export class App {
 
     const pic = document.createElement('img');
     pic.className = 'ku-bio-pic';
-    pic.src = this.p(`images/${astro.bioPic}`);
+    this.setImg(pic, `images/${astro.bioPic}`);
     pic.alt = astro.name;
 
     const text = document.createElement('div');

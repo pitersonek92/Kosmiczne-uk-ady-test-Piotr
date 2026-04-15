@@ -1174,6 +1174,15 @@ var App = /** @class */ (function () {
     App.prototype.p = function (name) {
         return path(name);
     };
+    // Sets img.src with automatic fallback to jsDelivr CDN when ZPE CDN returns 404
+    App.prototype.setImg = function (img, assetPath) {
+        img.onerror = null;
+        img.src = this.p(assetPath);
+        img.onerror = function () {
+            img.onerror = null;
+            img.src = 'https://cdn.jsdelivr.net/gh/pitersonek92/Kosmiczne-uk-ady-test-Piotr@main/' + assetPath;
+        };
+    };
     // ============================================================
     // TOPBAR
     // ============================================================
@@ -1238,7 +1247,7 @@ var App = /** @class */ (function () {
         // Background
         var bg = document.createElement('img');
         bg.className = 'ku-welcome-bg';
-        bg.src = this.p('images/bg_all.png');
+        this.setImg(bg, 'images/bg_all.png');
         bg.alt = '';
         bg.setAttribute('aria-hidden', 'true');
         screen.appendChild(bg);
@@ -1252,7 +1261,7 @@ var App = /** @class */ (function () {
         decos.forEach(function (d) {
             var img = document.createElement('img');
             img.className = 'ku-deco';
-            img.src = _this.p(d.file);
+            _this.setImg(img, d.file);
             img.alt = d.alt;
             img.setAttribute('style', d.style);
             screen.appendChild(img);
@@ -1273,7 +1282,7 @@ var App = /** @class */ (function () {
         taskBox.className = 'ku-task-box';
         var taskIcon = document.createElement('img');
         taskIcon.className = 'ku-task-icon';
-        taskIcon.src = this.p('images/icon_clipboard.png');
+        this.setImg(taskIcon, 'images/icon_clipboard.png');
         taskIcon.alt = '';
         var taskText = document.createElement('p');
         taskText.className = 'ku-task-text';
@@ -1348,13 +1357,13 @@ var App = /** @class */ (function () {
         // Satellite deco
         var satDeco = document.createElement('img');
         satDeco.className = 'ku-satellite-deco';
-        satDeco.src = this.p('images/rys_03.png');
+        this.setImg(satDeco, 'images/rys_03.png');
         satDeco.alt = '';
         satDeco.setAttribute('aria-hidden', 'true');
         // Astronaut deco
         var astroDeco = document.createElement('img');
         astroDeco.className = 'ku-astro-deco';
-        astroDeco.src = this.p('images/rys_04.png');
+        this.setImg(astroDeco, 'images/rys_04.png');
         astroDeco.alt = '';
         astroDeco.setAttribute('aria-hidden', 'true');
         canvasArea.append(canvasTitle, canvas, zoomBar, satDeco, astroDeco);
@@ -1458,19 +1467,19 @@ var App = /** @class */ (function () {
             }
             var portrait = document.createElement('img');
             portrait.className = 'ku-portrait';
-            portrait.src = _this.p("images/".concat(astro.portrait));
+            _this.setImg(portrait, "images/".concat(astro.portrait));
             portrait.alt = astro.name;
             // Hover effects
             wrap.addEventListener('mouseenter', function () {
                 if (idx !== _this.state.activeAstronomerIndex) {
-                    portrait.src = _this.p("images/".concat(astro.portraitHover));
+                    _this.setImg(portrait, "images/".concat(astro.portraitHover));
                 }
                 _this.showPortraitTooltip(wrap, astro.name);
                 playHover(_this.state.wcag.soundEnabled);
             });
             wrap.addEventListener('mouseleave', function () {
                 if (idx !== _this.state.activeAstronomerIndex) {
-                    portrait.src = _this.p("images/".concat(astro.portrait));
+                    _this.setImg(portrait, "images/".concat(astro.portrait));
                 }
                 _this.hidePortraitTooltip(wrap);
             });
@@ -1515,12 +1524,12 @@ var App = /** @class */ (function () {
             el.classList.toggle('active', i === idx);
             var img = el.querySelector('.ku-portrait');
             if (img)
-                img.src = _this.p("images/".concat(ASTRONOMERS[i].portrait));
+                _this.setImg(img, "images/".concat(ASTRONOMERS[i].portrait));
         });
         // Update portrait image for active
         var activeWrap = document.querySelectorAll('.ku-portrait-wrap')[idx];
         if (activeWrap) {
-            activeWrap.querySelector('.ku-portrait').src = this.p("images/".concat(astro.portraitHover));
+            this.setImg(activeWrap.querySelector('.ku-portrait'), "images/".concat(astro.portraitHover));
         }
         this.updateSolarTitle(astro.screenTitle);
         (_a = this.engine) === null || _a === void 0 ? void 0 : _a.setPlanets(astro.planets);
@@ -1583,7 +1592,7 @@ var App = /** @class */ (function () {
         // Background
         var bg = document.createElement('img');
         bg.style.cssText = 'position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important;';
-        bg.src = this.p('images/bg_all.png');
+        this.setImg(bg, 'images/bg_all.png');
         bg.alt = '';
         screen.appendChild(bg);
         // Left panel (same as solar screen)
@@ -1603,7 +1612,7 @@ var App = /** @class */ (function () {
         // Astronaut deco
         var deco = document.createElement('img');
         deco.className = 'ku-astro-deco';
-        deco.src = this.p('images/rys_05.png');
+        this.setImg(deco, 'images/rys_05.png');
         deco.alt = '';
         canvasWrap.appendChild(deco);
         var footer = document.createElement('div');
@@ -1727,7 +1736,7 @@ var App = /** @class */ (function () {
         bioWrap.className = 'ku-bio-body';
         var pic = document.createElement('img');
         pic.className = 'ku-bio-pic';
-        pic.src = this.p("images/".concat(astro.bioPic));
+        this.setImg(pic, "images/".concat(astro.bioPic));
         pic.alt = astro.name;
         var text = document.createElement('div');
         text.className = 'ku-bio-text';
@@ -2153,7 +2162,7 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 };
 
 
-console.log('[KU] Kosmiczne Układy v1.0.2 loaded (ZPE-Port 2.0)');
+console.log('[KU] Kosmiczne Układy v1.0.1 loaded (ZPE-Port 2.0)');
 var app = null;
 var _savedState = {};
 function init(container) {

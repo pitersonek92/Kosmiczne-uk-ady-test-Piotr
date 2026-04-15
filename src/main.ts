@@ -7,7 +7,7 @@ import * as ZPE from '@/zpe-port';
 import { App } from './app';
 import { AppState } from './data';
 
-console.log('[KU] Kosmiczne Układy v1.0.2 loaded (ZPE-Port 2.0)');
+console.log('[KU] Kosmiczne Układy v1.0.1 loaded (ZPE-Port 2.0)');
 
 let app: App | null = null;
 let _savedState: any = {};
