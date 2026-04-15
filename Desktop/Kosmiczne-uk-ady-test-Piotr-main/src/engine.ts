@@ -87,17 +87,18 @@ export class CanvasEngine {
   private loadPlanetImages(): void {
     if (!this.pathFn) return;
     // Mapping planet base IDs to actual asset filenames
+    // WAŻNE: prefix images/ wymagany przez ZPE enginePath()
     const imgMap: Record<string, string> = {
-      'slonce': 'slonce.png',
-      'ziemia': 'ziemia.png',
-      'merkury': 'merkury.png',
-      'wenus': 'wenus.png',
-      'mars': 'mars.png',
-      'jowisz': 'jowisz.png',
-      'saturn': 'saturn.png',
-      'uran': 'uran.png',
-      'neptun': 'neptun.png',
-      'ksiezyc': 'ksiezyc.png',
+      'slonce': 'images/slonce.png',
+      'ziemia': 'images/ziemia.png',
+      'merkury': 'images/merkury.png',
+      'wenus': 'images/wenus.png',
+      'mars': 'images/mars.png',
+      'jowisz': 'images/jowisz.png',
+      'saturn': 'images/saturn.png',
+      'uran': 'images/uran.png',
+      'neptun': 'images/neptun.png',
+      'ksiezyc': 'images/ksiezyc.png',
     };
     this.planets.forEach(p => {
       const baseId = p.id.split('_')[0];

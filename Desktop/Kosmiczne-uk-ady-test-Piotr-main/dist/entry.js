@@ -418,17 +418,18 @@ var CanvasEngine = /** @class */ (function () {
         if (!this.pathFn)
             return;
         // Mapping planet base IDs to actual asset filenames
+        // WAŻNE: prefix images/ wymagany przez ZPE enginePath()
         var imgMap = {
-            'slonce': 'slonce.png',
-            'ziemia': 'ziemia.png',
-            'merkury': 'merkury.png',
-            'wenus': 'wenus.png',
-            'mars': 'mars.png',
-            'jowisz': 'jowisz.png',
-            'saturn': 'saturn.png',
-            'uran': 'uran.png',
-            'neptun': 'neptun.png',
-            'ksiezyc': 'ksiezyc.png',
+            'slonce': 'images/slonce.png',
+            'ziemia': 'images/ziemia.png',
+            'merkury': 'images/merkury.png',
+            'wenus': 'images/wenus.png',
+            'mars': 'images/mars.png',
+            'jowisz': 'images/jowisz.png',
+            'saturn': 'images/saturn.png',
+            'uran': 'images/uran.png',
+            'neptun': 'images/neptun.png',
+            'ksiezyc': 'images/ksiezyc.png',
         };
         this.planets.forEach(function (p) {
             var baseId = p.id.split('_')[0];
@@ -1307,7 +1308,7 @@ var App = /** @class */ (function () {
         // Astronaut deco
         var astroDeco = document.createElement('img');
         astroDeco.className = 'ku-astro-deco';
-        astroDeco.src = this.p('images/rys_04.png');
+        astroDeco.src = this.p('images/astrounaut.png');
         astroDeco.alt = '';
         astroDeco.setAttribute('aria-hidden', 'true');
         canvasArea.append(canvasTitle, canvas, zoomBar, satDeco, astroDeco);
@@ -1558,7 +1559,7 @@ var App = /** @class */ (function () {
         // Astronaut deco
         var deco = document.createElement('img');
         deco.className = 'ku-astro-deco';
-        deco.src = this.p('images/rys_05.png');
+        deco.src = this.p('images/astrounaut.png');
         deco.alt = '';
         canvasWrap.appendChild(deco);
         var footer = document.createElement('div');

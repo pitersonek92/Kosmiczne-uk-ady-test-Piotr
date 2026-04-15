@@ -995,7 +995,7 @@ export class App {
     // Astronaut deco
     const astroDeco = document.createElement('img');
     astroDeco.className = 'ku-astro-deco';
-    astroDeco.src = this.p('images/rys_04.png');
+    astroDeco.src = this.p('images/astrounaut.png');
     astroDeco.alt = '';
     astroDeco.setAttribute('aria-hidden', 'true');
 
@@ -1268,7 +1268,7 @@ export class App {
     // Astronaut deco
     const deco = document.createElement('img');
     deco.className = 'ku-astro-deco';
-    deco.src = this.p('images/rys_05.png');
+    deco.src = this.p('images/astrounaut.png');
     deco.alt = '';
     canvasWrap.appendChild(deco);
 
