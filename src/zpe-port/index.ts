@@ -3,6 +3,8 @@
 // Compatible with ZPE-Port 2.0 API (zpe-projekty/zpe-port)
 // ============================================================
 
+import { InlineImages } from '../assets/inlineImages';
+
 // Module-level storage — set by init(), used by path(), getData(), setState()
 var _exerciseApi: any = null;
 var _engineOptions: any = null;
@@ -16,6 +18,11 @@ var _isRunning: boolean = false;
  */
 export function path(relativePath: string): string {
   var cleanPath = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
+
+  // 0. Use inlined Base64 assets (bypasses ZPE CDN — works even when CDN is missing files)
+  if (InlineImages[cleanPath]) {
+    return InlineImages[cleanPath];
+  }
 
   // 1. Use stored API from init()
   if (_exerciseApi && typeof _exerciseApi.enginePath === 'function') {
