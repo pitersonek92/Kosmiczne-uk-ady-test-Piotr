@@ -1,6 +1,6 @@
 {
     "name": "kosmiczne-uklady",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Kosmiczne Układy — gra edukacyjna ZPE",
     "scripts": {
         "build": "webpack --config webpack.config.js --env production --",
