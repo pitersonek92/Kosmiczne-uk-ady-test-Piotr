@@ -1190,14 +1190,9 @@ var App = /** @class */ (function () {
     App.prototype.p = function (name) {
         return path(name);
     };
-    // Sets img.src with automatic fallback to jsDelivr CDN when ZPE CDN returns 404
+    // Sets img.src via ZPE enginePath (Base64 inline assets take priority via zpe-port)
     App.prototype.setImg = function (img, assetPath) {
-        img.onerror = null;
         img.src = this.p(assetPath);
-        img.onerror = function () {
-            img.onerror = null;
-            img.src = 'https://cdn.jsdelivr.net/gh/pitersonek92/Kosmiczne-uk-ady-test-Piotr@main/' + assetPath;
-        };
     };
     // ============================================================
     // TOPBAR

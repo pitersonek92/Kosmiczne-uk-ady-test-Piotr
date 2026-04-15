@@ -860,14 +860,9 @@ export class App {
     return zpePath(name);
   }
 
-  // Sets img.src with automatic fallback to jsDelivr CDN when ZPE CDN returns 404
+  // Sets img.src via ZPE enginePath (Base64 inline assets take priority via zpe-port)
   private setImg(img: HTMLImageElement, assetPath: string): void {
-    img.onerror = null;
     img.src = this.p(assetPath);
-    img.onerror = () => {
-      img.onerror = null;
-      img.src = 'https://cdn.jsdelivr.net/gh/pitersonek92/Kosmiczne-uk-ady-test-Piotr@main/' + assetPath;
-    };
   }
 
   // ============================================================
