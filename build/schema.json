@@ -1,12 +1,4 @@
 {
-    "properties": {
-        "showInstrukcja": {
-            "type": "boolean",
-            "label": "Pokaż instrukcję na starcie"
-        },
-        "soundEnabled": {
-            "type": "boolean",
-            "label": "Dźwięk włączony domyślnie"
-        }
-    }
+    "types": {},
+    "properties": {}
 }

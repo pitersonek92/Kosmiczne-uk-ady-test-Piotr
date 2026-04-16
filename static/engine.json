@@ -4,14 +4,8 @@
     "useWebGL": false,
     "editor": {
         "entry": "editor.js",
-        "defaultData": {
-            "showInstrukcja": true,
-            "soundEnabled": true
-        },
-        "demoData": {
-            "showInstrukcja": true,
-            "soundEnabled": true
-        },
+        "defaultData": {},
+        "demoData": {},
         "editorIcon": "editor-icon.svg"
     }
 }
