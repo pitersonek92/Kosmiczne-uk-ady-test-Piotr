@@ -40,9 +40,7 @@ module.exports = function (env, argv) {
             libraryTarget: "amd",
             path: IS_DEV
                 ? path.resolve(PATHS.BUILD, PATHS.PATHNAME)
-                : IS_DEPLOY
-                  ? PATHS.DEPLOY
-                  : PATHS.BUILD,
+                : PATHS.BUILD,
             filename: "entry.js",
             clean: {
                 keep: /.git|.github|.gitignore|README.md/
