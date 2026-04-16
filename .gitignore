@@ -1,5 +1,11 @@
-node_modules/
-deploy/
-nohup.out
-*.log
+# dependencies
+/node_modules
+
+# production
+/build
+
+# misc
+/_temp
 .DS_Store
+**/.DS_Store
+package-lock.json

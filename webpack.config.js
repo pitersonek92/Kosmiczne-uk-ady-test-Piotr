@@ -1,50 +1,32 @@
 const path = require("path");
 const fs = require("fs");
-const process = require("process");
 const CopyPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const ZpePortUpdatePlugin = require("./scripts/zpe-port-update-check-plugin");
 const PACKAGE = require("./package.json");
-
-const ZPE_PORT_BASE = fs.existsSync("/home/ubuntu/zpe-port") ? "/home/ubuntu/zpe-port" : "/Users/arsendacenko/Desktop/ZPE/zpe-port";
-const ZPE_PORT = path.resolve(ZPE_PORT_BASE, "dist");
 
 const PATHS = {
     STATIC: path.resolve(__dirname, "./static"),
     SRC: path.resolve(__dirname, "./src"),
     BUILD: path.resolve(__dirname, "./build"),
-    DEPLOY: path.resolve(__dirname, "./deploy"),
-    PACKAGE: path.resolve(__dirname, "./packages"),
-    EMULATOR: path.resolve(ZPE_PORT, "emulator"),
-    EDITOR: path.resolve(ZPE_PORT, "editor"),
-    PORT: ZPE_PORT,
-    DATA: path.resolve(__dirname, "./data"),
-    PATHNAME: `prev/RESOURCE-ID/pl/main/`
+    PACKAGES: path.resolve(__dirname, "./packages"),
+    EMULATOR_BUILD: path.resolve(__dirname, "./packages/zpe-emulator/build"),
+    EDITOR_BUILD: path.resolve(__dirname, "./packages/zpe-editor/build"),
+    DATA: path.resolve(__dirname, "./data")
 };
 
-console.log(ZPE_PORT);
-
 module.exports = function (env, argv) {
-    const IS_DEV = env.development ? true : false;
-    const IS_DEPLOY = env.deploy ? true : false;
-    const IS_BUILD = env.production && !env.deploy ? true : false;
+    const IS_DEV = env.production ? false : true;
     const SERVER_PORT = env.port || 8080;
 
     return {
         mode: env.production ? "production" : "development",
         devtool: IS_DEV ? "cheap-module-source-map" : false,
-        entry: {
-            app: path.resolve(PATHS.SRC, "main.ts")
-        },
+        entry: path.resolve(PATHS.SRC, "main.ts"),
         output: {
+            path: PATHS.BUILD,
             libraryTarget: "amd",
-            path: IS_DEV
-                ? path.resolve(PATHS.BUILD, PATHS.PATHNAME)
-                : PATHS.BUILD,
             filename: "entry.js",
-            clean: {
-                keep: /.git|.github|.gitignore|README.md/
-            }
+            clean: true
         },
         externals: {
             // jquery: "jquery:3"
@@ -52,21 +34,15 @@ module.exports = function (env, argv) {
         resolve: {
             alias: {
                 "~": path.join(PATHS.SRC),
-                "@/zpe-port": ZPE_PORT_BASE
+                "@": path.join(PATHS.PACKAGES)
             },
             modules: ["packages", "node_modules", "src"],
             extensions: [".ts", ".tsx", ".js", ".jsx"]
         },
         devServer: {
             static: [
-                {
-                    directory: path.resolve(PATHS.STATIC),
-                    publicPath: `/${PATHS.PATHNAME}`
-                },
-                {
-                    directory: path.resolve(PATHS.EMULATOR),
-                    publicPath: `/${PATHS.PATHNAME}`
-                }
+                path.resolve(PATHS.STATIC),
+                path.resolve(PATHS.EMULATOR_BUILD)
             ],
             open: false,
             hot: false,
@@ -78,67 +54,17 @@ module.exports = function (env, argv) {
                     throw new Error("webpack-dev-server is not defined");
                 }
 
-                devServer.app.get(["/", "/index.html"], (req, res) => {
-                    res.redirect(
-                        301,
-                        path.join(`${PATHS.PATHNAME}`, "/index.html")
-                    );
-                });
-
-                devServer.app.get("/favicon.png", (req, res) => {
-                    const faviconFile = path.resolve(
-                        PATHS.EMULATOR,
-                        "favicon.png"
-                    );
-                    res.sendFile(faviconFile);
-                });
-
-                devServer.app.get(
-                    `/${PATHS.PATHNAME}engine.json`,
-                    (req, res) => {
-                        if (IS_DEV && env.engine) {
-                            const engineFile = path.resolve(
-                                PATHS.DATA,
-                                env.engine
-                            );
-                            res.sendFile(engineFile);
-                        } else {
-                            const defaultEngineFile = path.resolve(
-                                PATHS.STATIC,
-                                "engine.json"
-                            );
-                            res.sendFile(defaultEngineFile);
-                        }
-                    }
-                );
-
-                devServer.app.get(
-                    `/${PATHS.PATHNAME}savedata.json`,
-                    (req, res) => {
-                        const savedataFile = path.resolve(
-                            PATHS.DATA,
-                            env.savedata || "savedata.json"
-                        );
-                        if (fs.existsSync(savedataFile)) {
-                            res.sendFile(savedataFile);
-                        } else {
-                            console.log(
-                                "\x1b[35m[devServerMid] Savedata file not found, returning null:",
-                                savedataFile,
-                                "\x1b[0m"
-                            );
-                            res.send("null");
-                        }
-                    }
-                );
-
-                // Root-level routes for emulator (uses absolute paths)
-                // Serve static assets under /assets/ path (emulator uses enginePath: /assets/{path})
-                devServer.app.use("/assets", require("express").static(path.resolve(PATHS.STATIC)));
-
                 devServer.app.get("/engine.json", (req, res) => {
-                    const engineFile = path.resolve(PATHS.STATIC, "engine.json");
-                    res.sendFile(engineFile);
+                    if (IS_DEV && env.engine) {
+                        const engineFile = path.resolve(PATHS.DATA, env.engine);
+                        res.sendFile(engineFile);
+                    } else {
+                        const defaultEngineFile = path.resolve(
+                            PATHS.STATIC,
+                            "engine.json"
+                        );
+                        res.sendFile(defaultEngineFile);
+                    }
                 });
 
                 devServer.app.get("/savedata.json", (req, res) => {
@@ -149,6 +75,11 @@ module.exports = function (env, argv) {
                     if (fs.existsSync(savedataFile)) {
                         res.sendFile(savedataFile);
                     } else {
+                        console.log(
+                            "\x1b[35m[devServerMid] Savedata file not found, returning null:",
+                            savedataFile,
+                            "\x1b[0m"
+                        );
                         res.send("null");
                     }
                 });
@@ -177,84 +108,34 @@ module.exports = function (env, argv) {
             ]
         },
         plugins: [
-            new ZpePortUpdatePlugin(),
-
             new CopyPlugin({
                 patterns: [
                     {
                         from: PATHS.STATIC,
                         to: "./",
-                        info: { minimized: true }
+                        info: { minimized: true },
+                        globOptions: {
+                            ignore: ["**/.DS_Store"]
+                        }
                     },
-                    ...(IS_DEPLOY
-                        ? [
-                              {
-                                  from: path.resolve(PATHS.EDITOR, "editor.js"),
-                                  to: "./editor.js",
-                                  info: { minimized: true }
-                              }
-                          ]
-                        : []),
-                    ...(IS_DEV || IS_BUILD
-                        ? [
-                              {
-                                  from: path.resolve(PATHS.EDITOR),
-                                  to: "./",
-                                  info: { minimized: true },
-                                  filter: async (resourcePath) => {
-                                      const relativePath = path.relative(
-                                          PATHS.EMULATOR,
-                                          resourcePath
-                                      );
-                                      return ![
-                                          "favicon.png",
-                                          ".DS_Store"
-                                      ].includes(relativePath);
-                                  }
-                              },
-                              {
-                                  from: path.resolve(PATHS.EMULATOR),
-                                  to: "./",
-                                  info: { minimized: true },
-                                  filter: async (resourcePath) => {
-                                      const relativePath = path.relative(
-                                          PATHS.EMULATOR,
-                                          resourcePath
-                                      );
-                                      return ![
-                                          "index.html",
-                                          "favicon.png",
-                                          ".DS_Store"
-                                      ].includes(relativePath);
-                                  }
-                              }
-                          ]
-                        : []),
-                    ...(IS_BUILD
-                        ? [
-                              {
-                                  from: path.resolve(
-                                      PATHS.DATA,
-                                      "savedata.json"
-                                  ),
-                                  to: "./",
-                                  info: { minimized: true }
-                              }
-                          ]
-                        : [])
+                    {
+                        from: path.resolve(PATHS.EDITOR_BUILD),
+                        to: "./",
+                        info: { minimized: true },
+                        globOptions: {
+                            ignore: ["**/.DS_Store"]
+                        }
+                    }
                 ]
             }),
-
-            IS_DEV || IS_BUILD
+            IS_DEV
                 ? new HtmlWebpackPlugin({
                       inject: false,
                       minify: false,
                       title: `${PACKAGE.name} ${PACKAGE.version} - Development`,
-                      favicon: path.resolve(PATHS.EMULATOR, "favicon.png"),
-                      template: path.resolve(PATHS.EMULATOR, "index.html"),
-                      filename: IS_DEV
-                          ? path.join(PATHS.PATHNAME, "index.html")
-                          : "index.html"
+                      favicon: path.resolve(PATHS.EMULATOR_BUILD, "favicon.png"),
+                      template: path.resolve(PATHS.EMULATOR_BUILD, "index.html"),
+                      filename: "index.html"
                   })
                 : null
         ],

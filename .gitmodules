@@ -1,0 +1,9 @@
+[submodule "packages/zpe-port"]
+	path = packages/zpe-port
+	url = https://github.com/zpe-projekty/zpe-port.git
+[submodule "packages/zpe-emulator"]
+	path = packages/zpe-emulator
+	url = https://github.com/zpe-projekty/zpe-emulator.git
+[submodule "packages/zpe-editor"]
+	path = packages/zpe-editor
+	url = https://github.com/zpe-projekty/zpe-editor.git
