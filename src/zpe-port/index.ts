@@ -47,7 +47,7 @@ export function path(relativePath: string): string {
     var scripts = document.getElementsByTagName('script');
     for (var i = 0; i < scripts.length; i++) {
       var src = scripts[i].src;
-      if (src && (src.indexOf('entry.js') !== -1 || src.indexOf('loader.js') !== -1)) {
+      if (src && (src.indexOf('entry.js') !== -1 || src.indexOf('loader.js') !== -1 || src.indexOf('entry_v') !== -1)) {
         var lastSlash = src.lastIndexOf('/');
         var detected = lastSlash !== -1 ? src.substring(0, lastSlash + 1) : './';
         (window as any).__ZPE_BASE_URL__ = detected;
