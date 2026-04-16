@@ -6,7 +6,8 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ZpePortUpdatePlugin = require("./scripts/zpe-port-update-check-plugin");
 const PACKAGE = require("./package.json");
 
-const ZPE_PORT = path.resolve("/home/ubuntu/zpe-port", "dist");
+const ZPE_PORT_BASE = fs.existsSync("/home/ubuntu/zpe-port") ? "/home/ubuntu/zpe-port" : "/Users/arsendacenko/Desktop/ZPE/zpe-port";
+const ZPE_PORT = path.resolve(ZPE_PORT_BASE, "dist");
 
 const PATHS = {
     STATIC: path.resolve(__dirname, "./static"),
@@ -53,7 +54,7 @@ module.exports = function (env, argv) {
         resolve: {
             alias: {
                 "~": path.join(PATHS.SRC),
-                "@/zpe-port": path.join("/home/ubuntu/zpe-port")
+                "@/zpe-port": ZPE_PORT_BASE
             },
             modules: ["packages", "node_modules", "src"],
             extensions: [".ts", ".tsx", ".js", ".jsx"]

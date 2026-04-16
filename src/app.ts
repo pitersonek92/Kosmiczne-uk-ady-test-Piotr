@@ -1,52 +1,4 @@
-import { path, setState } from "@/zpe-port";
-
-// ═══════════════════════════════════════════════════════════════════
-// TYPES & INTERFACES
-// ═══════════════════════════════════════════════════════════════════
-
-interface Planet {
-  name: string;
-  type: string;
-  color: string;
-  radius: number;
-  orbitRadius: number;
-  orbitSpeed: number;
-  angle: number;
-  eccentricity?: number; // for Kepler elliptical orbits
-}
-
-interface AstronomerModel {
-  id: string;
-  name: string;
-  years: string;
-  portrait: string;
-  portraitOver: string;
-  modelTitle: string;
-  modelType: "geocentric" | "heliocentric" | "kepler";
-  bio: string;
-  planets: Planet[];
-}
-
-interface WcagSettings {
-  textSize: 1 | 2 | 3;
-  highContrast: boolean;
-  reduceMotion: boolean;
-  orbitsVisible: boolean;
-  colorFilter: "none" | "protanopia" | "deuteranopia" | "tritanopia" | "grayscale";
-  voiceover: boolean;
-  audiodesc: boolean;
-  cursorSize: "normal" | "large" | "xlarge";
-  cursorColor: "default" | "white" | "yellow" | "cyan";
-}
-
-interface AppState {
-  screen: "welcome" | "game" | "model";
-  selectedAstronomer: number;
-  modelAstronomer: number;
-  wcag: WcagSettings;
-  onboardingDone: boolean;
-  onboardingStep: number;
-}
+import { path, getData, setState } from "@/zpe-port";
 
 // ═══════════════════════════════════════════════════════════════════
 // CONSTANTS
@@ -54,93 +6,219 @@ interface AppState {
 
 const GAME_W = 1920;
 const GAME_H = 1080;
-const TOPBAR_H = 68;
+const TOPBAR_H = 72;
+
+// ═══════════════════════════════════════════════════════════════════
+// ASSET PATHS — all graphics from client
+// ═══════════════════════════════════════════════════════════════════
+
+function img(name: string): string { return path(name); }
+
+const ASSETS = {
+  bg: () => img("bg_all.png"),
+  topBar: () => img("top_bar.png"),
+  aplaDark: () => img("apla_dark.png"),
+  // Buttons
+  btn280: () => img("btn_280x80.png"),
+  btn420: () => img("btn_420x80.png"),
+  btn620: () => img("btn_620x80.png"),
+  btnCircle: () => img("btn_circle_bg.png"),
+  // Icons
+  icoSoundOn: () => img("ico_sound_on.svg"),
+  icoSoundOff: () => img("ico_sound_off.svg"),
+  icoHelp: () => img("ico_help_ico.svg"),
+  icoSetting: () => img("ico_setting.svg"),
+  icoClipboard: () => img("icon_clipboard.svg.png"),
+  // Portraits
+  pp01: () => img("pp_01.png"),
+  pp02: () => img("pp_02.png"),
+  pp02over: () => img("pp_02_over.png"),
+  pp03: () => img("pp_03.png"),
+  kopernik: () => img("kopernik.png"),
+  // Solar system diagrams
+  planet01: () => img("planet_01.png"),
+  planet02: () => img("planet_02.png"),
+  // Popup
+  popupBg: () => img("popup_simple_920x650.png"),
+  // Decorations
+  rys01: () => img("rys_01.png"),
+  rys02: () => img("rys_02.png"),
+  rys03: () => img("rys_03.png"),
+  rys04: () => img("rys_04.png"),
+  rys05: () => img("rys_05.png"),
+  // Separators
+  sep500: () => img("sep_500.png"),
+  sep980: () => img("sep_980.png"),
+  // Slider
+  sliderBg: () => img("slider_bg.png"),
+  sliderThumb: () => img("slider_thumb.png"),
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════════
+
+interface WcagState {
+  textSize: 1 | 2 | 3;
+  narrator: boolean;
+  audioDesc: boolean;
+  orbitsVisible: boolean;
+  highContrast: boolean;
+  reduceMotion: boolean;
+  colorFilter: "none" | "protanopia" | "deuteranopia" | "tritanopia" | "grayscale";
+}
+
+interface AppState {
+  screen: "welcome" | "game" | "model";
+  astronomer: number;
+  wcag: WcagState;
+  muted: boolean;
+  onboardDone: boolean;
+}
+
+interface AstronomerData {
+  id: string;
+  name: string;
+  years: string;
+  bio: string;
+  modelTitle: string;
+  modelType: "geocentric" | "heliocentric" | "kepler";
+  portrait: () => string;
+  portraitOver: () => string;
+  bioPicture: () => string;
+}
+
+interface Planet {
+  name: string;
+  type: string;
+  color: string;
+  radius: number;
+  orbit: number;
+  speed: number;
+  angle: number;
+  eccentricity?: number;
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // DATA
 // ═══════════════════════════════════════════════════════════════════
 
-const PTOLEMY_PLANETS: Planet[] = [
-  { name: "Księżyc",  type: "Satelita",       color: "#C8C8C8", radius: 10, orbitRadius: 90,  orbitSpeed: 0.025, angle: 0 },
-  { name: "Merkury",  type: "Planeta skalista",color: "#B5A07A", radius: 12, orbitRadius: 140, orbitSpeed: 0.020, angle: 1.0 },
-  { name: "Wenus",    type: "Planeta skalista",color: "#E8C87A", radius: 18, orbitRadius: 195, orbitSpeed: 0.015, angle: 2.1 },
-  { name: "Słońce",   type: "Gwiazda",         color: "#FFD700", radius: 30, orbitRadius: 260, orbitSpeed: 0.010, angle: 0.5 },
-  { name: "Mars",     type: "Planeta skalista",color: "#C1440E", radius: 14, orbitRadius: 330, orbitSpeed: 0.008, angle: 3.2 },
-  { name: "Jowisz",   type: "Planeta gazowa",  color: "#C88B3A", radius: 26, orbitRadius: 400, orbitSpeed: 0.005, angle: 1.7 },
-  { name: "Saturn",   type: "Planeta gazowa",  color: "#E8D5A3", radius: 22, orbitRadius: 470, orbitSpeed: 0.003, angle: 4.1 },
-];
-
-const COPERNICUS_PLANETS: Planet[] = [
-  { name: "Merkury",  type: "Planeta skalista",color: "#B5A07A", radius: 10, orbitRadius: 80,  orbitSpeed: 0.030, angle: 0 },
-  { name: "Wenus",    type: "Planeta skalista",color: "#E8C87A", radius: 14, orbitRadius: 130, orbitSpeed: 0.022, angle: 1.2 },
-  { name: "Ziemia",   type: "Planeta skalista",color: "#4A90D9", radius: 15, orbitRadius: 185, orbitSpeed: 0.017, angle: 2.5 },
-  { name: "Mars",     type: "Planeta skalista",color: "#C1440E", radius: 12, orbitRadius: 245, orbitSpeed: 0.012, angle: 0.8 },
-  { name: "Jowisz",   type: "Planeta gazowa",  color: "#C88B3A", radius: 28, orbitRadius: 330, orbitSpeed: 0.006, angle: 3.7 },
-  { name: "Saturn",   type: "Planeta gazowa",  color: "#E8D5A3", radius: 24, orbitRadius: 420, orbitSpeed: 0.003, angle: 5.2 },
-];
-
-const KEPLER_PLANETS: Planet[] = [
-  { name: "Merkury",  type: "Planeta skalista",color: "#B5A07A", radius: 10, orbitRadius: 80,  orbitSpeed: 0.030, angle: 0,   eccentricity: 0.206 },
-  { name: "Wenus",    type: "Planeta skalista",color: "#E8C87A", radius: 14, orbitRadius: 130, orbitSpeed: 0.022, angle: 1.2, eccentricity: 0.007 },
-  { name: "Ziemia",   type: "Planeta skalista",color: "#4A90D9", radius: 15, orbitRadius: 185, orbitSpeed: 0.017, angle: 2.5, eccentricity: 0.017 },
-  { name: "Mars",     type: "Planeta skalista",color: "#C1440E", radius: 12, orbitRadius: 245, orbitSpeed: 0.012, angle: 0.8, eccentricity: 0.093 },
-  { name: "Jowisz",   type: "Planeta gazowa",  color: "#C88B3A", radius: 28, orbitRadius: 330, orbitSpeed: 0.006, angle: 3.7, eccentricity: 0.049 },
-  { name: "Saturn",   type: "Planeta gazowa",  color: "#E8D5A3", radius: 24, orbitRadius: 420, orbitSpeed: 0.003, angle: 5.2, eccentricity: 0.057 },
-];
-
-const ASTRONOMERS: AstronomerModel[] = [
+const ASTRONOMERS: AstronomerData[] = [
   {
     id: "ptolemeusz",
     name: "Klaudiusz Ptolemeusz",
-    years: "ok. 100–170 n.e.",
-    portrait: "images/pp_01.png",
-    portraitOver: "images/pp_01.png",
+    years: "ok. 100 – ok. 168 n.e.",
+    bio: 'Klaudiusz Ptolemeusz — grecki astronom, matematyk i geograf działający w Aleksandrii. Stworzył <strong>geocentryczny model Wszechświata</strong>, w którym nieruchoma Ziemia znajdowała się w centrum, a Słońce, Księżyc i planety krążyły wokół niej. Jego dzieło „Almagest" było podstawą astronomii przez ponad 1400 lat.',
     modelTitle: "Układ geocentryczny Ptolemeusza",
     modelType: "geocentric",
-    bio: `<b>Klaudiusz Ptolemeusz</b> (ok. 100–170 n.e.) był grecko-egipskim astronomem, matematykiem i geografem. W dziele <i>Almagest</i> opisał geocentryczny model Wszechświata, w którym <b>Ziemia stała nieruchomo w centrum</b>, a Słońce, Księżyc i planety krążyły wokół niej na sferach krystalicznych.<br><br>Model ten dominował w astronomii przez ponad 1400 lat.`,
-    planets: PTOLEMY_PLANETS,
+    portrait: ASSETS.pp01,
+    portraitOver: ASSETS.pp01,
+    bioPicture: ASSETS.pp01,
   },
   {
     id: "kopernik",
     name: "Mikołaj Kopernik",
     years: "1473–1543",
-    portrait: "images/pp_02.png",
-    portraitOver: "images/pp_02_over.png",
+    bio: 'Mikołaj Kopernik — polski astronom, matematyk i lekarz. Jako pierwszy naukowo uzasadnił <strong>heliocentryczny model Wszechświata</strong>, w którym Słońce znajduje się w centrum, a Ziemia i inne planety krążą wokół niego po okrągłych orbitach. Jego przełomowe dzieło „De revolutionibus orbium coelestium" (O obrotach sfer niebieskich) z 1543 roku zapoczątkowało rewolucję kopernikańską.',
     modelTitle: "Układ słoneczny Mikołaja Kopernika",
     modelType: "heliocentric",
-    bio: `<b>Mikołaj Kopernik</b> (1473–1543) był polskim astronomem, który zaproponował <b>heliocentryczny model Wszechświata</b>. W dziele <i>De revolutionibus</i> (1543) umieścił Słońce w centrum, a Ziemię na orbicie.<br><br>Była to rewolucja, która zmieniła postrzeganie miejsca człowieka we Wszechświecie i zapoczątkowała nowoczesną astronomię.`,
-    planets: COPERNICUS_PLANETS,
+    portrait: ASSETS.pp02,
+    portraitOver: ASSETS.pp02over,
+    bioPicture: ASSETS.kopernik,
   },
   {
     id: "kepler",
     name: "Johannes Kepler",
     years: "1571–1630",
-    portrait: "images/pp_03.png",
-    portraitOver: "images/pp_03.png",
+    bio: 'Johannes Kepler — niemiecki astronom i matematyk, uczeń Tychona Brahe. Odkrył trzy prawa ruchu planet, wykazując że planety poruszają się po <strong>eliptycznych orbitach</strong> ze Słońcem w jednym z ognisk. Jego prawa ruchu planet stanowiły fundament dla teorii grawitacji Newtona i nowoczesnej mechaniki niebieskiej.',
     modelTitle: "Układ słoneczny Jana Keplera",
     modelType: "kepler",
-    bio: `<b>Johannes Kepler</b> (1571–1630) był niemieckim astronomem i matematykiem. Odkrył, że planety poruszają się po <b>eliptycznych orbitach</b>, a nie kołowych. Jego trzy prawa ruchu planet stanowią fundament mechaniki nieba.<br><br>Prawa Keplera potwierdziły heliocentryczny model Kopernika i utorowały drogę dla teorii grawitacji Newtona.`,
-    planets: KEPLER_PLANETS,
+    portrait: ASSETS.pp03,
+    portraitOver: ASSETS.pp03,
+    bioPicture: ASSETS.pp03,
   },
 ];
 
-const ONBOARDING_STEPS = [
-  {
-    icon: "🕹️",
-    title: "Nawigacja",
-    text: "Używaj <b>kółka myszy</b> lub przycisków <b>+/−</b> aby przybliżać i oddalać widok układu słonecznego. Przeciągaj myszą aby przesuwać widok.",
-  },
-  {
-    icon: "🖱️",
-    title: "Interakcje",
-    text: "<b>Lewy przycisk myszy</b> na portrecie astronoma — otwiera jego biografię i model układu.<br><b>Najedź kursorem</b> na planetę — zobaczysz jej nazwę i typ.",
-  },
-  {
-    icon: "⚙️",
-    title: "Dostępność",
-    text: "Kliknij przycisk <b>Ustawienia</b> aby dostosować rozmiar tekstu, kontrast, filtry kolorów i inne opcje dostępności.",
-  },
+const PLANETS_GEO: Planet[] = [
+  { name: "Ziemia", type: "Planeta centralna", color: "#4488ff", radius: 18, orbit: 0, speed: 0, angle: 0 },
+  { name: "Księżyc", type: "Satelita", color: "#cccccc", radius: 6, orbit: 50, speed: 0.025, angle: 0 },
+  { name: "Merkury", type: "Planeta", color: "#b0b0b0", radius: 7, orbit: 90, speed: 0.018, angle: 1.2 },
+  { name: "Wenus", type: "Planeta", color: "#e8c060", radius: 10, orbit: 130, speed: 0.014, angle: 2.5 },
+  { name: "Słońce", type: "Gwiazda", color: "#FFD700", radius: 22, orbit: 175, speed: 0.01, angle: 0.8 },
+  { name: "Mars", type: "Planeta", color: "#cc4422", radius: 9, orbit: 225, speed: 0.007, angle: 3.8 },
+  { name: "Jowisz", type: "Planeta gazowa", color: "#d4a060", radius: 16, orbit: 290, speed: 0.004, angle: 5.1 },
+  { name: "Saturn", type: "Planeta gazowa", color: "#c8a050", radius: 14, orbit: 360, speed: 0.002, angle: 1.5 },
 ];
+
+const PLANETS_HELIO: Planet[] = [
+  { name: "Słońce", type: "Gwiazda", color: "#FFD700", radius: 28, orbit: 0, speed: 0, angle: 0 },
+  { name: "Merkury", type: "Planeta", color: "#b0b0b0", radius: 7, orbit: 55, speed: 0.035, angle: 0 },
+  { name: "Wenus", type: "Planeta", color: "#e8c060", radius: 10, orbit: 90, speed: 0.025, angle: 1.5 },
+  { name: "Ziemia", type: "Planeta", color: "#4488ff", radius: 11, orbit: 130, speed: 0.018, angle: 3.0 },
+  { name: "Mars", type: "Planeta", color: "#cc4422", radius: 9, orbit: 175, speed: 0.012, angle: 4.5 },
+  { name: "Jowisz", type: "Planeta gazowa", color: "#d4a060", radius: 18, orbit: 240, speed: 0.006, angle: 2.0 },
+  { name: "Saturn", type: "Planeta gazowa", color: "#c8a050", radius: 15, orbit: 310, speed: 0.003, angle: 5.5 },
+  { name: "Uran", type: "Planeta lodowa", color: "#66cccc", radius: 12, orbit: 370, speed: 0.0015, angle: 1.0 },
+  { name: "Neptun", type: "Planeta lodowa", color: "#4466dd", radius: 11, orbit: 420, speed: 0.001, angle: 3.5 },
+];
+
+const PLANETS_KEPLER: Planet[] = [
+  { name: "Słońce", type: "Gwiazda", color: "#FFD700", radius: 28, orbit: 0, speed: 0, angle: 0 },
+  { name: "Merkury", type: "Planeta", color: "#b0b0b0", radius: 7, orbit: 55, speed: 0.035, angle: 0, eccentricity: 0.21 },
+  { name: "Wenus", type: "Planeta", color: "#e8c060", radius: 10, orbit: 90, speed: 0.025, angle: 1.5, eccentricity: 0.007 },
+  { name: "Ziemia", type: "Planeta", color: "#4488ff", radius: 11, orbit: 130, speed: 0.018, angle: 3.0, eccentricity: 0.017 },
+  { name: "Mars", type: "Planeta", color: "#cc4422", radius: 9, orbit: 175, speed: 0.012, angle: 4.5, eccentricity: 0.09 },
+  { name: "Jowisz", type: "Planeta gazowa", color: "#d4a060", radius: 18, orbit: 240, speed: 0.006, angle: 2.0, eccentricity: 0.049 },
+  { name: "Saturn", type: "Planeta gazowa", color: "#c8a050", radius: 15, orbit: 310, speed: 0.003, angle: 5.5, eccentricity: 0.056 },
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════════════════════════════════
+
+let _audioCtx: AudioContext | null = null;
+let _muted = false;
+
+function getAudioCtx(): AudioContext {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+  return _audioCtx;
+}
+
+function playClick(): void {
+  if (_muted) return;
+  try {
+    const ctx = getAudioCtx();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = "sine"; o.frequency.value = 800;
+    g.gain.setValueAtTime(0.15, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + 0.1);
+  } catch (e) {}
+}
+
+function playHover(): void {
+  if (_muted) return;
+  try {
+    const ctx = getAudioCtx();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = "sine"; o.frequency.value = 600;
+    g.gain.setValueAtTime(0.05, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + 0.06);
+  } catch (e) {}
+}
+
+function lighten(hex: string, pct: number): string {
+  const n = parseInt(hex.replace("#", ""), 16);
+  const r = Math.min(255, ((n >> 16) & 255) + Math.round(255 * pct));
+  const g = Math.min(255, ((n >> 8) & 255) + Math.round(255 * pct));
+  const b = Math.min(255, (n & 255) + Math.round(255 * pct));
+  return `rgb(${r},${g},${b})`;
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // CSS INJECTION
@@ -159,7 +237,7 @@ function getCSS(): string {
   return `
 /* ═══════════════════════════════════════════════════════════════
    KOSMICZNE UKŁADY — CSS (ZPE isolated, all !important)
-   Namespace: #ku-root
+   Namespace: #ku-root — uses ALL client graphic assets
 ═══════════════════════════════════════════════════════════════ */
 
 #ku-root * {
@@ -179,7 +257,7 @@ function getCSS(): string {
   user-select: none !important;
 }
 
-/* ── Topbar ── */
+/* ── Topbar with top_bar.png ── */
 #ku-root .ku-topbar {
   position: absolute !important;
   top: 0 !important; left: 0 !important; right: 0 !important;
@@ -188,15 +266,15 @@ function getCSS(): string {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  padding: 0 20px !important;
+  padding: 0 24px !important;
   background-size: 100% 100% !important;
   background-repeat: no-repeat !important;
 }
 
 #ku-root .ku-topbar-title {
-  font-size: 22px !important;
+  font-size: 24px !important;
   font-weight: 700 !important;
-  letter-spacing: 3px !important;
+  letter-spacing: 4px !important;
   text-transform: uppercase !important;
   color: #FFD700 !important;
   text-shadow: 0 0 15px rgba(255,215,0,0.6) !important;
@@ -204,32 +282,42 @@ function getCSS(): string {
 
 #ku-root .ku-topbar-btns {
   display: flex !important;
-  gap: 10px !important;
+  gap: 12px !important;
   align-items: center !important;
 }
 
+/* Circle buttons with btn_circle_bg.png */
 #ku-root .ku-topbar-btn {
-  width: 44px !important;
-  height: 44px !important;
+  width: 52px !important;
+  height: 52px !important;
   border: none !important;
   border-radius: 50% !important;
-  background: rgba(255,255,255,0.1) !important;
-  color: #fff !important;
-  font-size: 18px !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-color: transparent !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  transition: background 0.2s !important;
+  transition: transform 0.2s, filter 0.2s !important;
+  padding: 0 !important;
 }
 
 #ku-root .ku-topbar-btn:hover {
-  background: rgba(255,215,0,0.3) !important;
+  transform: scale(1.1) !important;
+  filter: brightness(1.3) !important;
 }
 
 #ku-root .ku-topbar-btn:focus {
   outline: 2px solid #FFD700 !important;
   outline-offset: 2px !important;
+}
+
+#ku-root .ku-topbar-btn img {
+  width: 28px !important;
+  height: 28px !important;
+  pointer-events: none !important;
 }
 
 /* ── Content area ── */
@@ -240,7 +328,7 @@ function getCSS(): string {
   overflow: hidden !important;
 }
 
-/* ── Background ── */
+/* ── Background with bg_all.png ── */
 #ku-root .ku-bg {
   position: absolute !important;
   top: 0 !important; left: 0 !important;
@@ -263,7 +351,7 @@ function getCSS(): string {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   WELCOME SCREEN
+   WELCOME SCREEN — with decorations rys_01-05, clipboard icon, separators
 ══════════════════════════════════════════════════════════════ */
 
 #ku-root .ku-welcome {
@@ -276,51 +364,88 @@ function getCSS(): string {
   background: rgba(10, 30, 80, 0.92) !important;
   border: 2px solid rgba(100, 160, 255, 0.5) !important;
   border-radius: 16px !important;
-  padding: 50px 60px !important;
-  max-width: 820px !important;
+  padding: 44px 56px !important;
+  max-width: 860px !important;
   width: 90% !important;
   text-align: center !important;
   backdrop-filter: blur(10px) !important;
   box-shadow: 0 0 60px rgba(50, 100, 255, 0.3) !important;
+  position: relative !important;
+}
+
+#ku-root .ku-clipboard-icon {
+  width: 64px !important;
+  height: 64px !important;
+  margin-bottom: 12px !important;
 }
 
 #ku-root .ku-welcome-title {
   font-size: 32px !important;
   font-weight: 700 !important;
   color: #FFD700 !important;
-  margin-bottom: 20px !important;
+  margin-bottom: 16px !important;
   letter-spacing: 2px !important;
+}
+
+#ku-root .ku-sep-img {
+  display: block !important;
+  margin: 16px auto !important;
+  max-width: 100% !important;
+  height: auto !important;
 }
 
 #ku-root .ku-welcome-text {
   font-size: 18px !important;
   color: #cce0ff !important;
   line-height: 1.7 !important;
-  margin-bottom: 40px !important;
+  margin-bottom: 28px !important;
 }
 
 #ku-root .ku-welcome-btns {
   display: flex !important;
-  gap: 20px !important;
+  gap: 24px !important;
   justify-content: center !important;
 }
 
+/* Decorative images around welcome popup */
+#ku-root .ku-deco {
+  position: absolute !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+#ku-root .ku-deco img {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
 /* ══════════════════════════════════════════════════════════════
-   BUTTONS
+   BUTTONS — using btn_*.png as background-image
 ══════════════════════════════════════════════════════════════ */
 
 #ku-root .ku-btn {
-  padding: 14px 36px !important;
   border: none !important;
-  border-radius: 8px !important;
+  border-radius: 0 !important;
   font-size: 16px !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   cursor: pointer !important;
-  letter-spacing: 1px !important;
+  letter-spacing: 1.5px !important;
   text-transform: uppercase !important;
-  transition: all 0.2s !important;
+  transition: transform 0.15s, filter 0.15s !important;
+  background-color: transparent !important;
   background-size: 100% 100% !important;
   background-repeat: no-repeat !important;
+  background-position: center !important;
+  color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+#ku-root .ku-btn:hover {
+  transform: scale(1.04) !important;
+  filter: brightness(1.2) !important;
 }
 
 #ku-root .ku-btn:focus {
@@ -328,36 +453,37 @@ function getCSS(): string {
   outline-offset: 2px !important;
 }
 
-#ku-root .ku-btn-primary {
+#ku-root .ku-btn-280 {
+  width: 280px !important;
+  height: 80px !important;
+}
+
+#ku-root .ku-btn-420 {
+  width: 420px !important;
+  height: 80px !important;
+}
+
+#ku-root .ku-btn-620 {
+  width: 620px !important;
+  height: 80px !important;
+}
+
+/* Fallback for small buttons without image */
+#ku-root .ku-btn-small {
+  padding: 12px 28px !important;
   background: linear-gradient(135deg, #1a6bc4, #0d4a8a) !important;
-  color: #fff !important;
+  border-radius: 8px !important;
   border: 1px solid rgba(100,180,255,0.4) !important;
+  font-size: 14px !important;
 }
 
-#ku-root .ku-btn-primary:hover {
+#ku-root .ku-btn-small:hover {
   background: linear-gradient(135deg, #2a7bd4, #1a5a9a) !important;
-  box-shadow: 0 0 20px rgba(50,130,255,0.5) !important;
-}
-
-#ku-root .ku-btn-secondary {
-  background: rgba(255,255,255,0.1) !important;
-  color: #cce0ff !important;
-  border: 1px solid rgba(100,160,255,0.3) !important;
-}
-
-#ku-root .ku-btn-secondary:hover {
-  background: rgba(255,255,255,0.2) !important;
 }
 
 #ku-root .ku-btn-gold {
-  background: linear-gradient(135deg, #c8a000, #a07800) !important;
-  color: #fff !important;
-  border: 1px solid rgba(255,215,0,0.4) !important;
-}
-
-#ku-root .ku-btn-gold:hover {
-  background: linear-gradient(135deg, #e8c000, #c09000) !important;
-  box-shadow: 0 0 20px rgba(255,215,0,0.4) !important;
+  width: 280px !important;
+  height: 80px !important;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -372,21 +498,21 @@ function getCSS(): string {
 #ku-root .ku-portraits-panel {
   position: absolute !important;
   left: 0 !important; top: 0 !important; bottom: 0 !important;
-  width: 180px !important;
+  width: 190px !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: center !important;
   align-items: center !important;
   gap: 16px !important;
   padding: 20px 10px !important;
-  background: rgba(0,0,20,0.6) !important;
+  background: rgba(0,0,20,0.7) !important;
   border-right: 1px solid rgba(100,160,255,0.2) !important;
   z-index: 10 !important;
 }
 
 #ku-root .ku-portrait-btn {
-  width: 155px !important;
-  height: 155px !important;
+  width: 160px !important;
+  height: 160px !important;
   border: 3px solid rgba(100,160,255,0.3) !important;
   border-radius: 8px !important;
   overflow: hidden !important;
@@ -416,18 +542,18 @@ function getCSS(): string {
 }
 
 #ku-root .ku-portrait-name {
-  font-size: 11px !important;
+  font-size: 12px !important;
   color: #aac8ff !important;
   text-align: center !important;
   margin-top: 4px !important;
   line-height: 1.3 !important;
-  max-width: 155px !important;
+  max-width: 160px !important;
 }
 
 /* Canvas area */
 #ku-root .ku-canvas-area {
   position: absolute !important;
-  left: 180px !important;
+  left: 190px !important;
   top: 0 !important; right: 0 !important; bottom: 0 !important;
   display: flex !important;
   align-items: center !important;
@@ -449,7 +575,7 @@ function getCSS(): string {
   top: 16px !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
-  font-size: 20px !important;
+  font-size: 22px !important;
   font-weight: 600 !important;
   color: #fff !important;
   text-shadow: 0 2px 8px rgba(0,0,0,0.8) !important;
@@ -472,8 +598,8 @@ function getCSS(): string {
 }
 
 #ku-root .ku-zoom-btn {
-  width: 44px !important;
-  height: 44px !important;
+  width: 48px !important;
+  height: 48px !important;
   border: 1px solid rgba(100,160,255,0.4) !important;
   border-radius: 8px !important;
   background: rgba(10,30,80,0.8) !important;
@@ -497,7 +623,7 @@ function getCSS(): string {
 /* Planet tooltip */
 #ku-root .ku-tooltip {
   position: absolute !important;
-  background: rgba(0,0,0,0.85) !important;
+  background: rgba(0,0,0,0.88) !important;
   border: 1px solid rgba(100,160,255,0.5) !important;
   border-radius: 8px !important;
   padding: 10px 14px !important;
@@ -527,14 +653,14 @@ function getCSS(): string {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   OVERLAY (for popups, settings, onboarding)
+   OVERLAY — with apla_dark.png as background
 ══════════════════════════════════════════════════════════════ */
 
 #ku-root .ku-overlay {
   position: absolute !important;
   top: ${TOPBAR_H}px !important;
   left: 0 !important; right: 0 !important; bottom: 0 !important;
-  background: rgba(0,0,0,0.6) !important;
+  background: rgba(0,0,0,0.65) !important;
   z-index: 600 !important;
   display: none !important;
   align-items: center !important;
@@ -546,32 +672,31 @@ function getCSS(): string {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   BIOGRAPHY POPUP
+   BIOGRAPHY POPUP — with popup_simple_920x650.png as background
 ══════════════════════════════════════════════════════════════ */
 
 #ku-root .ku-bio-popup {
-  background: linear-gradient(160deg, #0e2a52, #0a1e3d, #071530) !important;
-  border: 1px solid rgba(100,160,255,0.3) !important;
-  border-radius: 16px !important;
-  padding: 40px !important;
-  max-width: 920px !important;
-  width: 90% !important;
-  max-height: 80vh !important;
-  overflow-y: auto !important;
+  width: 920px !important;
+  height: 650px !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  padding: 50px 60px !important;
   position: relative !important;
-  box-shadow: 0 0 60px rgba(0,0,0,0.8) !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 #ku-root .ku-bio-header {
   display: flex !important;
   gap: 30px !important;
   align-items: flex-start !important;
-  margin-bottom: 24px !important;
+  margin-bottom: 16px !important;
 }
 
 #ku-root .ku-bio-portrait {
-  width: 120px !important;
-  height: 120px !important;
+  width: 130px !important;
+  height: 130px !important;
   border-radius: 8px !important;
   object-fit: cover !important;
   border: 2px solid rgba(255,215,0,0.4) !important;
@@ -592,32 +717,35 @@ function getCSS(): string {
 #ku-root .ku-bio-years {
   font-size: 14px !important;
   color: #aac8ff !important;
-  margin-bottom: 16px !important;
+  margin-bottom: 12px !important;
 }
 
 #ku-root .ku-bio-text {
   font-size: 16px !important;
   color: #cce0ff !important;
   line-height: 1.7 !important;
+  flex: 1 !important;
+  overflow-y: auto !important;
 }
 
 #ku-root .ku-bio-btns {
   display: flex !important;
   gap: 16px !important;
-  margin-top: 30px !important;
+  margin-top: 20px !important;
+  justify-content: center !important;
   flex-wrap: wrap !important;
 }
 
 #ku-root .ku-bio-close {
   position: absolute !important;
-  top: 16px !important;
-  right: 16px !important;
-  width: 36px !important;
-  height: 36px !important;
+  top: 20px !important;
+  right: 24px !important;
+  width: 40px !important;
+  height: 40px !important;
   border: none !important;
   background: rgba(255,255,255,0.1) !important;
   color: #fff !important;
-  font-size: 18px !important;
+  font-size: 20px !important;
   border-radius: 50% !important;
   cursor: pointer !important;
   display: flex !important;
@@ -626,7 +754,7 @@ function getCSS(): string {
 }
 
 #ku-root .ku-bio-close:hover {
-  background: rgba(255,255,255,0.2) !important;
+  background: rgba(255,255,255,0.25) !important;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -699,24 +827,27 @@ function getCSS(): string {
 }
 
 #ku-root .ku-onboarding-card {
-  background: linear-gradient(160deg, #0e2a52, #071530) !important;
-  border: 1px solid rgba(100,160,255,0.4) !important;
-  border-radius: 16px !important;
-  padding: 40px 50px !important;
-  max-width: 560px !important;
-  width: 90% !important;
+  width: 920px !important;
+  min-height: 500px !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  padding: 50px 60px !important;
   text-align: center !important;
-  box-shadow: 0 0 60px rgba(0,0,0,0.8) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 #ku-root .ku-onboarding-icon {
-  font-size: 52px !important;
-  margin-bottom: 16px !important;
-  display: block !important;
+  width: 80px !important;
+  height: 80px !important;
+  margin-bottom: 20px !important;
+  object-fit: contain !important;
 }
 
 #ku-root .ku-onboarding-title {
-  font-size: 24px !important;
+  font-size: 26px !important;
   font-weight: 700 !important;
   color: #FFD700 !important;
   margin-bottom: 16px !important;
@@ -727,6 +858,7 @@ function getCSS(): string {
   color: #cce0ff !important;
   line-height: 1.7 !important;
   margin-bottom: 30px !important;
+  max-width: 700px !important;
 }
 
 #ku-root .ku-onboarding-dots {
@@ -737,8 +869,8 @@ function getCSS(): string {
 }
 
 #ku-root .ku-onboarding-dot {
-  width: 10px !important;
-  height: 10px !important;
+  width: 12px !important;
+  height: 12px !important;
   border-radius: 50% !important;
   background: rgba(255,255,255,0.3) !important;
   transition: background 0.2s !important;
@@ -750,46 +882,52 @@ function getCSS(): string {
 
 #ku-root .ku-onboarding-btns {
   display: flex !important;
-  gap: 12px !important;
+  gap: 16px !important;
   justify-content: center !important;
 }
 
 /* ══════════════════════════════════════════════════════════════
-   SETTINGS PANEL
+   SETTINGS PANEL — with popup bg, slider assets
 ══════════════════════════════════════════════════════════════ */
 
 #ku-root .ku-settings-panel {
-  background: linear-gradient(160deg, #0e2a52, #0a1e3d, #071530) !important;
-  border: 1px solid rgba(100,160,255,0.3) !important;
-  border-radius: 16px !important;
-  padding: 36px 40px !important;
-  max-width: 780px !important;
-  width: 90% !important;
-  max-height: 85vh !important;
-  overflow-y: auto !important;
-  box-shadow: 0 0 60px rgba(0,0,0,0.8) !important;
+  width: 920px !important;
+  min-height: 650px !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  padding: 44px 50px !important;
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 #ku-root .ku-settings-title {
-  font-size: 24px !important;
+  font-size: 26px !important;
   font-weight: 700 !important;
   color: #FFD700 !important;
   text-align: center !important;
-  margin-bottom: 28px !important;
+  margin-bottom: 24px !important;
+}
+
+#ku-root .ku-settings-sep {
+  display: block !important;
+  margin: 0 auto 20px auto !important;
+  max-width: 100% !important;
 }
 
 #ku-root .ku-settings-grid {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
-  gap: 20px !important;
-  margin-bottom: 28px !important;
+  gap: 18px !important;
+  margin-bottom: 24px !important;
+  flex: 1 !important;
 }
 
 #ku-root .ku-settings-row {
   background: rgba(255,255,255,0.05) !important;
   border: 1px solid rgba(100,160,255,0.2) !important;
   border-radius: 10px !important;
-  padding: 16px !important;
+  padding: 14px !important;
 }
 
 #ku-root .ku-settings-label {
@@ -870,15 +1008,15 @@ function getCSS(): string {
 
 #ku-root .ku-settings-footer {
   display: flex !important;
-  gap: 12px !important;
+  gap: 16px !important;
   justify-content: center !important;
+  margin-top: 16px !important;
 }
 
 /* ══════════════════════════════════════════════════════════════
    WCAG MODIFIERS
 ══════════════════════════════════════════════════════════════ */
 
-/* Text size — ONLY popup body content */
 #ku-root.ku-size-2 .ku-bio-text,
 #ku-root.ku-size-2 .ku-welcome-text,
 #ku-root.ku-size-2 .ku-onboarding-text {
@@ -891,18 +1029,15 @@ function getCSS(): string {
   font-size: 24px !important;
 }
 
-/* High contrast */
 #ku-root.ku-high-contrast {
   filter: contrast(1.5) brightness(1.1) !important;
 }
 
-/* Reduce motion */
 #ku-root.ku-reduce-motion * {
   animation: none !important;
   transition: none !important;
 }
 
-/* Color filters */
 #ku-root.ku-filter-grayscale {
   filter: grayscale(1) !important;
 }
@@ -919,20 +1054,12 @@ function getCSS(): string {
   filter: url('#ku-tritanopia') !important;
 }
 
-/* ══════════════════════════════════════════════════════════════
-   SEPARATOR
-══════════════════════════════════════════════════════════════ */
-
 #ku-root .ku-sep {
   width: 100% !important;
   height: 2px !important;
   background: rgba(100,160,255,0.2) !important;
   margin: 16px 0 !important;
 }
-
-/* ══════════════════════════════════════════════════════════════
-   SCROLLBAR (inside popups)
-══════════════════════════════════════════════════════════════ */
 
 #ku-root .ku-bio-popup::-webkit-scrollbar,
 #ku-root .ku-settings-panel::-webkit-scrollbar {
@@ -995,496 +1122,483 @@ class CanvasEngine {
   private lastMouseY: number = 0;
   private orbitsVisible: boolean = true;
   private reduceMotion: boolean = false;
-  private planetImages: { [key: string]: HTMLImageElement } = {};
-  private sunImage: HTMLImageElement | null = null;
-  private bgImage: HTMLImageElement | null = null;
   private hoveredPlanet: Planet | null = null;
-  private hoverX: number = 0;
-  private hoverY: number = 0;
-  private onHover: ((planet: Planet | null, x: number, y: number) => void) | null = null;
+  private tooltip: HTMLElement | null = null;
 
   // Bound event handlers for proper removal
-  private _onWheel: (e: WheelEvent) => void;
   private _onMouseDown: (e: MouseEvent) => void;
   private _onMouseMove: (e: MouseEvent) => void;
-  private _onMouseUp: () => void;
-  private _onMouseLeave: () => void;
+  private _onMouseUp: (e: MouseEvent) => void;
+  private _onWheel: (e: WheelEvent) => void;
+  private _onTouchStart: (e: TouchEvent) => void;
+  private _onTouchMove: (e: TouchEvent) => void;
+  private _onTouchEnd: (e: TouchEvent) => void;
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, tooltip: HTMLElement) {
     this.canvas = canvas;
-    this.ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-    this._onWheel = this.onWheel.bind(this);
+    this.ctx = canvas.getContext("2d")!;
+    this.tooltip = tooltip;
+
     this._onMouseDown = this.onMouseDown.bind(this);
     this._onMouseMove = this.onMouseMove.bind(this);
     this._onMouseUp = this.onMouseUp.bind(this);
-    this._onMouseLeave = this.onMouseLeave.bind(this);
-    this.loadImages();
-    this.bindEvents();
+    this._onWheel = this.onWheel.bind(this);
+    this._onTouchStart = this.onTouchStart.bind(this);
+    this._onTouchMove = this.onTouchMove.bind(this);
+    this._onTouchEnd = this.onTouchEnd.bind(this);
+
+    canvas.addEventListener("mousedown", this._onMouseDown);
+    canvas.addEventListener("mousemove", this._onMouseMove);
+    canvas.addEventListener("mouseup", this._onMouseUp);
+    canvas.addEventListener("mouseleave", this._onMouseUp);
+    canvas.addEventListener("wheel", this._onWheel, { passive: false });
+    canvas.addEventListener("touchstart", this._onTouchStart, { passive: false });
+    canvas.addEventListener("touchmove", this._onTouchMove, { passive: false });
+    canvas.addEventListener("touchend", this._onTouchEnd);
   }
 
-  private loadImages(): void {
-    // Load background
-    const bg = new Image();
-    bg.src = path("images/bg_all.png");
-    bg.onload = () => { this.bgImage = bg; };
-
-    // Load planet images
-    const planetFiles: { [key: string]: string } = {
-      "Słońce":   "images/planet_01.png",
-      "Ziemia":   "images/planet_02.png",
-    };
-    Object.keys(planetFiles).forEach(name => {
-      const img = new Image();
-      img.src = path(planetFiles[name]);
-      img.onload = () => { this.planetImages[name] = img; };
-    });
+  setModel(type: "geocentric" | "heliocentric" | "kepler"): void {
+    this.modelType = type;
+    this.planets = type === "geocentric" ? [...PLANETS_GEO] :
+                   type === "kepler" ? [...PLANETS_KEPLER] : [...PLANETS_HELIO];
+    this.zoom = 1; this.panX = 0; this.panY = 0;
   }
 
-  private bindEvents(): void {
-    this.canvas.addEventListener("wheel", this._onWheel, { passive: false });
-    this.canvas.addEventListener("mousedown", this._onMouseDown);
-    this.canvas.addEventListener("mousemove", this._onMouseMove);
-    this.canvas.addEventListener("mouseup", this._onMouseUp);
-    this.canvas.addEventListener("mouseleave", this._onMouseLeave);
+  setOrbitsVisible(v: boolean): void { this.orbitsVisible = v; }
+  setReduceMotion(v: boolean): void { this.reduceMotion = v; }
+  zoomIn(): void { this.zoom = Math.min(3, this.zoom * 1.2); }
+  zoomOut(): void { this.zoom = Math.max(0.3, this.zoom / 1.2); }
+  resetView(): void { this.zoom = 1; this.panX = 0; this.panY = 0; }
+
+  start(): void { this.animate(); }
+
+  stop(): void {
+    if (this.animFrame) cancelAnimationFrame(this.animFrame);
+    this.animFrame = 0;
   }
 
-  private onWheel(e: WheelEvent): void {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    this.zoom = Math.max(0.3, Math.min(4, this.zoom * delta));
+  destroy(): void {
+    this.stop();
+    this.canvas.removeEventListener("mousedown", this._onMouseDown);
+    this.canvas.removeEventListener("mousemove", this._onMouseMove);
+    this.canvas.removeEventListener("mouseup", this._onMouseUp);
+    this.canvas.removeEventListener("mouseleave", this._onMouseUp);
+    this.canvas.removeEventListener("wheel", this._onWheel);
+    this.canvas.removeEventListener("touchstart", this._onTouchStart);
+    this.canvas.removeEventListener("touchmove", this._onTouchMove);
+    this.canvas.removeEventListener("touchend", this._onTouchEnd);
+  }
+
+  private animate = (): void => {
+    this.draw();
+    if (!this.reduceMotion) {
+      for (const p of this.planets) {
+        if (p.orbit > 0) p.angle += p.speed;
+      }
+    }
+    this.animFrame = requestAnimationFrame(this.animate);
+  };
+
+  private draw(): void {
+    const w = this.canvas.width;
+    const h = this.canvas.height;
+    const cx = w / 2 + this.panX * this.zoom;
+    const cy = h / 2 + this.panY * this.zoom;
+    const ctx = this.ctx;
+
+    // Dark space background
+    ctx.fillStyle = "#050510";
+    ctx.fillRect(0, 0, w, h);
+
+    // Stars
+    ctx.fillStyle = "rgba(255,255,255,0.4)";
+    for (let i = 0; i < 200; i++) {
+      const sx = (Math.sin(i * 127.1 + i) * 0.5 + 0.5) * w;
+      const sy = (Math.cos(i * 311.7 + i) * 0.5 + 0.5) * h;
+      ctx.fillRect(sx, sy, 1.2, 1.2);
+    }
+
+    // Draw orbits
+    if (this.orbitsVisible) {
+      ctx.strokeStyle = "rgba(100,160,255,0.15)";
+      ctx.lineWidth = 1;
+      for (const p of this.planets) {
+        if (p.orbit === 0) continue;
+        const r = p.orbit * this.zoom;
+        if (this.modelType === "kepler" && p.eccentricity) {
+          const a = r;
+          const b = a * Math.sqrt(1 - p.eccentricity * p.eccentricity);
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, a, b, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Draw planets
+    for (const p of this.planets) {
+      let px: number, py: number;
+      if (p.orbit === 0) {
+        px = cx; py = cy;
+      } else {
+        const r = p.orbit * this.zoom;
+        if (this.modelType === "kepler" && p.eccentricity) {
+          const a = r;
+          const b = a * Math.sqrt(1 - p.eccentricity * p.eccentricity);
+          px = cx + a * Math.cos(p.angle);
+          py = cy + b * Math.sin(p.angle);
+        } else {
+          px = cx + r * Math.cos(p.angle);
+          py = cy + r * Math.sin(p.angle);
+        }
+      }
+
+      const pr = Math.max(3, p.radius * this.zoom * 0.6);
+
+      // Glow
+      const grd = ctx.createRadialGradient(px, py, 0, px, py, pr * 2.5);
+      grd.addColorStop(0, p.color + "44");
+      grd.addColorStop(1, "transparent");
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.arc(px, py, pr * 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Planet body
+      const bodyGrd = ctx.createRadialGradient(px - pr * 0.3, py - pr * 0.3, 0, px, py, pr);
+      bodyGrd.addColorStop(0, lighten(p.color, 0.3));
+      bodyGrd.addColorStop(1, p.color);
+      ctx.fillStyle = bodyGrd;
+      ctx.beginPath();
+      ctx.arc(px, py, pr, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Label
+      ctx.fillStyle = "#fff";
+      ctx.font = `${Math.max(10, 12 * this.zoom * 0.7)}px 'Segoe UI', Arial, sans-serif`;
+      ctx.textAlign = "center";
+      let labelText = p.name;
+      if (p.orbit === 0) {
+        labelText += this.modelType === "geocentric" ? " (centrum)" : "";
+      }
+      ctx.fillText(labelText, px, py + pr + 16 * this.zoom * 0.6);
+    }
+
+    // Kepler annotation
+    if (this.modelType === "kepler") {
+      ctx.fillStyle = "rgba(255,215,0,0.7)";
+      ctx.font = "italic 14px 'Segoe UI', Arial, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("Orbity eliptyczne (prawa Keplera)", 20, h - 20);
+    }
+  }
+
+  private hitTest(mx: number, my: number): Planet | null {
+    const w = this.canvas.width;
+    const h = this.canvas.height;
+    const cx = w / 2 + this.panX * this.zoom;
+    const cy = h / 2 + this.panY * this.zoom;
+
+    for (let i = this.planets.length - 1; i >= 0; i--) {
+      const p = this.planets[i];
+      let px: number, py: number;
+      if (p.orbit === 0) { px = cx; py = cy; }
+      else {
+        const r = p.orbit * this.zoom;
+        if (this.modelType === "kepler" && p.eccentricity) {
+          const a = r;
+          const b = a * Math.sqrt(1 - p.eccentricity * p.eccentricity);
+          px = cx + a * Math.cos(p.angle);
+          py = cy + b * Math.sin(p.angle);
+        } else {
+          px = cx + r * Math.cos(p.angle);
+          py = cy + r * Math.sin(p.angle);
+        }
+      }
+      const pr = Math.max(3, p.radius * this.zoom * 0.6);
+      const dist = Math.sqrt((mx - px) ** 2 + (my - py) ** 2);
+      if (dist <= pr + 8) return p;
+    }
+    return null;
   }
 
   private onMouseDown(e: MouseEvent): void {
     this.isDragging = true;
     this.lastMouseX = e.clientX;
     this.lastMouseY = e.clientY;
-    this.canvas.style.cursor = "grabbing";
   }
 
   private onMouseMove(e: MouseEvent): void {
     const rect = this.canvas.getBoundingClientRect();
-    const scaleX = this.canvas.width / rect.width;
-    const scaleY = this.canvas.height / rect.height;
-    const mx = (e.clientX - rect.left) * scaleX;
-    const my = (e.clientY - rect.top) * scaleY;
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
 
     if (this.isDragging) {
-      const dx = (e.clientX - this.lastMouseX) * scaleX;
-      const dy = (e.clientY - this.lastMouseY) * scaleY;
-      this.panX += dx;
-      this.panY += dy;
+      this.panX += (e.clientX - this.lastMouseX) / this.zoom;
+      this.panY += (e.clientY - this.lastMouseY) / this.zoom;
       this.lastMouseX = e.clientX;
       this.lastMouseY = e.clientY;
+      return;
     }
 
-    // Hit test for tooltip
-    this.hoveredPlanet = this.hitTest(mx, my);
-    this.hoverX = e.clientX - rect.left;
-    this.hoverY = e.clientY - rect.top;
-    if (this.onHover) this.onHover(this.hoveredPlanet, this.hoverX, this.hoverY);
-  }
-
-  private onMouseUp(): void {
-    this.isDragging = false;
-    this.canvas.style.cursor = "grab";
-  }
-
-  private onMouseLeave(): void {
-    this.isDragging = false;
-    this.canvas.style.cursor = "grab";
-    this.hoveredPlanet = null;
-    if (this.onHover) this.onHover(null, 0, 0);
-  }
-
-  private hitTest(mx: number, my: number): Planet | null {
-    const cx = this.canvas.width / 2 + this.panX;
-    const cy = this.canvas.height / 2 + this.panY;
-    for (let i = this.planets.length - 1; i >= 0; i--) {
-      const p = this.planets[i];
-      const px = cx + Math.cos(p.angle) * p.orbitRadius * this.zoom;
-      const py = cy + Math.sin(p.angle) * p.orbitRadius * this.zoom;
-      const r = p.radius * this.zoom;
-      const dist = Math.sqrt((mx - px) * (mx - px) + (my - py) * (my - py));
-      if (dist < r + 8) return p;
-    }
-    return null;
-  }
-
-  setModel(planets: Planet[], modelType: "geocentric" | "heliocentric" | "kepler"): void {
-    this.planets = planets.map(p => ({ ...p }));
-    this.modelType = modelType;
-    this.zoom = 1;
-    this.panX = 0;
-    this.panY = 0;
-  }
-
-  setOrbitsVisible(v: boolean): void { this.orbitsVisible = v; }
-  setReduceMotion(v: boolean): void { this.reduceMotion = v; }
-  setOnHover(fn: (planet: Planet | null, x: number, y: number) => void): void { this.onHover = fn; }
-
-  zoomIn(): void { this.zoom = Math.min(4, this.zoom * 1.2); }
-  zoomOut(): void { this.zoom = Math.max(0.3, this.zoom / 1.2); }
-  resetView(): void { this.zoom = 1; this.panX = 0; this.panY = 0; }
-
-  start(): void {
-    this.stop();
-    const tick = () => {
-      this.update();
-      this.draw();
-      this.animFrame = requestAnimationFrame(tick);
-    };
-    this.animFrame = requestAnimationFrame(tick);
-  }
-
-  stop(): void {
-    if (this.animFrame) {
-      cancelAnimationFrame(this.animFrame);
-      this.animFrame = 0;
-    }
-  }
-
-  private update(): void {
-    if (this.reduceMotion) return;
-    this.planets.forEach(p => {
-      if (this.modelType === "kepler" && p.eccentricity) {
-        // Kepler's second law approximation: faster near perihelion
-        const e = p.eccentricity;
-        const r = p.orbitRadius * (1 - e * Math.cos(p.angle));
-        const speedFactor = (p.orbitRadius / r) * (p.orbitRadius / r);
-        p.angle += p.orbitSpeed * speedFactor;
-      } else {
-        p.angle += p.orbitSpeed;
-      }
-    });
-  }
-
-  private draw(): void {
-    const w = this.canvas.width;
-    const h = this.canvas.height;
-    const cx = w / 2 + this.panX;
-    const cy = h / 2 + this.panY;
-
-    this.ctx.clearRect(0, 0, w, h);
-
-    // Background
-    if (this.bgImage) {
-      this.ctx.drawImage(this.bgImage, 0, 0, w, h);
+    const planet = this.hitTest(mx, my);
+    if (planet && this.tooltip) {
+      this.hoveredPlanet = planet;
+      this.canvas.style.cursor = "pointer";
+      const nameEl = this.tooltip.querySelector(".ku-tooltip-name") as HTMLElement;
+      const typeEl = this.tooltip.querySelector(".ku-tooltip-type") as HTMLElement;
+      if (nameEl) nameEl.textContent = planet.name;
+      if (typeEl) typeEl.textContent = planet.type;
+      this.tooltip.style.left = (mx + 20) + "px";
+      this.tooltip.style.top = (my - 10) + "px";
+      this.tooltip.classList.add("ku-visible");
+      playHover();
     } else {
-      this.ctx.fillStyle = "#050a1a";
-      this.ctx.fillRect(0, 0, w, h);
-      this.drawStars(w, h);
+      this.hoveredPlanet = null;
+      this.canvas.style.cursor = "grab";
+      if (this.tooltip) this.tooltip.classList.remove("ku-visible");
     }
+  }
 
-    // Orbits
-    if (this.orbitsVisible) {
-      this.planets.forEach(p => {
-        this.ctx.beginPath();
-        if (this.modelType === "kepler" && p.eccentricity) {
-          const a = p.orbitRadius * this.zoom;
-          const e = p.eccentricity;
-          const b = a * Math.sqrt(1 - e * e);
-          const focusOffset = a * e;
-          this.ctx.ellipse(cx - focusOffset, cy, a, b, 0, 0, Math.PI * 2);
-        } else {
-          this.ctx.arc(cx, cy, p.orbitRadius * this.zoom, 0, Math.PI * 2);
-        }
-        this.ctx.strokeStyle = "rgba(150,180,255,0.25)";
-        this.ctx.lineWidth = 1;
-        this.ctx.stroke();
-      });
+  private onMouseUp(_e: MouseEvent): void {
+    this.isDragging = false;
+  }
+
+  private onWheel(e: WheelEvent): void {
+    e.preventDefault();
+    if (e.deltaY < 0) this.zoomIn();
+    else this.zoomOut();
+  }
+
+  private onTouchStart(e: TouchEvent): void {
+    if (e.touches.length === 1) {
+      e.preventDefault();
+      this.isDragging = true;
+      this.lastMouseX = e.touches[0].clientX;
+      this.lastMouseY = e.touches[0].clientY;
     }
+  }
 
-    // Center body
-    if (this.modelType === "geocentric") {
-      this.drawPlanet(cx, cy, 28 * this.zoom, "#4A90D9", "Ziemia", true);
+  private onTouchMove(e: TouchEvent): void {
+    if (e.touches.length === 1 && this.isDragging) {
+      e.preventDefault();
+      this.panX += (e.touches[0].clientX - this.lastMouseX) / this.zoom;
+      this.panY += (e.touches[0].clientY - this.lastMouseY) / this.zoom;
+      this.lastMouseX = e.touches[0].clientX;
+      this.lastMouseY = e.touches[0].clientY;
+    }
+  }
+
+  private onTouchEnd(_e: TouchEvent): void {
+    this.isDragging = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MODEL CANVAS (for dedicated model screen)
+// ═══════════════════════════════════════════════════════════════════
+
+function renderModelCanvas(
+  canvas: HTMLCanvasElement,
+  type: "geocentric" | "heliocentric" | "kepler"
+): number {
+  const ctx = canvas.getContext("2d")!;
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w / 2;
+  const cy = h / 2;
+
+  const planets = type === "geocentric" ? PLANETS_GEO :
+                  type === "kepler" ? PLANETS_KEPLER : PLANETS_HELIO;
+
+  // Background
+  ctx.fillStyle = "#050510";
+  ctx.fillRect(0, 0, w, h);
+
+  // Stars
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  for (let i = 0; i < 300; i++) {
+    const sx = (Math.sin(i * 127.1 + i) * 0.5 + 0.5) * w;
+    const sy = (Math.cos(i * 311.7 + i) * 0.5 + 0.5) * h;
+    ctx.fillRect(sx, sy, 1.5, 1.5);
+  }
+
+  const scale = 1.3;
+
+  // Draw orbits
+  ctx.strokeStyle = "rgba(100,160,255,0.2)";
+  ctx.lineWidth = 1;
+  for (const p of planets) {
+    if (p.orbit === 0) continue;
+    const r = p.orbit * scale;
+    if (type === "kepler" && p.eccentricity) {
+      const a = r;
+      const b = a * Math.sqrt(1 - p.eccentricity * p.eccentricity);
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, a, b, 0, 0, Math.PI * 2);
+      ctx.stroke();
     } else {
-      this.drawSun(cx, cy, 36 * this.zoom);
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.stroke();
     }
+  }
 
-    // Planets
-    this.planets.forEach(p => {
-      let px: number, py: number;
-      if (this.modelType === "kepler" && p.eccentricity) {
-        const a = p.orbitRadius * this.zoom;
-        const e = p.eccentricity;
-        const focusOffset = a * e;
-        px = cx - focusOffset + Math.cos(p.angle) * a;
-        py = cy + Math.sin(p.angle) * a * Math.sqrt(1 - e * e);
+  // Draw planets
+  for (const p of planets) {
+    let px: number, py: number;
+    if (p.orbit === 0) { px = cx; py = cy; }
+    else {
+      const r = p.orbit * scale;
+      if (type === "kepler" && p.eccentricity) {
+        const a = r;
+        const b = a * Math.sqrt(1 - p.eccentricity * p.eccentricity);
+        px = cx + a * Math.cos(p.angle);
+        py = cy + b * Math.sin(p.angle);
       } else {
-        px = cx + Math.cos(p.angle) * p.orbitRadius * this.zoom;
-        py = cy + Math.sin(p.angle) * p.orbitRadius * this.zoom;
+        px = cx + r * Math.cos(p.angle);
+        py = cy + r * Math.sin(p.angle);
       }
-      const r = p.radius * this.zoom;
-      const isHovered = this.hoveredPlanet === p;
-      this.drawPlanet(px, py, r, p.color, p.name, isHovered);
-    });
-  }
-
-  private drawStars(w: number, h: number): void {
-    // Simple static stars
-    this.ctx.fillStyle = "rgba(255,255,255,0.8)";
-    for (let i = 0; i < 200; i++) {
-      const x = (i * 137.5) % w;
-      const y = (i * 89.3) % h;
-      const r = (i % 3 === 0) ? 1.5 : 0.8;
-      this.ctx.beginPath();
-      this.ctx.arc(x, y, r, 0, Math.PI * 2);
-      this.ctx.fill();
     }
-  }
 
-  private drawSun(x: number, y: number, r: number): void {
+    const pr = p.radius * 1.2;
+
     // Glow
-    const grd = this.ctx.createRadialGradient(x, y, r * 0.3, x, y, r * 2.5);
-    grd.addColorStop(0, "rgba(255,200,50,0.6)");
-    grd.addColorStop(1, "rgba(255,100,0,0)");
-    this.ctx.fillStyle = grd;
-    this.ctx.beginPath();
-    this.ctx.arc(x, y, r * 2.5, 0, Math.PI * 2);
-    this.ctx.fill();
+    const grd = ctx.createRadialGradient(px, py, 0, px, py, pr * 3);
+    grd.addColorStop(0, p.color + "55");
+    grd.addColorStop(1, "transparent");
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(px, py, pr * 3, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Core
-    const core = this.ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r);
-    core.addColorStop(0, "#fff7a0");
-    core.addColorStop(0.4, "#FFD700");
-    core.addColorStop(0.8, "#FF8C00");
-    core.addColorStop(1, "#FF4500");
-    this.ctx.fillStyle = core;
-    this.ctx.beginPath();
-    this.ctx.arc(x, y, r, 0, Math.PI * 2);
-    this.ctx.fill();
+    // Body
+    const bodyGrd = ctx.createRadialGradient(px - pr * 0.3, py - pr * 0.3, 0, px, py, pr);
+    bodyGrd.addColorStop(0, lighten(p.color, 0.3));
+    bodyGrd.addColorStop(1, p.color);
+    ctx.fillStyle = bodyGrd;
+    ctx.beginPath();
+    ctx.arc(px, py, pr, 0, Math.PI * 2);
+    ctx.fill();
 
     // Label
-    this.ctx.fillStyle = "#fff";
-    this.ctx.font = `bold ${Math.max(10, 13 * this.zoom)}px Arial`;
-    this.ctx.textAlign = "center";
-    this.ctx.fillText("Słońce", x, y + r + 14 * this.zoom);
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 14px 'Segoe UI', Arial, sans-serif";
+    ctx.textAlign = "center";
+    let label = p.name;
+    if (p.orbit === 0 && type === "geocentric") label += " (centrum)";
+    ctx.fillText(label, px, py + pr + 20);
   }
 
-  private drawPlanet(x: number, y: number, r: number, color: string, name: string, highlight: boolean): void {
-    // Glow on hover
-    if (highlight) {
-      this.ctx.shadowColor = "#FFD700";
-      this.ctx.shadowBlur = 20;
-    }
+  // Title
+  const title = type === "geocentric" ? "Model geocentryczny — Ziemia w centrum Wszechświata" :
+                type === "kepler" ? "Model heliocentryczny — orbity eliptyczne (prawa Keplera)" :
+                "Model heliocentryczny — Słońce w centrum";
+  ctx.fillStyle = "#FFD700";
+  ctx.font = "bold 22px 'Segoe UI', Arial, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(title, cx, 40);
 
-    const grd = this.ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r);
-    grd.addColorStop(0, lighten(color, 60));
-    grd.addColorStop(0.6, color);
-    grd.addColorStop(1, darken(color, 40));
-    this.ctx.fillStyle = grd;
-    this.ctx.beginPath();
-    this.ctx.arc(x, y, r, 0, Math.PI * 2);
-    this.ctx.fill();
-
-    this.ctx.shadowBlur = 0;
-    this.ctx.shadowColor = "transparent";
-
-    // Label
-    this.ctx.fillStyle = highlight ? "#FFD700" : "rgba(255,255,255,0.85)";
-    this.ctx.font = `${Math.max(9, 11 * this.zoom)}px Arial`;
-    this.ctx.textAlign = "center";
-    this.ctx.fillText(name, x, y + r + 12 * this.zoom);
+  if (type === "kepler") {
+    ctx.fillStyle = "rgba(255,215,0,0.6)";
+    ctx.font = "italic 14px 'Segoe UI', Arial, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("Orbity eliptyczne (prawa Keplera)", 20, h - 20);
   }
 
-  destroy(): void {
-    this.stop();
-    this.canvas.removeEventListener("wheel", this._onWheel);
-    this.canvas.removeEventListener("mousedown", this._onMouseDown);
-    this.canvas.removeEventListener("mousemove", this._onMouseMove);
-    this.canvas.removeEventListener("mouseup", this._onMouseUp);
-    this.canvas.removeEventListener("mouseleave", this._onMouseLeave);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// COLOR HELPERS
-// ═══════════════════════════════════════════════════════════════════
-
-function lighten(hex: string, amount: number): string {
-  const num = parseInt(hex.replace("#", ""), 16);
-  const r = Math.min(255, (num >> 16) + amount);
-  const g = Math.min(255, ((num >> 8) & 0xff) + amount);
-  const b = Math.min(255, (num & 0xff) + amount);
-  return `rgb(${r},${g},${b})`;
-}
-
-function darken(hex: string, amount: number): string {
-  const num = parseInt(hex.replace("#", ""), 16);
-  const r = Math.max(0, (num >> 16) - amount);
-  const g = Math.max(0, ((num >> 8) & 0xff) - amount);
-  const b = Math.max(0, (num & 0xff) - amount);
-  return `rgb(${r},${g},${b})`;
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// WEB AUDIO
-// ═══════════════════════════════════════════════════════════════════
-
-let audioCtx: AudioContext | null = null;
-
-function getAudioCtx(): AudioContext | null {
-  if (!audioCtx) {
-    try {
-      audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    } catch (e) { return null; }
-  }
-  return audioCtx;
-}
-
-function playClick(): void {
-  const ctx = getAudioCtx();
-  if (!ctx) return;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.frequency.value = 800;
-  gain.gain.setValueAtTime(0.15, ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
-  osc.start(ctx.currentTime);
-  osc.stop(ctx.currentTime + 0.1);
+  return 0;
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // APP CLASS
 // ═══════════════════════════════════════════════════════════════════
 
-export class App {
+class App {
   private container: HTMLElement;
   private root: HTMLElement | null = null;
   private engine: CanvasEngine | null = null;
-  private state: AppState;
-  private resizeObserver: ResizeObserver | null = null;
-  private isMuted: boolean = false;
-
-  // DOM refs
   private overlay: HTMLElement | null = null;
-  private onboardingOverlay: HTMLElement | null = null;
-  private tooltip: HTMLElement | null = null;
-  private modelTitleEl: HTMLElement | null = null;
-  private portraitBtns: HTMLButtonElement[] = [];
+  private onboardOverlay: HTMLElement | null = null;
+  private resizeObserver: ResizeObserver | null = null;
+
+  private state: AppState = {
+    screen: "welcome",
+    astronomer: 0,
+    wcag: {
+      textSize: 1,
+      narrator: false,
+      audioDesc: false,
+      orbitsVisible: true,
+      highContrast: false,
+      reduceMotion: false,
+      colorFilter: "none",
+    },
+    muted: false,
+    onboardDone: false,
+  };
 
   constructor(container: HTMLElement) {
     this.container = container;
-    this.state = {
-      screen: "welcome",
-      selectedAstronomer: 1,
-      modelAstronomer: 1,
-      wcag: {
-        textSize: 1,
-        highContrast: false,
-        reduceMotion: false,
-        orbitsVisible: true,
-        colorFilter: "none",
-        voiceover: false,
-        audiodesc: false,
-        cursorSize: "normal",
-        cursorColor: "default",
-      },
-      onboardingDone: false,
-      onboardingStep: 0,
-    };
   }
 
   mount(): void {
     injectCSS();
     injectSVGFilters();
     this.buildDOM();
+    this.showScreen(this.state.screen);
+    this.applyWcag();
     this.scaleRoot();
     this.setupResizeObserver();
-    this.showScreen("welcome");
   }
 
   unmount(): void {
     this.engine?.destroy();
+    this.engine = null;
     this.resizeObserver?.disconnect();
     if (this.root) {
-      this.root.remove();
+      this.container.removeChild(this.root);
       this.root = null;
     }
-    const filters = document.getElementById("ku-svg-filters");
-    if (filters) filters.remove();
     const styles = document.getElementById("ku-styles");
     if (styles) styles.remove();
+    const filters = document.getElementById("ku-svg-filters");
+    if (filters) filters.remove();
   }
 
   restoreState(data: Partial<AppState>): void {
-    if (!data) return;
-    if (data.wcag) this.state.wcag = { ...this.state.wcag, ...data.wcag };
-    if (data.onboardingDone !== undefined) this.state.onboardingDone = data.onboardingDone;
-    if (data.selectedAstronomer !== undefined) this.state.selectedAstronomer = data.selectedAstronomer;
+    if (data.screen) this.state.screen = data.screen;
+    if (data.astronomer !== undefined) this.state.astronomer = data.astronomer;
+    if (data.wcag) Object.assign(this.state.wcag, data.wcag);
+    if (data.muted !== undefined) { this.state.muted = data.muted; _muted = data.muted; }
+    if (data.onboardDone !== undefined) this.state.onboardDone = data.onboardDone;
+    this.showScreen(this.state.screen);
     this.applyWcag();
   }
 
-  getState(): AppState {
-    return { ...this.state };
+  freeze(): void { this.engine?.stop(); }
+  resume(): void { this.engine?.start(); }
+  removeListeners(): void { /* handled by engine.destroy() */ }
+
+  async saveState(): Promise<void> {
+    try { await setState(this.state); } catch (e) {}
   }
 
-  saveState(): void {
-    setState(this.getState() as any).catch(() => {});
-  }
-
-  freeze(): void {
-    if (this.root) this.root.style.pointerEvents = "none";
-  }
-
-  resume(): void {
-    if (this.root) this.root.style.pointerEvents = "";
-  }
-
-  removeListeners(): void {
-    this.engine?.stop();
-  }
-
-  // ─── DOM BUILD ────────────────────────────────────────────────
+  // ─── DOM BUILDING ─────────────────────────────────────────────
 
   private buildDOM(): void {
     this.root = document.createElement("div");
     this.root.id = "ku-root";
+    this.root.setAttribute("role", "application");
+    this.root.setAttribute("aria-label", "Kosmiczne Układy — gra edukacyjna");
 
-    // Topbar
-    const topbar = this.buildTopbar();
-    this.root.appendChild(topbar);
-
-    // Content
-    const content = document.createElement("div");
-    content.className = "ku-content";
-
-    // Welcome screen
-    content.appendChild(this.buildWelcomeScreen());
-
-    // Game screen
-    content.appendChild(this.buildGameScreen());
-
-    // Model screen
-    content.appendChild(this.buildModelScreen());
-
-    this.root.appendChild(content);
-
-    // Overlay (for popups)
-    this.overlay = document.createElement("div");
-    this.overlay.className = "ku-overlay";
-    this.root.appendChild(this.overlay);
-
-    // Onboarding overlay
-    this.onboardingOverlay = document.createElement("div");
-    this.onboardingOverlay.className = "ku-onboarding-overlay";
-    this.root.appendChild(this.onboardingOverlay);
-
-    // Tooltip
-    this.tooltip = document.createElement("div");
-    this.tooltip.className = "ku-tooltip";
-    this.tooltip.innerHTML = '<div class="ku-tooltip-name"></div><div class="ku-tooltip-type"></div>';
-    this.root.appendChild(this.tooltip);
-
-    this.container.appendChild(this.root);
-  }
-
-  private buildTopbar(): HTMLElement {
-    const bar = document.createElement("div");
-    bar.className = "ku-topbar";
-    bar.style.setProperty("background-image", `url(${path("images/top_bar.png")})`);
+    // Topbar with top_bar.png
+    const topbar = document.createElement("div");
+    topbar.className = "ku-topbar";
+    topbar.style.backgroundImage = `url('${ASSETS.topBar()}')`;
 
     const title = document.createElement("div");
     title.className = "ku-topbar-title";
@@ -1493,144 +1607,220 @@ export class App {
     const btns = document.createElement("div");
     btns.className = "ku-topbar-btns";
 
-    const soundBtn = this.makeTopBtn("🔊", "Wycisz dźwięk", () => {
-      this.isMuted = !this.isMuted;
-      soundBtn.textContent = this.isMuted ? "🔇" : "🔊";
-      soundBtn.setAttribute("aria-label", this.isMuted ? "Włącz dźwięk" : "Wycisz dźwięk");
-    });
+    // Sound button with ico_sound_on/off.svg + btn_circle_bg.png
+    const soundBtn = this.createTopbarBtn(
+      this.state.muted ? ASSETS.icoSoundOff() : ASSETS.icoSoundOn(),
+      this.state.muted ? "Włącz dźwięk" : "Wycisz dźwięk",
+      () => {
+        this.state.muted = !this.state.muted;
+        _muted = this.state.muted;
+        const ico = soundBtn.querySelector("img") as HTMLImageElement;
+        if (ico) ico.src = this.state.muted ? ASSETS.icoSoundOff() : ASSETS.icoSoundOn();
+        soundBtn.setAttribute("aria-label", this.state.muted ? "Włącz dźwięk" : "Wycisz dźwięk");
+        playClick();
+        this.saveState();
+      }
+    );
 
-    const helpBtn = this.makeTopBtn("❓", "Instrukcja", () => {
-      playClick();
-      this.showOnboarding(0);
-    });
+    // Help button with ico_help_ico.svg
+    const helpBtn = this.createTopbarBtn(
+      ASSETS.icoHelp(),
+      "Instrukcja",
+      () => { playClick(); this.showOnboarding(); }
+    );
 
-    const settingsBtn = this.makeTopBtn("⚙️", "Ustawienia", () => {
-      playClick();
-      this.showSettings();
-    });
+    // Settings button with ico_setting.svg
+    const settingsBtn = this.createTopbarBtn(
+      ASSETS.icoSetting(),
+      "Ustawienia",
+      () => { playClick(); this.showSettings(); }
+    );
 
     btns.appendChild(soundBtn);
     btns.appendChild(helpBtn);
     btns.appendChild(settingsBtn);
-    bar.appendChild(title);
-    bar.appendChild(btns);
-    return bar;
+    topbar.appendChild(title);
+    topbar.appendChild(btns);
+
+    // Content area
+    const content = document.createElement("div");
+    content.className = "ku-content";
+
+    // Background with bg_all.png
+    const bg = document.createElement("div");
+    bg.className = "ku-bg";
+    bg.style.backgroundImage = `url('${ASSETS.bg()}')`;
+    content.appendChild(bg);
+
+    // Screens
+    content.appendChild(this.buildWelcomeScreen());
+    content.appendChild(this.buildGameScreen());
+    content.appendChild(this.buildModelScreen());
+
+    // Overlay for popups
+    this.overlay = document.createElement("div");
+    this.overlay.className = "ku-overlay";
+    this.overlay.setAttribute("role", "dialog");
+    content.appendChild(this.overlay);
+
+    // Onboarding overlay
+    this.onboardOverlay = document.createElement("div");
+    this.onboardOverlay.className = "ku-onboarding-overlay";
+    content.appendChild(this.onboardOverlay);
+
+    this.root.appendChild(topbar);
+    this.root.appendChild(content);
+    this.container.appendChild(this.root);
   }
 
-  private makeTopBtn(icon: string, label: string, onClick: () => void): HTMLButtonElement {
+  private createTopbarBtn(iconSrc: string, label: string, onClick: () => void): HTMLButtonElement {
     const btn = document.createElement("button");
     btn.className = "ku-topbar-btn";
-    btn.textContent = icon;
+    btn.style.backgroundImage = `url('${ASSETS.btnCircle()}')`;
     btn.setAttribute("aria-label", label);
     btn.setAttribute("title", label);
+    const ico = document.createElement("img");
+    ico.src = iconSrc;
+    ico.alt = label;
+    btn.appendChild(ico);
     btn.addEventListener("click", onClick);
     return btn;
   }
 
+  // ─── WELCOME SCREEN ──────────────────────────────────────────
+
   private buildWelcomeScreen(): HTMLElement {
     const screen = document.createElement("div");
     screen.className = "ku-screen ku-welcome";
-    screen.setAttribute("data-screen", "welcome");
+    screen.dataset.screen = "welcome";
 
-    // Background
-    const bg = document.createElement("div");
-    bg.className = "ku-bg";
-    bg.style.setProperty("background-image", `url(${path("images/bg_all.png")})`);
-    screen.appendChild(bg);
+    // Decorative images from rys_01-05
+    const decoPositions = [
+      { src: ASSETS.rys01(), style: "left: 30px; top: 20px; width: 140px;" },
+      { src: ASSETS.rys02(), style: "right: 30px; top: 20px; width: 140px;" },
+      { src: ASSETS.rys03(), style: "left: 50px; bottom: 30px; width: 120px;" },
+      { src: ASSETS.rys04(), style: "right: 50px; bottom: 30px; width: 120px;" },
+      { src: ASSETS.rys05(), style: "left: 50%; bottom: 10px; transform: translateX(-50%); width: 100px;" },
+    ];
+    for (const d of decoPositions) {
+      const deco = document.createElement("div");
+      deco.className = "ku-deco";
+      deco.setAttribute("style", d.style);
+      const decoImg = document.createElement("img");
+      decoImg.src = d.src;
+      decoImg.alt = "";
+      decoImg.setAttribute("aria-hidden", "true");
+      deco.appendChild(decoImg);
+      screen.appendChild(deco);
+    }
 
-    // Popup
     const popup = document.createElement("div");
     popup.className = "ku-welcome-popup";
+    popup.style.position = "relative";
+    popup.style.zIndex = "2";
 
-    const title = document.createElement("div");
-    title.className = "ku-welcome-title";
-    title.textContent = "Witaj w grze";
+    // Clipboard icon
+    const clipIcon = document.createElement("img");
+    clipIcon.className = "ku-clipboard-icon";
+    clipIcon.src = ASSETS.icoClipboard();
+    clipIcon.alt = "Zadanie";
+    popup.appendChild(clipIcon);
+
+    const h1 = document.createElement("div");
+    h1.className = "ku-welcome-title";
+    h1.textContent = "Witaj w grze";
+    popup.appendChild(h1);
+
+    // Separator with sep_500.png
+    const sep1 = document.createElement("img");
+    sep1.className = "ku-sep-img";
+    sep1.src = ASSETS.sep500();
+    sep1.alt = "";
+    sep1.setAttribute("aria-hidden", "true");
+    popup.appendChild(sep1);
 
     const text = document.createElement("div");
     text.className = "ku-welcome-text";
-    text.innerHTML = `Poznaj historię modeli układu słonecznego! Odkryj jak wielcy astronomowie — <b>Ptolemeusz</b>, <b>Kopernik</b> i <b>Kepler</b> — wyobrażali sobie ruch planet.<br><br>Kliknij na portret astronoma, aby poznać jego model i biografię.`;
+    text.innerHTML = "Poznaj trzy historyczne modele układu słonecznego stworzone przez wybitnych astronomów: <strong>Ptolemeusza</strong>, <strong>Kopernika</strong> i <strong>Keplera</strong>. Kliknij portret astronoma, aby poznać jego biografię i zobaczyć interaktywny model układu planetarnego.";
+    popup.appendChild(text);
 
-    const btns = document.createElement("div");
-    btns.className = "ku-welcome-btns";
+    // Separator with sep_980.png
+    const sep2 = document.createElement("img");
+    sep2.className = "ku-sep-img";
+    sep2.src = ASSETS.sep980();
+    sep2.alt = "";
+    sep2.setAttribute("aria-hidden", "true");
+    popup.appendChild(sep2);
 
-    const settingsBtn = document.createElement("button");
-    settingsBtn.className = "ku-btn ku-btn-secondary";
-    settingsBtn.textContent = "USTAWIENIA";
-    settingsBtn.addEventListener("click", () => { playClick(); this.showSettings(); });
+    const btnsDiv = document.createElement("div");
+    btnsDiv.className = "ku-welcome-btns";
 
-    const startBtn = document.createElement("button");
-    startBtn.className = "ku-btn ku-btn-primary";
-    startBtn.textContent = "ROZPOCZNIJ";
-    startBtn.addEventListener("click", () => {
-      playClick();
-      this.showScreen("game");
-      if (!this.state.onboardingDone) {
-        setTimeout(() => this.showOnboarding(0), 300);
-      }
+    const settingsBtn = this.createBtn("USTAWIENIA", "280", () => {
+      playClick(); this.showSettings();
+    });
+    const startBtn = this.createBtn("ROZPOCZNIJ", "280", () => {
+      playClick(); this.showScreen("game");
+      if (!this.state.onboardDone) this.showOnboarding();
     });
 
-    btns.appendChild(settingsBtn);
-    btns.appendChild(startBtn);
-    popup.appendChild(title);
-    popup.appendChild(text);
-    popup.appendChild(btns);
+    btnsDiv.appendChild(settingsBtn);
+    btnsDiv.appendChild(startBtn);
+    popup.appendChild(btnsDiv);
     screen.appendChild(popup);
+
     return screen;
   }
+
+  // ─── GAME SCREEN ─────────────────────────────────────────────
 
   private buildGameScreen(): HTMLElement {
     const screen = document.createElement("div");
     screen.className = "ku-screen ku-game";
-    screen.setAttribute("data-screen", "game");
-
-    // Background
-    const bg = document.createElement("div");
-    bg.className = "ku-bg";
-    bg.style.setProperty("background-image", `url(${path("images/bg_all.png")})`);
-    screen.appendChild(bg);
-
-    // Model title
-    const modelTitle = document.createElement("div");
-    modelTitle.className = "ku-model-title";
-    modelTitle.textContent = ASTRONOMERS[this.state.selectedAstronomer - 1].modelTitle;
-    this.modelTitleEl = modelTitle;
-    screen.appendChild(modelTitle);
+    screen.dataset.screen = "game";
 
     // Portraits panel
     const panel = document.createElement("div");
     panel.className = "ku-portraits-panel";
-    this.portraitBtns = [];
 
-    ASTRONOMERS.forEach((a, i) => {
+    for (let i = 0; i < ASTRONOMERS.length; i++) {
+      const a = ASTRONOMERS[i];
       const wrap = document.createElement("div");
+      wrap.style.cssText = "text-align: center !important;";
 
       const btn = document.createElement("button");
-      btn.className = "ku-portrait-btn" + (i === this.state.selectedAstronomer - 1 ? " ku-active-portrait" : "");
-      btn.setAttribute("aria-label", `Biografia: ${a.name}`);
-      btn.setAttribute("title", a.name);
+      btn.className = "ku-portrait-btn" + (i === this.state.astronomer ? " ku-active-portrait" : "");
+      btn.setAttribute("aria-label", a.name);
+      btn.dataset.index = String(i);
 
-      const img = document.createElement("img");
-      img.src = path(a.portrait);
-      img.alt = a.name;
-      img.addEventListener("mouseover", () => { img.src = path(a.portraitOver); });
-      img.addEventListener("mouseout", () => { img.src = path(a.portrait); });
+      const pImg = document.createElement("img");
+      pImg.src = a.portrait();
+      pImg.alt = a.name;
 
-      btn.appendChild(img);
+      // Hover effect for Kopernik (pp_02 -> pp_02_over)
+      btn.addEventListener("mouseenter", () => {
+        pImg.src = a.portraitOver();
+        playHover();
+      });
+      btn.addEventListener("mouseleave", () => {
+        pImg.src = a.portrait();
+      });
+
       btn.addEventListener("click", () => {
         playClick();
-        this.selectAstronomer(i + 1);
+        this.selectAstronomer(i);
         this.showBiography(i);
       });
+
+      btn.appendChild(pImg);
+      wrap.appendChild(btn);
 
       const name = document.createElement("div");
       name.className = "ku-portrait-name";
       name.textContent = a.name;
-
-      wrap.appendChild(btn);
       wrap.appendChild(name);
+
       panel.appendChild(wrap);
-      this.portraitBtns.push(btn);
-    });
+    }
 
     screen.appendChild(panel);
 
@@ -1638,20 +1828,33 @@ export class App {
     const canvasArea = document.createElement("div");
     canvasArea.className = "ku-canvas-area";
 
-    const canvas = document.createElement("canvas") as HTMLCanvasElement;
+    const canvas = document.createElement("canvas");
     canvas.className = "ku-solar-canvas";
-    const cw = GAME_W - 180;
-    const ch = GAME_H - TOPBAR_H;
-    canvas.width = cw;
-    canvas.height = ch;
-    canvas.style.width = cw + "px";
-    canvas.style.height = ch + "px";
+    canvas.width = GAME_W - 190;
+    canvas.height = GAME_H - TOPBAR_H;
+
+    // Tooltip
+    const tooltip = document.createElement("div");
+    tooltip.className = "ku-tooltip";
+    const ttName = document.createElement("div");
+    ttName.className = "ku-tooltip-name";
+    const ttType = document.createElement("div");
+    ttType.className = "ku-tooltip-type";
+    tooltip.appendChild(ttName);
+    tooltip.appendChild(ttType);
+
+    // Model title
+    const modelTitle = document.createElement("div");
+    modelTitle.className = "ku-model-title";
+    modelTitle.textContent = ASTRONOMERS[this.state.astronomer].modelTitle;
+
     canvasArea.appendChild(canvas);
-    screen.appendChild(canvasArea);
+    canvasArea.appendChild(tooltip);
+    canvasArea.appendChild(modelTitle);
 
     // Zoom controls
-    const zoomCtrl = document.createElement("div");
-    zoomCtrl.className = "ku-zoom-controls";
+    const zoomDiv = document.createElement("div");
+    zoomDiv.className = "ku-zoom-controls";
 
     const zoomIn = document.createElement("button");
     zoomIn.className = "ku-zoom-btn";
@@ -1668,34 +1871,29 @@ export class App {
     const zoomReset = document.createElement("button");
     zoomReset.className = "ku-zoom-btn";
     zoomReset.textContent = "⊡";
-    zoomReset.setAttribute("aria-label", "Reset widoku");
+    zoomReset.setAttribute("aria-label", "Resetuj widok");
     zoomReset.addEventListener("click", () => { playClick(); this.engine?.resetView(); });
 
-    zoomCtrl.appendChild(zoomIn);
-    zoomCtrl.appendChild(zoomOut);
-    zoomCtrl.appendChild(zoomReset);
-    screen.appendChild(zoomCtrl);
+    zoomDiv.appendChild(zoomIn);
+    zoomDiv.appendChild(zoomOut);
+    zoomDiv.appendChild(zoomReset);
+    canvasArea.appendChild(zoomDiv);
 
-    // Init canvas engine
-    this.engine = new CanvasEngine(canvas);
-    const astro = ASTRONOMERS[this.state.selectedAstronomer - 1];
-    this.engine.setModel(astro.planets, astro.modelType);
-    this.engine.setOrbitsVisible(this.state.wcag.orbitsVisible);
-    this.engine.setReduceMotion(this.state.wcag.reduceMotion);
-    this.engine.setOnHover((planet, x, y) => this.updateTooltip(planet, x, y));
+    screen.appendChild(canvasArea);
+
+    // Initialize canvas engine
+    this.engine = new CanvasEngine(canvas, tooltip);
+    this.engine.setModel(ASTRONOMERS[this.state.astronomer].modelType);
 
     return screen;
   }
 
+  // ─── MODEL SCREEN ────────────────────────────────────────────
+
   private buildModelScreen(): HTMLElement {
     const screen = document.createElement("div");
     screen.className = "ku-screen ku-model";
-    screen.setAttribute("data-screen", "model");
-
-    const bg = document.createElement("div");
-    bg.className = "ku-bg";
-    bg.style.setProperty("background-image", `url(${path("images/bg_all.png")})`);
-    screen.appendChild(bg);
+    screen.dataset.screen = "model";
 
     const container = document.createElement("div");
     container.className = "ku-model-container";
@@ -1704,138 +1902,189 @@ export class App {
     header.className = "ku-model-header";
     const heading = document.createElement("div");
     heading.className = "ku-model-heading";
-    heading.setAttribute("data-model-heading", "true");
+    heading.textContent = "";
     header.appendChild(heading);
-    container.appendChild(header);
 
     const canvasWrap = document.createElement("div");
     canvasWrap.className = "ku-model-canvas-wrap";
-    const modelCanvas = document.createElement("canvas") as HTMLCanvasElement;
-    modelCanvas.className = "ku-model-canvas";
-    modelCanvas.width = 1400;
-    modelCanvas.height = 800;
-    modelCanvas.style.width = "1400px";
-    modelCanvas.style.height = "800px";
-    canvasWrap.appendChild(modelCanvas);
-    container.appendChild(canvasWrap);
+    const canvas = document.createElement("canvas");
+    canvas.className = "ku-model-canvas";
+    canvas.width = 900;
+    canvas.height = 700;
+    canvasWrap.appendChild(canvas);
 
     const footer = document.createElement("div");
     footer.className = "ku-model-footer";
-    const backBtn = document.createElement("button");
-    backBtn.className = "ku-btn ku-btn-primary";
-    backBtn.textContent = "← Powrót";
-    backBtn.addEventListener("click", () => { playClick(); this.showScreen("game"); });
+    const backBtn = this.createBtn("\u2190 POWRÓT", "280", () => {
+      playClick();
+      this.showScreen("game");
+    });
     footer.appendChild(backBtn);
-    container.appendChild(footer);
 
+    container.appendChild(header);
+    container.appendChild(canvasWrap);
+    container.appendChild(footer);
     screen.appendChild(container);
+
     return screen;
   }
 
-  // ─── SCREEN MANAGEMENT ────────────────────────────────────────
+  // ─── BUTTON FACTORY ──────────────────────────────────────────
 
-  private showScreen(name: "welcome" | "game" | "model"): void {
-    this.state.screen = name;
-    const screens = this.root?.querySelectorAll(".ku-screen");
-    screens?.forEach(s => s.classList.remove("ku-active"));
-    const target = this.root?.querySelector(`[data-screen="${name}"]`);
-    target?.classList.add("ku-active");
+  private createBtn(text: string, size: "280" | "420" | "620", onClick: () => void): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.className = `ku-btn ku-btn-${size}`;
+    const bgMap: Record<string, () => string> = {
+      "280": ASSETS.btn280,
+      "420": ASSETS.btn420,
+      "620": ASSETS.btn620,
+    };
+    btn.style.backgroundImage = `url('${bgMap[size]()}')`;
+    btn.textContent = text;
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
+
+  // ─── SCREEN MANAGEMENT ───────────────────────────────────────
+
+  private showScreen(name: string): void {
+    if (!this.root) return;
+    this.state.screen = name as AppState["screen"];
+
+    const screens = this.root.querySelectorAll(".ku-screen");
+    screens.forEach((s) => {
+      (s as HTMLElement).classList.toggle("ku-active", (s as HTMLElement).dataset.screen === name);
+    });
 
     if (name === "game") {
+      this.engine?.setModel(ASTRONOMERS[this.state.astronomer].modelType);
       this.engine?.start();
+      // Update model title
+      const titleEl = this.root.querySelector(".ku-model-title") as HTMLElement;
+      if (titleEl) titleEl.textContent = ASTRONOMERS[this.state.astronomer].modelTitle;
     } else {
       this.engine?.stop();
     }
+
+    if (name === "model") {
+      this.renderModelScreen();
+    }
+
+    this.closeOverlay();
     this.saveState();
   }
 
-  private selectAstronomer(idx: number): void {
-    this.state.selectedAstronomer = idx;
-    this.portraitBtns.forEach((btn, i) => {
-      btn.classList.toggle("ku-active-portrait", i === idx - 1);
+  private renderModelScreen(): void {
+    if (!this.root) return;
+    const a = ASTRONOMERS[this.state.astronomer];
+    const heading = this.root.querySelector(".ku-model-heading") as HTMLElement;
+    if (heading) heading.textContent = a.modelTitle;
+
+    const canvas = this.root.querySelector(".ku-model-canvas") as HTMLCanvasElement;
+    if (canvas) renderModelCanvas(canvas, a.modelType);
+  }
+
+  private selectAstronomer(index: number): void {
+    this.state.astronomer = index;
+    if (!this.root) return;
+
+    // Update portrait active state
+    const btns = this.root.querySelectorAll(".ku-portrait-btn");
+    btns.forEach((b, i) => {
+      (b as HTMLElement).classList.toggle("ku-active-portrait", i === index);
     });
-    const astro = ASTRONOMERS[idx - 1];
-    if (this.modelTitleEl) this.modelTitleEl.textContent = astro.modelTitle;
-    this.engine?.setModel(astro.planets, astro.modelType);
-    this.engine?.setOrbitsVisible(this.state.wcag.orbitsVisible);
-    this.engine?.setReduceMotion(this.state.wcag.reduceMotion);
+
+    // Update model
+    this.engine?.setModel(ASTRONOMERS[index].modelType);
+
+    // Update title
+    const titleEl = this.root.querySelector(".ku-model-title") as HTMLElement;
+    if (titleEl) titleEl.textContent = ASTRONOMERS[index].modelTitle;
+
     this.saveState();
   }
 
-  // ─── BIOGRAPHY POPUP ──────────────────────────────────────────
+  // ─── BIOGRAPHY POPUP ─────────────────────────────────────────
 
-  private showBiography(idx: number): void {
-    const a = ASTRONOMERS[idx];
+  private showBiography(index: number): void {
     if (!this.overlay) return;
+    const a = ASTRONOMERS[index];
 
     const popup = document.createElement("div");
     popup.className = "ku-bio-popup";
+    popup.style.backgroundImage = `url('${ASSETS.popupBg()}')`;
     popup.setAttribute("role", "dialog");
-    popup.setAttribute("aria-modal", "true");
     popup.setAttribute("aria-label", `Biografia: ${a.name}`);
 
+    // Close button
     const closeBtn = document.createElement("button");
     closeBtn.className = "ku-bio-close";
-    closeBtn.textContent = "✕";
+    closeBtn.innerHTML = "✕";
     closeBtn.setAttribute("aria-label", "Zamknij");
     closeBtn.addEventListener("click", () => { playClick(); this.closeOverlay(); });
     popup.appendChild(closeBtn);
 
+    // Header with portrait
     const header = document.createElement("div");
     header.className = "ku-bio-header";
 
     const portrait = document.createElement("img");
     portrait.className = "ku-bio-portrait";
-    portrait.src = path(a.portrait);
+    portrait.src = a.bioPicture();
     portrait.alt = a.name;
-    header.appendChild(portrait);
 
     const info = document.createElement("div");
     info.className = "ku-bio-info";
 
-    const nameEl = document.createElement("div");
-    nameEl.className = "ku-bio-name";
-    nameEl.textContent = a.name;
+    const name = document.createElement("div");
+    name.className = "ku-bio-name";
+    name.textContent = a.name;
 
     const years = document.createElement("div");
     years.className = "ku-bio-years";
     years.textContent = a.years;
 
-    const bioText = document.createElement("div");
-    bioText.className = "ku-bio-text";
-    bioText.innerHTML = a.bio;
-
-    info.appendChild(nameEl);
+    info.appendChild(name);
     info.appendChild(years);
-    info.appendChild(bioText);
+    header.appendChild(portrait);
     header.appendChild(info);
     popup.appendChild(header);
 
-    const btns = document.createElement("div");
-    btns.className = "ku-bio-btns";
+    // Separator
+    const sep = document.createElement("img");
+    sep.className = "ku-sep-img";
+    sep.src = ASSETS.sep500();
+    sep.alt = "";
+    sep.setAttribute("aria-hidden", "true");
+    popup.appendChild(sep);
 
-    const modelBtn = document.createElement("button");
-    modelBtn.className = "ku-btn ku-btn-primary";
-    modelBtn.textContent = a.modelTitle;
-    modelBtn.addEventListener("click", () => {
+    // Bio text
+    const text = document.createElement("div");
+    text.className = "ku-bio-text";
+    text.innerHTML = a.bio;
+    popup.appendChild(text);
+
+    // Buttons
+    const btnsDiv = document.createElement("div");
+    btnsDiv.className = "ku-bio-btns";
+
+    const modelBtn = this.createBtn(`UKŁAD SŁONECZNY ${a.name.split(" ").pop()?.toUpperCase() || ""}`, "420", () => {
       playClick();
       this.closeOverlay();
-      this.showModelScreen(idx);
+      this.showScreen("model");
     });
 
-    const closeBtn2 = document.createElement("button");
-    closeBtn2.className = "ku-btn ku-btn-secondary";
-    closeBtn2.textContent = "Zamknij";
-    closeBtn2.addEventListener("click", () => { playClick(); this.closeOverlay(); });
+    const closeBtn2 = this.createBtn("ZAMKNIJ", "280", () => {
+      playClick(); this.closeOverlay();
+    });
 
-    btns.appendChild(modelBtn);
-    btns.appendChild(closeBtn2);
-    popup.appendChild(btns);
+    btnsDiv.appendChild(modelBtn);
+    btnsDiv.appendChild(closeBtn2);
+    popup.appendChild(btnsDiv);
 
     this.overlay.innerHTML = "";
     this.overlay.appendChild(popup);
     this.overlay.classList.add("ku-visible");
-    setTimeout(() => closeBtn.focus(), 50);
   }
 
   private closeOverlay(): void {
@@ -1845,251 +2094,116 @@ export class App {
     }
   }
 
-  // ─── MODEL SCREEN ─────────────────────────────────────────────
+  // ─── ONBOARDING ──────────────────────────────────────────────
 
-  private showModelScreen(idx: number): void {
-    const a = ASTRONOMERS[idx];
-    this.state.modelAstronomer = idx + 1;
+  private showOnboarding(): void {
+    if (!this.onboardOverlay) return;
 
-    // Update heading
-    const heading = this.root?.querySelector("[data-model-heading]") as HTMLElement;
-    if (heading) heading.textContent = a.modelTitle;
+    const steps = [
+      {
+        icon: ASSETS.icoHelp(),
+        title: "Nawigacja",
+        text: "Użyj kółka myszy aby przybliżać i oddalać mapę. Kliknij i przeciągnij aby przesuwać widok. Na urządzeniach dotykowych użyj gestu szczypania i przeciągania.",
+      },
+      {
+        icon: ASSETS.icoSetting(),
+        title: "Interakcje",
+        text: "Kliknij portret astronoma po lewej stronie, aby poznać jego biografię i zobaczyć model układu słonecznego. Najedź kursorem na planetę, aby zobaczyć jej nazwę i typ.",
+      },
+      {
+        icon: ASSETS.icoSetting(),
+        title: "Dostępność",
+        text: "Kliknij ikonę ustawień (⚙️) w prawym górnym rogu, aby dostosować wielkość tekstu, kontrast, filtry kolorów i inne opcje dostępności.",
+      },
+    ];
 
-    // Draw static model on canvas
-    const modelCanvas = this.root?.querySelector(".ku-model-canvas") as HTMLCanvasElement;
-    if (modelCanvas) {
-      this.drawStaticModel(modelCanvas, a);
-    }
+    let currentStep = 0;
 
-    this.showScreen("model");
-  }
+    const render = (): void => {
+      if (!this.onboardOverlay) return;
+      const step = steps[currentStep];
 
-  private drawStaticModel(canvas: HTMLCanvasElement, a: AstronomerModel): void {
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-    const w = canvas.width;
-    const h = canvas.height;
-    const cx = w / 2;
-    const cy = h / 2;
+      const card = document.createElement("div");
+      card.className = "ku-onboarding-card";
+      card.style.backgroundImage = `url('${ASSETS.popupBg()}')`;
 
-    // Background
-    ctx.fillStyle = "#050a1a";
-    ctx.fillRect(0, 0, w, h);
+      const icon = document.createElement("img");
+      icon.className = "ku-onboarding-icon";
+      icon.src = step.icon;
+      icon.alt = step.title;
+      card.appendChild(icon);
 
-    // Stars
-    ctx.fillStyle = "rgba(255,255,255,0.7)";
-    for (let i = 0; i < 150; i++) {
-      const x = (i * 137.5) % w;
-      const y = (i * 89.3) % h;
-      ctx.beginPath();
-      ctx.arc(x, y, (i % 3 === 0) ? 1.5 : 0.8, 0, Math.PI * 2);
-      ctx.fill();
-    }
+      const title = document.createElement("div");
+      title.className = "ku-onboarding-title";
+      title.textContent = step.title;
+      card.appendChild(title);
 
-    // Orbits
-    a.planets.forEach(p => {
-      ctx.beginPath();
-      if (a.modelType === "kepler" && p.eccentricity) {
-        const e = p.eccentricity;
-        const orb = p.orbitRadius * 1.3;
-        const b = orb * Math.sqrt(1 - e * e);
-        const focusOffset = orb * e;
-        ctx.ellipse(cx - focusOffset, cy, orb, b, 0, 0, Math.PI * 2);
-      } else {
-        ctx.arc(cx, cy, p.orbitRadius * 1.3, 0, Math.PI * 2);
+      const text = document.createElement("div");
+      text.className = "ku-onboarding-text";
+      text.textContent = step.text;
+      card.appendChild(text);
+
+      // Dots
+      const dots = document.createElement("div");
+      dots.className = "ku-onboarding-dots";
+      for (let i = 0; i < steps.length; i++) {
+        const dot = document.createElement("div");
+        dot.className = "ku-onboarding-dot" + (i === currentStep ? " ku-active" : "");
+        dots.appendChild(dot);
       }
-      ctx.strokeStyle = "rgba(150,180,255,0.3)";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    });
+      card.appendChild(dots);
 
-    // Center body
-    if (a.modelType === "geocentric") {
-      const grd = ctx.createRadialGradient(cx - 8, cy - 8, 3, cx, cy, 28);
-      grd.addColorStop(0, "#a0d0ff");
-      grd.addColorStop(0.5, "#4A90D9");
-      grd.addColorStop(1, "#1a3a6a");
-      ctx.fillStyle = grd;
-      ctx.beginPath();
-      ctx.arc(cx, cy, 28, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold 14px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("Ziemia", cx, cy + 42);
-      ctx.fillStyle = "rgba(255,255,255,0.4)";
-      ctx.font = "11px Arial";
-      ctx.fillText("(centrum)", cx, cy + 56);
-    } else {
-      // Sun
-      const grd = ctx.createRadialGradient(cx - 10, cy - 10, 4, cx, cy, 36);
-      grd.addColorStop(0, "#fff7a0");
-      grd.addColorStop(0.4, "#FFD700");
-      grd.addColorStop(0.8, "#FF8C00");
-      grd.addColorStop(1, "#FF4500");
-      ctx.fillStyle = grd;
-      ctx.beginPath();
-      ctx.arc(cx, cy, 36, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold 14px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("Słońce", cx, cy + 50);
-    }
+      // Buttons
+      const btnsDiv = document.createElement("div");
+      btnsDiv.className = "ku-onboarding-btns";
 
-    // Planets at fixed positions
-    a.planets.forEach((p, i) => {
-      const angle = (i / a.planets.length) * Math.PI * 2;
-      let px: number, py: number;
-      if (a.modelType === "kepler" && p.eccentricity) {
-        const orb = p.orbitRadius * 1.3;
-        const e = p.eccentricity;
-        const focusOffset = orb * e;
-        px = cx - focusOffset + Math.cos(angle) * orb;
-        py = cy + Math.sin(angle) * orb * Math.sqrt(1 - e * e);
+      if (currentStep === 0) {
+        const skipBtn = this.createBtn("POMIŃ", "280", () => {
+          playClick();
+          this.state.onboardDone = true;
+          this.onboardOverlay!.classList.remove("ku-visible");
+          this.onboardOverlay!.innerHTML = "";
+          this.saveState();
+        });
+        const nextBtn = this.createBtn("DALEJ", "280", () => {
+          playClick(); currentStep++; render();
+        });
+        btnsDiv.appendChild(skipBtn);
+        btnsDiv.appendChild(nextBtn);
+      } else if (currentStep < steps.length - 1) {
+        const backBtn = this.createBtn("COFNIJ", "280", () => {
+          playClick(); currentStep--; render();
+        });
+        const nextBtn = this.createBtn("DALEJ", "280", () => {
+          playClick(); currentStep++; render();
+        });
+        btnsDiv.appendChild(backBtn);
+        btnsDiv.appendChild(nextBtn);
       } else {
-        px = cx + Math.cos(angle) * p.orbitRadius * 1.3;
-        py = cy + Math.sin(angle) * p.orbitRadius * 1.3;
+        const backBtn = this.createBtn("COFNIJ", "280", () => {
+          playClick(); currentStep--; render();
+        });
+        const closeBtn = this.createBtn("ZAMKNIJ", "280", () => {
+          playClick();
+          this.state.onboardDone = true;
+          this.onboardOverlay!.classList.remove("ku-visible");
+          this.onboardOverlay!.innerHTML = "";
+          this.saveState();
+        });
+        btnsDiv.appendChild(backBtn);
+        btnsDiv.appendChild(closeBtn);
       }
 
-      // Line from center to planet
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(px, py);
-      ctx.strokeStyle = "rgba(255,255,255,0.1)";
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      card.appendChild(btnsDiv);
+      this.onboardOverlay!.innerHTML = "";
+      this.onboardOverlay!.appendChild(card);
+      this.onboardOverlay!.classList.add("ku-visible");
+    };
 
-      // Planet
-      const grd2 = ctx.createRadialGradient(px - p.radius * 0.3, py - p.radius * 0.3, 1, px, py, p.radius * 1.3);
-      grd2.addColorStop(0, lighten(p.color, 60));
-      grd2.addColorStop(0.6, p.color);
-      grd2.addColorStop(1, darken(p.color, 40));
-      ctx.fillStyle = grd2;
-      ctx.beginPath();
-      ctx.arc(px, py, p.radius * 1.3, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Label
-      ctx.fillStyle = "#fff";
-      ctx.font = "12px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText(p.name, px, py + p.radius * 1.3 + 14);
-    });
-
-    // Ellipse annotation for Kepler
-    if (a.modelType === "kepler") {
-      ctx.fillStyle = "rgba(255,215,0,0.7)";
-      ctx.font = "italic 14px Arial";
-      ctx.textAlign = "left";
-      ctx.fillText("Orbity eliptyczne (prawa Keplera)", 20, h - 20);
-    }
+    render();
   }
 
-  // ─── TOOLTIP ──────────────────────────────────────────────────
-
-  private updateTooltip(planet: Planet | null, x: number, y: number): void {
-    if (!this.tooltip) return;
-    if (!planet) {
-      this.tooltip.classList.remove("ku-visible");
-      return;
-    }
-    const nameEl = this.tooltip.querySelector(".ku-tooltip-name") as HTMLElement;
-    const typeEl = this.tooltip.querySelector(".ku-tooltip-type") as HTMLElement;
-    nameEl.textContent = planet.name;
-    typeEl.textContent = planet.type;
-
-    // Position tooltip relative to root
-    const rootRect = this.root!.getBoundingClientRect();
-    const scale = GAME_W / rootRect.width;
-    const tx = x + 15;
-    const ty = y + TOPBAR_H / scale - 10;
-    this.tooltip.style.left = tx + "px";
-    this.tooltip.style.top = ty + "px";
-    this.tooltip.classList.add("ku-visible");
-  }
-
-  // ─── ONBOARDING ───────────────────────────────────────────────
-
-  private showOnboarding(step: number): void {
-    if (!this.onboardingOverlay) return;
-    this.state.onboardingStep = step;
-    const s = ONBOARDING_STEPS[step];
-
-    const card = document.createElement("div");
-    card.className = "ku-onboarding-card";
-
-    const icon = document.createElement("span");
-    icon.className = "ku-onboarding-icon";
-    icon.textContent = s.icon;
-
-    const title = document.createElement("div");
-    title.className = "ku-onboarding-title";
-    title.textContent = s.title;
-
-    const text = document.createElement("div");
-    text.className = "ku-onboarding-text";
-    text.innerHTML = s.text;
-
-    const dots = document.createElement("div");
-    dots.className = "ku-onboarding-dots";
-    ONBOARDING_STEPS.forEach((_, i) => {
-      const dot = document.createElement("div");
-      dot.className = "ku-onboarding-dot" + (i === step ? " ku-active" : "");
-      dots.appendChild(dot);
-    });
-
-    const btns = document.createElement("div");
-    btns.className = "ku-onboarding-btns";
-
-    if (step > 0) {
-      const back = document.createElement("button");
-      back.className = "ku-btn ku-btn-secondary";
-      back.textContent = "COFNIJ";
-      back.addEventListener("click", () => { playClick(); this.showOnboarding(step - 1); });
-      btns.appendChild(back);
-    } else {
-      const skip = document.createElement("button");
-      skip.className = "ku-btn ku-btn-secondary";
-      skip.textContent = "POMIŃ";
-      skip.addEventListener("click", () => { playClick(); this.closeOnboarding(); });
-      btns.appendChild(skip);
-    }
-
-    if (step < ONBOARDING_STEPS.length - 1) {
-      const next = document.createElement("button");
-      next.className = "ku-btn ku-btn-primary";
-      next.textContent = "DALEJ";
-      next.addEventListener("click", () => { playClick(); this.showOnboarding(step + 1); });
-      btns.appendChild(next);
-    } else {
-      const close = document.createElement("button");
-      close.className = "ku-btn ku-btn-gold";
-      close.textContent = "ZAMKNIJ";
-      close.addEventListener("click", () => { playClick(); this.closeOnboarding(); });
-      btns.appendChild(close);
-    }
-
-    card.appendChild(icon);
-    card.appendChild(title);
-    card.appendChild(text);
-    card.appendChild(dots);
-    card.appendChild(btns);
-
-    this.onboardingOverlay.innerHTML = "";
-    this.onboardingOverlay.appendChild(card);
-    this.onboardingOverlay.classList.add("ku-visible");
-  }
-
-  private closeOnboarding(): void {
-    this.state.onboardingDone = true;
-    if (this.onboardingOverlay) {
-      this.onboardingOverlay.classList.remove("ku-visible");
-      this.onboardingOverlay.innerHTML = "";
-    }
-    this.saveState();
-  }
-
-  // ─── SETTINGS ─────────────────────────────────────────────────
+  // ─── SETTINGS PANEL ──────────────────────────────────────────
 
   private showSettings(): void {
     if (!this.overlay) return;
@@ -2097,52 +2211,59 @@ export class App {
 
     const panel = document.createElement("div");
     panel.className = "ku-settings-panel";
+    panel.style.backgroundImage = `url('${ASSETS.popupBg()}')`;
     panel.setAttribute("role", "dialog");
-    panel.setAttribute("aria-modal", "true");
     panel.setAttribute("aria-label", "Ustawienia dostępności");
 
     const title = document.createElement("div");
     title.className = "ku-settings-title";
-    title.textContent = "Ustawienia";
+    title.textContent = "USTAWIENIA";
     panel.appendChild(title);
+
+    // Separator
+    const sep = document.createElement("img");
+    sep.className = "ku-settings-sep";
+    sep.src = ASSETS.sep500();
+    sep.alt = "";
+    sep.setAttribute("aria-hidden", "true");
+    panel.appendChild(sep);
 
     const grid = document.createElement("div");
     grid.className = "ku-settings-grid";
 
     // Text size
-    grid.appendChild(this.buildSettingsRow("🔠 Wielkość tekstu", () => {
+    grid.appendChild(this.buildSettingsRow("Wielkość tekstu", () => {
       const ctrl = document.createElement("div");
       ctrl.className = "ku-settings-controls";
-      [1, 2, 3].forEach(size => {
+      for (let s = 1; s <= 3; s++) {
         const btn = document.createElement("button");
-        btn.className = "ku-size-btn" + (w.textSize === size ? " ku-active" : "");
+        btn.className = "ku-size-btn" + (w.textSize === s ? " ku-active" : "");
         btn.textContent = "A";
-        btn.style.fontSize = (12 + size * 3) + "px";
-        btn.setAttribute("aria-label", `Rozmiar ${size}`);
+        btn.style.fontSize = (12 + s * 4) + "px";
+        btn.setAttribute("aria-label", `Rozmiar ${s}`);
         btn.addEventListener("click", () => {
-          w.textSize = size as 1 | 2 | 3;
+          w.textSize = s as 1 | 2 | 3;
           ctrl.querySelectorAll(".ku-size-btn").forEach((b, i) => {
-            b.classList.toggle("ku-active", i + 1 === size);
+            (b as HTMLElement).classList.toggle("ku-active", i + 1 === s);
           });
-          this.applyWcag();
         });
         ctrl.appendChild(btn);
-      });
+      }
       return ctrl;
     }));
 
-    // Voiceover
-    grid.appendChild(this.buildSettingsRow("🔊 Wypowiedź lektora", () => {
-      return this.buildToggle(w.voiceover, (v) => { w.voiceover = v; });
+    // Narrator
+    grid.appendChild(this.buildSettingsRow("Wypowiedź lektora", () => {
+      return this.buildToggle(w.narrator, (v) => { w.narrator = v; });
     }));
 
     // Audio description
-    grid.appendChild(this.buildSettingsRow("📢 Audiodeskrypcja", () => {
-      return this.buildToggle(w.audiodesc, (v) => { w.audiodesc = v; });
+    grid.appendChild(this.buildSettingsRow("Audiodeskrypcja", () => {
+      return this.buildToggle(w.audioDesc, (v) => { w.audioDesc = v; });
     }));
 
-    // Orbit visibility
-    grid.appendChild(this.buildSettingsRow("🪐 Widoczność orbit", () => {
+    // Orbits visibility
+    grid.appendChild(this.buildSettingsRow("Widoczność orbit", () => {
       return this.buildToggle(w.orbitsVisible, (v) => {
         w.orbitsVisible = v;
         this.engine?.setOrbitsVisible(v);
@@ -2150,58 +2271,60 @@ export class App {
     }));
 
     // High contrast
-    grid.appendChild(this.buildSettingsRow("👁️ Tryb wysokiego kontrastu", () => {
-      return this.buildToggle(w.highContrast, (v) => {
-        w.highContrast = v;
-        this.applyWcag();
-      });
+    grid.appendChild(this.buildSettingsRow("Tryb wysokiego kontrastu", () => {
+      return this.buildToggle(w.highContrast, (v) => { w.highContrast = v; });
     }));
 
     // Reduce motion
-    grid.appendChild(this.buildSettingsRow("🎞️ Redukcja ruchu", () => {
+    grid.appendChild(this.buildSettingsRow("Redukcja ruchu", () => {
       return this.buildToggle(w.reduceMotion, (v) => {
         w.reduceMotion = v;
         this.engine?.setReduceMotion(v);
-        this.applyWcag();
       });
     }));
 
     // Color filter
-    grid.appendChild(this.buildSettingsRow("🎨 Filtr kolorów", () => {
+    grid.appendChild(this.buildSettingsRow("Filtr kolorów", () => {
+      const wrap = document.createElement("div");
       const sel = document.createElement("select");
       sel.className = "ku-select";
-      const options: Array<[string, string]> = [
-        ["none", "Brak"],
-        ["protanopia", "Protanopia"],
-        ["deuteranopia", "Deuteranopia"],
-        ["tritanopia", "Tritanopia"],
-        ["grayscale", "Skala szarości"],
+      const options = [
+        { value: "none", label: "Brak" },
+        { value: "protanopia", label: "Protanopia" },
+        { value: "deuteranopia", label: "Deuteranopia" },
+        { value: "tritanopia", label: "Tritanopia" },
+        { value: "grayscale", label: "Skala szarości" },
       ];
-      options.forEach(([val, label]) => {
+      for (const o of options) {
         const opt = document.createElement("option");
-        opt.value = val;
-        opt.textContent = label;
-        if (w.colorFilter === val) opt.selected = true;
+        opt.value = o.value;
+        opt.textContent = o.label;
+        if (w.colorFilter === o.value) opt.selected = true;
         sel.appendChild(opt);
-      });
+      }
       sel.addEventListener("change", () => {
-        w.colorFilter = sel.value as WcagSettings["colorFilter"];
-        this.applyWcag();
+        w.colorFilter = sel.value as WcagState["colorFilter"];
       });
-      const wrap = document.createElement("div");
       wrap.appendChild(sel);
       return wrap;
     }));
 
     panel.appendChild(grid);
 
+    // Footer with ZAPISZ button
     const footer = document.createElement("div");
     footer.className = "ku-settings-footer";
 
     const saveBtn = document.createElement("button");
-    saveBtn.className = "ku-btn ku-btn-gold";
+    saveBtn.className = "ku-btn ku-btn-280";
+    saveBtn.style.backgroundImage = `url('${ASSETS.btn280()}')`;
     saveBtn.textContent = "ZAPISZ";
-    saveBtn.addEventListener("click", () => { playClick(); this.applyWcag(); this.saveState(); this.closeOverlay(); });
+    saveBtn.addEventListener("click", () => {
+      playClick();
+      this.applyWcag();
+      this.saveState();
+      this.closeOverlay();
+    });
 
     footer.appendChild(saveBtn);
     panel.appendChild(footer);
@@ -2247,18 +2370,13 @@ export class App {
     if (!this.root) return;
     const w = this.state.wcag;
 
-    // Text size
     this.root.classList.remove("ku-size-1", "ku-size-2", "ku-size-3");
     this.root.classList.add(`ku-size-${w.textSize}`);
-
-    // High contrast
     this.root.classList.toggle("ku-high-contrast", w.highContrast);
-
-    // Reduce motion
     this.root.classList.toggle("ku-reduce-motion", w.reduceMotion);
     this.engine?.setReduceMotion(w.reduceMotion);
+    this.engine?.setOrbitsVisible(w.orbitsVisible);
 
-    // Color filter
     this.root.classList.remove(
       "ku-filter-grayscale", "ku-filter-protanopia",
       "ku-filter-deuteranopia", "ku-filter-tritanopia"
@@ -2290,7 +2408,7 @@ export class App {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// ZPE LIFECYCLE EXPORTS (used by main.ts)
+// ZPE LIFECYCLE EXPORTS
 // ═══════════════════════════════════════════════════════════════════
 
 let _app: App | null = null;
