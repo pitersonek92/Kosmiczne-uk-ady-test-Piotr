@@ -11,69 +11,74 @@
         {
             "id": "ptolemeusz",
             "imie": "Klaudiusz Ptolemeusz",
+            "lata": "ok. 100–170 n.e.",
             "portret": "images/pp_01.png",
-            "biogram": "Klaudiusz Ptolemeusz był greckim astronomem, matematykiem i geografem, żył ok. 100–170 n.e. Działał w Aleksandrii w Egipcie. Stworzył geocentryczny model wszechświata opisany w dziele Almagest, według którego Ziemia znajduje się w centrum, a Słońce, Księżyc i planety krążą wokół niej po skomplikowanych orbitach zwanych epicyklami.",
-            "modelTytul": "Model układu wg. Ptolemeusza",
+            "biogram": "Klaudiusz Ptolemeusz był greckim astronomem, matematykiem i geografem. Działał w Aleksandrii w Egipcie. Stworzył geocentryczny model wszechświata opisany w dziele Almagest, według którego Ziemia znajduje się w centrum, a Słońce, Księżyc i planety krążą wokół niej po skomplikowanych orbitach zwanych epicyklami.",
+            "modelTytul": "Układ geocentryczny Ptolemeusza",
             "modelTyp": "geocentryczny",
-            "przyciskModelu": "Układ słoneczny Ptolemeusza"
+            "przyciskModelu": "UKŁAD SŁONECZNY PTOLEMEUSZA"
         },
         {
             "id": "kopernik",
             "imie": "Mikołaj Kopernik",
+            "lata": "1473–1543",
             "portret": "images/pp_02.png",
+            "portretOver": "images/pp_02_over.png",
             "portretBio": "images/kopernik.png",
-            "biogram": "Mikołaj Kopernik był wybitnym polskim astronomem, matematykiem, lekarzem i duchownym, żył w latach 1473–1543. Urodzony w Toruniu, dorastał we Fromborku, gdzie spędził większość swojego życia prowadząc badania.\n\nKopernik zasłynął przede wszystkim jako twórca heliocentrycznej teorii budowy świata, według której Ziemia i inne planety krążą wokół Słońca. Była to rewolucyjna koncepcja, która zmieniła sposób myślenia o Wszechświecie i zapoczątkowała nowoczesną astronomię.",
-            "modelTytul": "Model układu słonecznego wg. Mikołaja Kopernika",
-            "modelTyp": "heliocentryczny-kopernik",
-            "przyciskModelu": "Układ słoneczny Mikołaja Kopernika"
+            "biogram": "Mikołaj Kopernik był wybitnym polskim astronomem, matematykiem, lekarzem i duchownym. Urodzony w Toruniu, dorastał we Fromborku, gdzie spędził większość swojego życia prowadząc badania. Kopernik zasłynął przede wszystkim jako twórca heliocentrycznej teorii budowy świata, według której Ziemia i inne planety krążą wokół Słońca. Była to rewolucyjna koncepcja, która zmieniła sposób myślenia o Wszechświecie i zapoczątkowała nowoczesną astronomię.",
+            "modelTytul": "Heliocentryczny model układu wg. Kopernika",
+            "modelTyp": "heliocentryczny",
+            "przyciskModelu": "UKŁAD SŁONECZNY MIKOŁAJA KOPERNIKA"
         },
         {
-            "id": "wspolczesny",
-            "imie": "Współczesny model",
+            "id": "kepler",
+            "imie": "Johannes Kepler",
+            "lata": "1571–1630",
             "portret": "images/pp_03.png",
-            "biogram": "Współczesny model układu słonecznego jest oparty na odkryciach wielu astronomów i fizyków. Johannes Kepler (1571–1630) odkrył, że planety poruszają się po eliptycznych, a nie kołowych orbitach. Isaac Newton (1643–1727) wyjaśnił ruch planet prawem powszechnego ciążenia. Dziś wiemy, że Układ Słoneczny składa się z 8 planet krążących wokół Słońca.",
-            "modelTytul": "Współczesny model układu słonecznego",
-            "modelTyp": "wspolczesny",
-            "przyciskModelu": "Współczesny układ słoneczny"
+            "biogram": "Johannes Kepler był niemieckim astronomem i matematykiem. Odkrył trzy fundamentalne prawa ruchu planet, znane jako prawa Keplera. Najważniejsze z nich mówi, że planety poruszają się po eliptycznych, a nie kołowych orbitach, ze Słońcem w jednym z ognisk elipsy. Jego odkrycia stanowiły kluczowy krok w rozwoju astronomii i fizyki.",
+            "modelTytul": "Układ słoneczny Jana Keplera",
+            "modelTyp": "kepler",
+            "przyciskModelu": "UKŁAD SŁONECZNY JANA KEPLERA"
         }
     ],
     "modele": {
         "geocentryczny": {
             "centrum": "Ziemia",
+            "opis": "Model geocentryczny — Ziemia w centrum Wszechświata",
             "planety": [
-                { "nazwa": "Księżyc", "orbit": 1 },
-                { "nazwa": "Merkury", "orbit": 2 },
-                { "nazwa": "Wenus", "orbit": 3 },
-                { "nazwa": "Słońce", "orbit": 4 },
-                { "nazwa": "Mars", "orbit": 5 },
-                { "nazwa": "Jowisz", "orbit": 6 },
-                { "nazwa": "Saturn", "orbit": 7 }
+                { "nazwa": "Księżyc", "orbit": 1, "typ": "Satelita naturalny" },
+                { "nazwa": "Merkury", "orbit": 2, "typ": "Planeta skalista" },
+                { "nazwa": "Wenus", "orbit": 3, "typ": "Planeta skalista" },
+                { "nazwa": "Słońce", "orbit": 4, "typ": "Gwiazda" },
+                { "nazwa": "Mars", "orbit": 5, "typ": "Planeta skalista" },
+                { "nazwa": "Jowisz", "orbit": 6, "typ": "Gazowy olbrzym" },
+                { "nazwa": "Saturn", "orbit": 7, "typ": "Gazowy olbrzym" }
             ]
         },
-        "heliocentryczny-kopernik": {
+        "heliocentryczny": {
             "centrum": "Słońce",
-            "obraz": "images/planet_02.png",
+            "opis": "Model heliocentryczny — Słońce w centrum układu",
             "planety": [
-                { "nazwa": "Merkury", "orbit": 1 },
-                { "nazwa": "Wenus", "orbit": 2 },
-                { "nazwa": "Ziemia", "orbit": 3 },
-                { "nazwa": "Mars", "orbit": 4 },
-                { "nazwa": "Jowisz", "orbit": 5 },
-                { "nazwa": "Saturn", "orbit": 6 }
+                { "nazwa": "Merkury", "orbit": 1, "typ": "Planeta skalista" },
+                { "nazwa": "Wenus", "orbit": 2, "typ": "Planeta skalista" },
+                { "nazwa": "Ziemia", "orbit": 3, "typ": "Planeta skalista" },
+                { "nazwa": "Mars", "orbit": 4, "typ": "Planeta skalista" },
+                { "nazwa": "Jowisz", "orbit": 5, "typ": "Gazowy olbrzym" },
+                { "nazwa": "Saturn", "orbit": 6, "typ": "Gazowy olbrzym" },
+                { "nazwa": "Uran", "orbit": 7, "typ": "Lodowy olbrzym" },
+                { "nazwa": "Neptun", "orbit": 8, "typ": "Lodowy olbrzym" }
             ]
         },
-        "wspolczesny": {
+        "kepler": {
             "centrum": "Słońce",
-            "obraz": "images/planet_01.png",
+            "opis": "Model Keplera — orbity eliptyczne (prawa Keplera)",
             "planety": [
-                { "nazwa": "Merkury", "orbit": 1 },
-                { "nazwa": "Wenus", "orbit": 2 },
-                { "nazwa": "Ziemia", "orbit": 3 },
-                { "nazwa": "Mars", "orbit": 4 },
-                { "nazwa": "Jowisz", "orbit": 5 },
-                { "nazwa": "Saturn", "orbit": 6 },
-                { "nazwa": "Uran", "orbit": 7 },
-                { "nazwa": "Neptun", "orbit": 8 }
+                { "nazwa": "Merkury", "orbit": 1, "typ": "Planeta skalista", "mimosrod": 0.35 },
+                { "nazwa": "Wenus", "orbit": 2, "typ": "Planeta skalista", "mimosrod": 0.15 },
+                { "nazwa": "Ziemia", "orbit": 3, "typ": "Planeta skalista", "mimosrod": 0.20 },
+                { "nazwa": "Mars", "orbit": 4, "typ": "Planeta skalista", "mimosrod": 0.30 },
+                { "nazwa": "Jowisz", "orbit": 5, "typ": "Gazowy olbrzym", "mimosrod": 0.25 },
+                { "nazwa": "Saturn", "orbit": 6, "typ": "Gazowy olbrzym", "mimosrod": 0.20 }
             ]
         }
     }

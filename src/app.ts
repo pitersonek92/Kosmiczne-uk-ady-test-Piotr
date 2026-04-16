@@ -1,4 +1,4 @@
-import { path } from "@/zpe-port";
+import { path, setState } from "@/zpe-port";
 
 // ═══════════════════════════════════════════════════════════════════
 // TYPES & INTERFACES
@@ -1003,9 +1003,21 @@ class CanvasEngine {
   private hoverY: number = 0;
   private onHover: ((planet: Planet | null, x: number, y: number) => void) | null = null;
 
+  // Bound event handlers for proper removal
+  private _onWheel: (e: WheelEvent) => void;
+  private _onMouseDown: (e: MouseEvent) => void;
+  private _onMouseMove: (e: MouseEvent) => void;
+  private _onMouseUp: () => void;
+  private _onMouseLeave: () => void;
+
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+    this._onWheel = this.onWheel.bind(this);
+    this._onMouseDown = this.onMouseDown.bind(this);
+    this._onMouseMove = this.onMouseMove.bind(this);
+    this._onMouseUp = this.onMouseUp.bind(this);
+    this._onMouseLeave = this.onMouseLeave.bind(this);
     this.loadImages();
     this.bindEvents();
   }
@@ -1029,11 +1041,11 @@ class CanvasEngine {
   }
 
   private bindEvents(): void {
-    this.canvas.addEventListener("wheel", this.onWheel.bind(this), { passive: false });
-    this.canvas.addEventListener("mousedown", this.onMouseDown.bind(this));
-    this.canvas.addEventListener("mousemove", this.onMouseMove.bind(this));
-    this.canvas.addEventListener("mouseup", this.onMouseUp.bind(this));
-    this.canvas.addEventListener("mouseleave", this.onMouseLeave.bind(this));
+    this.canvas.addEventListener("wheel", this._onWheel, { passive: false });
+    this.canvas.addEventListener("mousedown", this._onMouseDown);
+    this.canvas.addEventListener("mousemove", this._onMouseMove);
+    this.canvas.addEventListener("mouseup", this._onMouseUp);
+    this.canvas.addEventListener("mouseleave", this._onMouseLeave);
   }
 
   private onWheel(e: WheelEvent): void {
@@ -1277,11 +1289,11 @@ class CanvasEngine {
 
   destroy(): void {
     this.stop();
-    this.canvas.removeEventListener("wheel", this.onWheel.bind(this));
-    this.canvas.removeEventListener("mousedown", this.onMouseDown.bind(this));
-    this.canvas.removeEventListener("mousemove", this.onMouseMove.bind(this));
-    this.canvas.removeEventListener("mouseup", this.onMouseUp.bind(this));
-    this.canvas.removeEventListener("mouseleave", this.onMouseLeave.bind(this));
+    this.canvas.removeEventListener("wheel", this._onWheel);
+    this.canvas.removeEventListener("mousedown", this._onMouseDown);
+    this.canvas.removeEventListener("mousemove", this._onMouseMove);
+    this.canvas.removeEventListener("mouseup", this._onMouseUp);
+    this.canvas.removeEventListener("mouseleave", this._onMouseLeave);
   }
 }
 
@@ -1407,6 +1419,10 @@ export class App {
 
   getState(): AppState {
     return { ...this.state };
+  }
+
+  saveState(): void {
+    setState(this.getState() as any).catch(() => {});
   }
 
   freeze(): void {
@@ -1730,6 +1746,7 @@ export class App {
     } else {
       this.engine?.stop();
     }
+    this.saveState();
   }
 
   private selectAstronomer(idx: number): void {
@@ -1742,6 +1759,7 @@ export class App {
     this.engine?.setModel(astro.planets, astro.modelType);
     this.engine?.setOrbitsVisible(this.state.wcag.orbitsVisible);
     this.engine?.setReduceMotion(this.state.wcag.reduceMotion);
+    this.saveState();
   }
 
   // ─── BIOGRAPHY POPUP ──────────────────────────────────────────
@@ -2068,6 +2086,7 @@ export class App {
       this.onboardingOverlay.classList.remove("ku-visible");
       this.onboardingOverlay.innerHTML = "";
     }
+    this.saveState();
   }
 
   // ─── SETTINGS ─────────────────────────────────────────────────
@@ -2138,6 +2157,15 @@ export class App {
       });
     }));
 
+    // Reduce motion
+    grid.appendChild(this.buildSettingsRow("🎞️ Redukcja ruchu", () => {
+      return this.buildToggle(w.reduceMotion, (v) => {
+        w.reduceMotion = v;
+        this.engine?.setReduceMotion(v);
+        this.applyWcag();
+      });
+    }));
+
     // Color filter
     grid.appendChild(this.buildSettingsRow("🎨 Filtr kolorów", () => {
       const sel = document.createElement("select");
@@ -2173,7 +2201,7 @@ export class App {
     const saveBtn = document.createElement("button");
     saveBtn.className = "ku-btn ku-btn-gold";
     saveBtn.textContent = "ZAPISZ";
-    saveBtn.addEventListener("click", () => { playClick(); this.closeOverlay(); });
+    saveBtn.addEventListener("click", () => { playClick(); this.applyWcag(); this.saveState(); this.closeOverlay(); });
 
     footer.appendChild(saveBtn);
     panel.appendChild(footer);
